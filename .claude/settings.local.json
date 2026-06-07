@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(node -e \"const d=require\\('./data/logos.json'\\); console.log\\('logos count:', d.length, '| sample:', d[0]?.name, d[d.length-1]?.name\\)\")"
-    ]
-  }
-}
