@@ -79,25 +79,37 @@ function saveUsers(users) {
 // ─── Auth Routes ──────────────────────────────────────────────────────────────
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ success: false, error: "Username and password required" });
+  if (!username) {
+    return res.status(400).json({ success: false, error: "Benutzername erforderlich." });
   }
 
   const users = loadUsers();
   const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
 
   if (!user) {
-    return res.status(401).json({ success: false, error: "Invalid username or password" });
+    return res.status(401).json({ success: false, error: "Unbekannter Benutzer." });
+  }
+
+  // First login: skip password check, log in immediately
+  if (!user.passwordChanged) {
+    req.session.username = user.username;
+    req.session.save();
+    return res.json({ success: true, username: user.username, passwordChanged: false });
+  }
+
+  // Returning user: reveal password field if not provided yet
+  if (!password) {
+    return res.json({ success: false, needsPassword: true });
   }
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) {
-    return res.status(401).json({ success: false, error: "Invalid username or password" });
+    return res.status(401).json({ success: false, error: "Falsches Passwort." });
   }
 
   req.session.username = user.username;
   req.session.save();
-  return res.json({ success: true, username: user.username, passwordChanged: user.passwordChanged });
+  return res.json({ success: true, username: user.username, passwordChanged: true });
 });
 
 app.post("/api/change-password", async (req, res) => {
