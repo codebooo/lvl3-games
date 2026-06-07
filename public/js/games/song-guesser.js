@@ -297,13 +297,13 @@
 
     if (data.winners && data.winners.length > 0) {
       var winnerStr = data.winners.join(" & ");
-      if (title)    title.textContent    = data.winners.includes(me) ? "Du gewinnst! 🎉" : winnerStr + " gewinnt!";
+      if (title)    title.textContent    = data.winners.includes(me) ? "Du gewinnst!" : winnerStr + " gewinnt!";
       if (subtitle) subtitle.textContent = winnerStr + " mit " + data.topScore + " Punkten";
     }
 
     if (finalScores && data.scores) {
       var entries = Object.entries(data.scores).sort(function (a, b) { return b[1] - a[1]; });
-      var medals  = ["🥇","🥈","🥉"];
+      var medals  = ["1.","2.","3."];
       finalScores.innerHTML = entries.map(function (e, i) {
         return '<div class="final-score-row">' +
           '<div style="display:flex;align-items:center;gap:8px">' +

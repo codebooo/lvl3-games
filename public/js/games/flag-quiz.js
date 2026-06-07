@@ -374,7 +374,7 @@
     var scoresEl = document.getElementById("end-final-scores");
     if (scoresEl) {
       scoresEl.innerHTML = (data.scores || []).map(function (row, i) {
-        var medal = ["🥇","🥈","🥉"][i] || (i + 1) + ".";
+        var medal = ["1.","2.","3."][i] || (i + 1) + ".";
         return '<div class="final-score-row' + (i === 0 ? " first-place" : "") + '">' +
           '<div style="display:flex;align-items:center;gap:8px">' +
           '<span style="font-size:16px;min-width:24px">' + medal + '</span>' +

@@ -12,9 +12,9 @@
   var revealInterval = null;
 
   var CATEGORY_LABELS = {
-    movie:  { label: "Film",          icon: "🎬", cls: "movie"  },
-    series: { label: "Serie",         icon: "📺", cls: "series" },
-    actor:  { label: "Schauspieler",  icon: "🎭", cls: "actor"  }
+    movie:  { label: "Film",          cls: "movie"  },
+    series: { label: "Serie",         cls: "series" },
+    actor:  { label: "Schauspieler",  cls: "actor"  }
   };
 
   // ─── DOM helpers ───────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@
     if (!el) return;
     var info = CATEGORY_LABELS[type] || CATEGORY_LABELS.movie;
     el.className = "category-badge " + info.cls;
-    el.textContent = info.icon + " " + info.label;
+    el.textContent = info.label;
   }
 
   // ─── Poster with fallback ───────────────────────────────────────────────────
@@ -57,9 +57,7 @@
     var fb  = $(fallbackId);
     if (!img || !fb) return;
 
-    // reset fallback icon based on type
-    var icons = { movie: "🎬", series: "📺", actor: "🎭" };
-    fb.textContent = icons[type] || "🎬";
+    fb.textContent = "?";
 
     if (url) {
       img.style.display = "block";
@@ -362,7 +360,7 @@
       fs.innerHTML = data.finalScores.map(function (row, i) {
         return '<div class="final-score-row' + (i === 0 ? " first-place" : "") + '">' +
           '<div class="flex items-center" style="gap:10px;align-items:center">' +
-          '<span style="font-size:18px">' + (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + ".") + '</span>' +
+          '<span style="font-size:18px">' + (i + 1) + "." + '</span>' +
           '<div class="player-avatar" style="background:' + window.lvl3.avatarColor(row.username) + ';width:28px;height:28px;font-size:12px">' + window.lvl3.avatarInitial(row.username) + '</div>' +
           '<span style="font-weight:600">' + row.username + '</span>' +
           '</div>' +
