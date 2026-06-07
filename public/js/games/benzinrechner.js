@@ -89,9 +89,9 @@
    * @returns {{ oilMl: number, petrolMl: number, totalMl: number }}
    */
   function calculate(liters, oilPct) {
-    const totalMl  = liters * 1000;
-    const oilMl    = roundToHalf(totalMl * (oilPct / 100));
-    const petrolMl = totalMl - oilMl;
+    const petrolMl = liters * 1000;
+    const oilMl    = roundToHalf(petrolMl * (oilPct / 100));
+    const totalMl  = petrolMl + oilMl;
     return { oilMl, petrolMl, totalMl };
   }
 
