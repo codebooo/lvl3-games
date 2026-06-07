@@ -97,7 +97,8 @@ window.lvl3 = (function () {
     }
   }
 
-  const socket = io();
+  // Skip HTTP polling handshake — go straight to WebSocket (saves 2 round trips)
+  const socket = io({ transports: ["websocket", "polling"], upgrade: true });
 
   return {
     socket,

@@ -1,8 +1,10 @@
 const express = require("express");
 const http = require("http");
+const https = require("https");
 const { Server } = require("socket.io");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
+const compression = require("compression");
 const fs = require("fs");
 const path = require("path");
 
@@ -10,13 +12,26 @@ const path = require("path");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
+  cors: { origin: "*", methods: ["GET", "POST"] },
+  transports: ["websocket", "polling"],
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  perMessageDeflate: { threshold: 512 }
 });
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
+app.use(compression({ level: 6, threshold: 512 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"), {
+  maxAge: "1d",
+  etag: true,
+  lastModified: true,
+  setHeaders(res, filePath) {
+    // Don't cache HTML — always fetch fresh so game updates land immediately
+    if (filePath.endsWith(".html")) res.setHeader("Cache-Control", "no-cache");
+  }
+}));
 
 const sessionMiddleware = session({
   secret: "lvl3games_s3cr3t_2024",
@@ -264,8 +279,20 @@ io.on("connection", (socket) => {
   });
 });
 
+// ─── Health Check ─────────────────────────────────────────────────────────────
+app.get("/api/health", (req, res) => res.json({ ok: true, uptime: process.uptime() }));
+
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Lvl 3 Games server running on port ${PORT} — http://localhost:${PORT}`);
+
+  // Keep Render free tier alive — ping self every 14 minutes to prevent spin-down
+  if (process.env.RENDER_EXTERNAL_URL) {
+    const keepAliveUrl = process.env.RENDER_EXTERNAL_URL + "/api/health";
+    setInterval(() => {
+      https.get(keepAliveUrl, (r) => r.resume()).on("error", () => {});
+    }, 14 * 60 * 1000);
+    console.log("Keep-alive enabled →", keepAliveUrl);
+  }
 });
