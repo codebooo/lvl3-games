@@ -12,8 +12,13 @@ function getMoviesData() {
 const COUNTDOWN_SECS   = 3;
 const QUESTION_SECS    = 25;
 const REVEAL_SECS      = 4;
-const POINTS_CORRECT   = 100;
-const POINTS_FAST_BONUS = 50; // extra if answered in first half of timer
+const BASE_POINTS      = [10, 5, 3, 1];
+
+function calcPoints(position, secondsLeft, timeLimit) {
+  const timeLeft = Math.max(0, secondsLeft);
+  const base = BASE_POINTS[Math.min(position, 3)];
+  return Math.max(1, Math.round(base * Math.max(0.1, timeLeft / timeLimit)));
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function shuffle(arr) {
@@ -146,10 +151,10 @@ module.exports = function (socket, io, rooms) {
     if (isCorrect(answer, item)) {
       gd.answeredThisRound[socket.username] = true;
 
-      // fast-answer bonus: check remaining time
-      const elapsed = QUESTION_SECS - (gd.secondsLeft || 0);
-      const bonus = elapsed < QUESTION_SECS / 2 ? POINTS_FAST_BONUS : 0;
-      const gained = POINTS_CORRECT + bonus;
+      // time + position based scoring
+      const position = gd.correctCount || 0;
+      gd.correctCount = position + 1;
+      const gained = calcPoints(position, gd.secondsLeft || 0, QUESTION_SECS);
 
       gd.scores[socket.username] = (gd.scores[socket.username] || 0) + gained;
 
@@ -201,6 +206,7 @@ module.exports = function (socket, io, rooms) {
     }
 
     gd.answeredThisRound = {};
+    gd.correctCount = 0;
     gd.secondsLeft = QUESTION_SECS;
 
     io.to(code).emit("game:state", {

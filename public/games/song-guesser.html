@@ -282,11 +282,14 @@
 
   <!-- Header -->
   <div class="page-header">
-    <a href="/dashboard.html" class="btn btn-secondary btn-sm">← Zurück</a>
-    <div class="logo-text" style="font-size:22px">🎵 Song Guesser</div>
-    <div id="header-user" style="display:flex;align-items:center;gap:8px">
-      <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
-      <span id="user-name" style="font-weight:600"></span>
+    <a href="/dashboard.html" class="logo-text">LVL<span>³</span></a>
+    <div class="flex items-center gap-4">
+      <span style="color:var(--text-dim);font-size:13px;text-transform:uppercase;letter-spacing:1px">Song Guesser</span>
+      <div id="header-user" class="flex items-center gap-2">
+        <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px;border:2px solid var(--border-thick)"></div>
+        <span id="user-name" style="font-weight:700;font-size:14px"></span>
+      </div>
+      <a href="/dashboard.html" class="btn btn-secondary btn-sm">Verlassen</a>
     </div>
   </div>
 
@@ -341,13 +344,8 @@
         </div>
 
         <div class="settings-row">
-          <span class="settings-label">Punkte zum Sieg</span>
-          <div style="display:flex;gap:8px">
-            <button class="diff-btn" data-pts="5"  onclick="setPoints(5)">5</button>
-            <button class="diff-btn active-normal" data-pts="10" onclick="setPoints(10)">10</button>
-            <button class="diff-btn" data-pts="15" onclick="setPoints(15)">15</button>
-            <button class="diff-btn" data-pts="20" onclick="setPoints(20)">20</button>
-          </div>
+          <span class="settings-label">Punkte zum Sieg (max 1000)</span>
+          <input type="number" id="inp-points" class="input-field" min="1" max="1000" value="10" style="max-width:120px" onchange="setPoints()" oninput="setPoints()">
         </div>
       </div>
 

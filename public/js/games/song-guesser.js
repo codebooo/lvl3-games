@@ -54,13 +54,11 @@
         btn.classList.add("active-" + currentSettings.difficulty);
       }
     });
-    // Points buttons
-    document.querySelectorAll(".diff-btn[data-pts]").forEach(function (btn) {
-      btn.classList.remove("active-easy", "active-normal", "active-hard");
-      if (parseInt(btn.dataset.pts, 10) === currentSettings.pointsToWin) {
-        btn.classList.add("active-normal");
-      }
-    });
+    // Points number input
+    var inpPts = document.getElementById("inp-points");
+    if (inpPts && document.activeElement !== inpPts) {
+      inpPts.value = currentSettings.pointsToWin || 10;
+    }
   }
 
   function updateHostUI() {
@@ -95,10 +93,11 @@
     socket.emit("game:settings", { difficulty: diff });
   };
 
-  window.setPoints = function (pts) {
+  window.setPoints = function () {
     if (!isHost) return;
+    var inp = document.getElementById("inp-points");
+    var pts = Math.min(1000, Math.max(1, parseInt(inp && inp.value, 10) || 10));
     currentSettings.pointsToWin = pts;
-    applySettings(currentSettings);
     socket.emit("game:settings", { pointsToWin: pts });
   };
 
@@ -430,13 +429,7 @@
     switch (data.phase) {
       case "lobby":
         showScreen("screen-lobby");
-        if (data.scores) {
-          // Reset score display
-          document.querySelectorAll(".diff-btn[data-pts]").forEach(function (b) {
-            b.classList.remove("active-normal");
-            if (parseInt(b.dataset.pts, 10) === currentSettings.pointsToWin) b.classList.add("active-normal");
-          });
-        }
+        applySettings(currentSettings);
         break;
 
       case "countdown":

@@ -50,7 +50,7 @@
 
   var selDifficulty = document.getElementById("sel-difficulty");
   var selMode       = document.getElementById("sel-mode");
-  var selPoints     = document.getElementById("sel-points");
+  var selPoints     = document.getElementById("inp-points");
 
   var LETTERS = ["A", "B", "C", "D"];
 
@@ -87,7 +87,7 @@
     socket.emit("game:settings", {
       difficulty: selDifficulty.value,
       mode: selMode.value,
-      pointsToWin: selPoints.value
+      pointsToWin: Math.min(1000, Math.max(1, parseInt(selPoints.value, 10) || 10))
     });
   }
 

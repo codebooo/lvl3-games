@@ -149,7 +149,7 @@
     socket.emit("game:settings", {
       category:    $("setting-category")   ? $("setting-category").value   : "mixed",
       difficulty:  $("setting-difficulty") ? $("setting-difficulty").value : "normal",
-      pointsToWin: $("setting-points")     ? parseInt($("setting-points").value, 10) : 10
+      pointsToWin: $("setting-points")     ? Math.min(1000, Math.max(1, parseInt($("setting-points").value, 10) || 10)) : 10
     });
   };
 

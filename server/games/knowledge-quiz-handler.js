@@ -83,6 +83,14 @@ function shuffle(arr) {
 }
 
 const TIMER_SECONDS = { easy: 20, normal: 15, hard: 10 };
+const BASE_POINTS = [10, 5, 3, 1];
+
+function calcPoints(position, roundStartTime, timeLimit) {
+  const elapsed = (Date.now() - roundStartTime) / 1000;
+  const timeLeft = Math.max(0, timeLimit - elapsed);
+  const base = BASE_POINTS[Math.min(position, 3)];
+  return Math.max(1, Math.round(base * Math.max(0.1, timeLeft / timeLimit)));
+}
 
 // ─── Fetch more questions from Open Trivia DB ─────────────────────────────────
 function fetchOpentdbQuestions(difficulty) {
@@ -205,11 +213,14 @@ module.exports = function (socket, io, rooms) {
       // Only the first correct answer wins the round
       if (isCorrect && !gd.roundWinner) {
         gd.roundWinner = socket.username;
-        gd.scores[socket.username] = (gd.scores[socket.username] || 0) + 1;
+        const pts = calcPoints(0, gd.roundStartTime, gd.timeLimit || 15);
+        gd.scores[socket.username] = (gd.scores[socket.username] || 0) + pts;
+        gd.lastPoints = { [socket.username]: pts };
         clearTimer(gd);
 
         io.to(code).emit("game:correct", {
           winner: socket.username,
+          points: pts,
           answer: q.a,
           scores: gd.scores
         });
@@ -224,6 +235,10 @@ module.exports = function (socket, io, rooms) {
       // MC mode — record each player's answer once
       if (gd.roundAnswers[socket.username] !== undefined) return;
       gd.roundAnswers[socket.username] = answer;
+      if (isCorrect) {
+        if (!gd.correctOrder) gd.correctOrder = [];
+        gd.correctOrder.push(socket.username);
+      }
 
       // Check if all players have answered
       const allAnswered = room.players.every(p => gd.roundAnswers[p] !== undefined);
@@ -269,8 +284,11 @@ module.exports = function (socket, io, rooms) {
     gd.phase = "question";
     gd.roundAnswers = {};
     gd.roundWinner = null;
+    gd.correctOrder = [];
 
     const timeLimit = TIMER_SECONDS[room.settings.difficulty] || 15;
+    gd.timeLimit = timeLimit;
+    gd.roundStartTime = Date.now();
 
     io.to(code).emit("game:state", {
       phase: "question",
@@ -319,16 +337,15 @@ module.exports = function (socket, io, rooms) {
     // Award points in MC mode
     const pointsAwarded = {};
     if (gd.mode === "mc") {
-      room.players.forEach(p => {
-        if (normaliseAnswer(gd.roundAnswers[p] || "") === normaliseAnswer(q.a)) {
-          gd.scores[p] = (gd.scores[p] || 0) + 1;
-          pointsAwarded[p] = 1;
-        }
+      (gd.correctOrder || []).forEach((p, position) => {
+        const pts = calcPoints(position, gd.roundStartTime, gd.timeLimit || 15);
+        gd.scores[p] = (gd.scores[p] || 0) + pts;
+        pointsAwarded[p] = pts;
       });
     } else {
-      // Typing mode winner was already recorded in game:answer
-      if (gd.roundWinner) {
-        pointsAwarded[gd.roundWinner] = 1;
+      // Typing mode winner was already scored in game:answer
+      if (gd.roundWinner && gd.lastPoints) {
+        pointsAwarded[gd.roundWinner] = gd.lastPoints[gd.roundWinner] || 1;
       }
     }
 

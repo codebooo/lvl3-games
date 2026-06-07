@@ -24,6 +24,7 @@ const FALLBACK_LOGOS = [
 ];
 
 const TIME_LIMITS = { easy: 20, normal: 15, hard: 10 };
+const BASE_POINTS = [10, 5, 3, 1];
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -89,7 +90,10 @@ module.exports = function (socket, io, rooms) {
       scores: {},
       timerId: null,
       difficulty,
-      phase: "countdown"
+      phase: "countdown",
+      roundStartTime: null,
+      answeredCorrectly: [],
+      answeredThisRound: new Set()
     };
 
     // Initialise scores for every player currently in the room
@@ -114,33 +118,39 @@ module.exports = function (socket, io, rooms) {
     const logo = gd.logos[gd.index];
     if (!logo) return;
 
+    // One answer per player per round
+    if (!gd.answeredThisRound) gd.answeredThisRound = new Set();
+    if (gd.answeredThisRound.has(socket.username)) return;
+
     if (checkAnswer(answer, logo)) {
-      // Stop the round timer
-      if (gd.timerId) {
-        clearTimeout(gd.timerId);
-        gd.timerId = null;
-      }
+      gd.answeredThisRound.add(socket.username);
 
-      gd.phase = "answer-reveal";
+      const timeLimit = TIME_LIMITS[gd.difficulty] || 15;
+      const position = gd.answeredCorrectly.length;
+      const elapsed = (Date.now() - gd.roundStartTime) / 1000;
+      const timeLeft = Math.max(0, timeLimit - elapsed);
+      const pts = Math.max(1, Math.round(BASE_POINTS[Math.min(position, 3)] * Math.max(0.1, timeLeft / timeLimit)));
 
-      // Update score
       if (gd.scores[socket.username] == null) gd.scores[socket.username] = 0;
-      gd.scores[socket.username]++;
+      gd.scores[socket.username] += pts;
+      gd.answeredCorrectly.push(socket.username);
 
       io.to(code).emit("game:correct", {
         winner: socket.username,
+        points: pts,
         answer,
         correctAnswer: logo.name,
         scores: gd.scores
       });
 
-      // Check win condition
-      const ptw = room.settings.pointsToWin || 10;
-      if (gd.scores[socket.username] >= ptw) {
-        setTimeout(() => gameEnd(code, room), 2000);
-      } else {
-        setTimeout(() => nextRound(code, room), 2000);
+      // End round only when all players have answered correctly
+      if (gd.answeredCorrectly.length >= room.players.length) {
+        if (gd.timerId) { clearTimeout(gd.timerId); gd.timerId = null; }
+        endRoundLogo(code, room);
       }
+    } else {
+      // wrong — allow retry, no lockout
+      socket.emit("game:wrong", { player: socket.username });
     }
   });
 
@@ -171,12 +181,16 @@ module.exports = function (socket, io, rooms) {
     const timeLimit = TIME_LIMITS[gd.difficulty] || 15;
 
     gd.phase = "question";
+    gd.roundStartTime = Date.now();
+    gd.answeredCorrectly = [];
+    gd.answeredThisRound = new Set();
 
     io.to(code).emit("game:state", {
       phase: "question",
       logo: {
         id: gd.index,
         imageUrl: "https://logo.clearbit.com/" + logo.domain,
+        fallbackUrl: "https://img.logo.dev/" + logo.domain + "?token=pk_X0RtLpQiT6Z9mxqUjV3wvQ",
         difficulty: logo.difficulty
       },
       timeLimit,
@@ -189,17 +203,32 @@ module.exports = function (socket, io, rooms) {
     gd.timerId = setTimeout(() => {
       if (!rooms.has(code)) return;
       if (gd.phase !== "question") return;
-
-      gd.phase = "timeout";
-
-      io.to(code).emit("game:state", {
-        phase: "timeout",
-        correctAnswer: logo.name,
-        scores: gd.scores
-      });
-
-      setTimeout(() => nextRound(code, room), 2500);
+      endRoundLogo(code, room);
     }, (timeLimit + 1) * 1000);
+  }
+
+  function endRoundLogo(code, room) {
+    if (!rooms.has(code)) return;
+    const gd = room.gameData;
+    if (gd.timerId) { clearTimeout(gd.timerId); gd.timerId = null; }
+    gd.phase = "timeout";
+
+    const logo = gd.logos[gd.index];
+
+    io.to(code).emit("game:state", {
+      phase: "timeout",
+      correctAnswer: logo.name,
+      scores: gd.scores
+    });
+
+    // Check win condition
+    const ptw = room.settings.pointsToWin || 10;
+    const someoneWon = Object.values(gd.scores).some(s => s >= ptw);
+    if (someoneWon) {
+      setTimeout(() => gameEnd(code, room), 2500);
+    } else {
+      setTimeout(() => nextRound(code, room), 2500);
+    }
   }
 
   function nextRound(code, room) {

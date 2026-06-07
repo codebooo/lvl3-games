@@ -34,7 +34,7 @@ function fetchSongs(difficulty, callback) {
           .map(t => ({
             title: t.trackName,
             artist: t.artistName,
-            previewUrl: t.previewUrl,
+            previewUrl: (t.previewUrl || "").replace(/^http:\/\//i, "https://"),
             albumArt: t.artworkUrl100
           }));
         callback(null, songs);

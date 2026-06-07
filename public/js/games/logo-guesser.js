@@ -212,7 +212,7 @@
     if (!isHost) return;
     socket.emit("game:settings", {
       difficulty:   elSelectDiff.value,
-      pointsToWin:  parseInt(elInputPoints.value, 10) || 10
+      pointsToWin:  Math.min(1000, Math.max(1, parseInt(elInputPoints.value, 10) || 10))
     });
   }
 
@@ -315,7 +315,12 @@
 
       answerSubmitted = false;
 
-      // Logo
+      // Logo (with fallback chain)
+      var _fallback1 = data.logo.fallbackUrl || '/img/logo-fallback.svg';
+      elLogoImg.onerror = function() {
+        elLogoImg.onerror = function() { elLogoImg.onerror = null; elLogoImg.src = '/img/logo-fallback.svg'; };
+        elLogoImg.src = _fallback1;
+      };
       elLogoImg.src = data.logo.imageUrl;
       elLogoImg.alt = "Logo";
 
@@ -354,10 +359,7 @@
 
   // ── game:correct ─────────────────────────────────────────────
   socket.on("game:correct", function (data) {
-    clearTimer();
-    elTimerBar.style.width = "0%";
-    setAnswerEnabled(false);
-
+    // Don't clear timer — round continues for other players
     if (data.scores) currentScores = data.scores;
     updateGamePlayerList();
 
@@ -366,9 +368,22 @@
 
     elCorrectBanner.className = "correct-banner show-correct";
     if (isSelf) {
-      elCorrectBanner.textContent = "Richtig! Du hast es gewusst! (" + data.correctAnswer + ")";
+      elCorrectBanner.textContent = "Richtig! +" + (data.points || 1) + " Punkte! (" + data.correctAnswer + ")";
     } else {
-      elCorrectBanner.textContent = data.winner + " war zuerst! Richtige Antwort: " + data.correctAnswer;
+      elCorrectBanner.textContent = data.winner + " war zuerst! (+" + (data.points || 1) + " Punkte)";
+    }
+  });
+
+  // ── game:wrong ───────────────────────────────────────────────
+  socket.on("game:wrong", function () {
+    // Allow retry while round still running
+    if (currentPhase !== "question") return;
+    answerSubmitted = false;
+    setAnswerEnabled(true);
+    window.lvl3.playSound("wrong");
+    if (elAnswerInput) {
+      elAnswerInput.classList.add("wrong-flash");
+      setTimeout(function () { elAnswerInput.classList.remove("wrong-flash"); }, 400);
     }
   });
 

@@ -133,12 +133,12 @@
 
   <!-- Page Header -->
   <div class="page-header">
-    <a href="/dashboard.html" class="logo-text" style="font-size:24px">LVL³</a>
+    <a href="/dashboard.html" class="logo-text">LVL<span>³</span></a>
     <div class="flex items-center gap-4">
-      <span style="color:var(--text-dim);font-size:14px">Wissens-Quiz 🧠</span>
+      <span style="color:var(--text-dim);font-size:13px;text-transform:uppercase;letter-spacing:1px">Wissens-Quiz</span>
       <div class="flex items-center gap-2">
-        <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
-        <span id="user-name" style="font-weight:600"></span>
+        <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px;border:2px solid var(--border-thick)"></div>
+        <span id="user-name" style="font-weight:700;font-size:14px"></span>
       </div>
     </div>
   </div>
@@ -180,14 +180,8 @@
             </div>
 
             <div class="form-group" style="margin-bottom:0">
-              <label class="label">Punkte zum Gewinnen</label>
-              <select id="sel-points" class="select-field">
-                <option value="5">5 Punkte</option>
-                <option value="10" selected>10 Punkte</option>
-                <option value="15">15 Punkte</option>
-                <option value="20">20 Punkte</option>
-                <option value="30">30 Punkte</option>
-              </select>
+              <label class="label">Punkte zum Gewinnen (max 1000)</label>
+              <input type="number" id="inp-points" class="input-field" min="1" max="1000" value="10">
             </div>
 
           </div>

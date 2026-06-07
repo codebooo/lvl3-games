@@ -33,7 +33,7 @@
       padding: 0 20px;
       height: 64px;
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 2px solid var(--border-thick);
       position: sticky;
       top: 0;
       z-index: 20;
@@ -238,10 +238,13 @@
 
 <!-- Header -->
 <div class="page-header">
-  <a href="/dashboard.html" class="logo-text" style="font-size:22px;text-decoration:none">LVL³</a>
-  <div class="flex items-center gap-2" style="gap:12px">
-    <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
-    <span id="user-name" style="font-weight:600;font-size:14px"></span>
+  <a href="/dashboard.html" class="logo-text">LVL<span>³</span></a>
+  <div class="flex items-center gap-4">
+    <span style="color:var(--text-dim);font-size:13px;text-transform:uppercase;letter-spacing:1px">Filme &amp; Schauspieler</span>
+    <div class="flex items-center gap-2">
+      <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px;border:2px solid var(--border-thick)"></div>
+      <span id="user-name" style="font-weight:700;font-size:14px"></span>
+    </div>
     <button onclick="leaveRoom()" class="btn btn-secondary btn-sm">Verlassen</button>
   </div>
 </div>
@@ -312,15 +315,8 @@
           </div>
           <div class="settings-grid">
             <div class="setting-block">
-              <label>Punkte zum Sieg</label>
-              <select id="setting-points" class="input-field" onchange="pushSettings()">
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-                <option value="30">30</option>
-                <option value="50">50</option>
-              </select>
+              <label>Punkte zum Sieg (max 1000)</label>
+              <input type="number" id="setting-points" class="input-field" min="1" max="1000" value="10" onchange="pushSettings()">
             </div>
           </div>
           <button onclick="startGame()" id="start-btn" class="btn btn-primary btn-full mt-4">Spiel starten</button>

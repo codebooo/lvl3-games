@@ -205,14 +205,14 @@
 
   <!-- Header -->
   <div class="page-header">
-    <div class="logo-text" style="font-size:24px">LVL³</div>
-    <div style="font-size:18px;font-weight:700">🏷️ Logo Guesser</div>
+    <a href="/dashboard.html" class="logo-text">LVL<span>³</span></a>
     <div class="flex items-center gap-4">
+      <span style="color:var(--text-dim);font-size:13px;text-transform:uppercase;letter-spacing:1px">Logo Guesser</span>
       <div class="flex items-center gap-2">
-        <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
-        <span id="user-name" style="font-weight:600;font-size:14px"></span>
+        <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px;border:2px solid var(--border-thick)"></div>
+        <span id="user-name" style="font-weight:700;font-size:14px"></span>
       </div>
-      <a href="/dashboard.html" class="btn btn-secondary btn-sm">← Zurück</a>
+      <a href="/dashboard.html" class="btn btn-secondary btn-sm">Verlassen</a>
     </div>
   </div>
 
@@ -279,8 +279,8 @@
               </div>
 
               <div class="form-group">
-                <label class="label">Punkte zum Sieg</label>
-                <input id="input-points" class="input-field" type="number" min="3" max="50" value="10">
+                <label class="label">Punkte zum Sieg (max 1000)</label>
+                <input id="input-points" class="input-field" type="number" min="1" max="1000" value="10">
               </div>
 
               <button id="btn-start" class="btn btn-success w-full" disabled>
@@ -335,7 +335,7 @@
 
             <!-- Logo display -->
             <div class="logo-display" id="logo-display">
-              <img id="logo-img" class="logo-img" src="" alt="Logo" onerror="this.src='/img/logo-fallback.png'">
+              <img id="logo-img" class="logo-img" src="" alt="Logo" onerror="this.onerror=null;this.src='/img/logo-fallback.svg'">
             </div>
 
             <!-- Answer input -->
