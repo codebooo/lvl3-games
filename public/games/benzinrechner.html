@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Benzinrechner - Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/games.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="flex items-center gap-4">
+      <a href="/dashboard.html" class="btn btn-secondary btn-sm">&#8592; Zurück</a>
+      <span style="font-weight:700;font-size:18px">Benzinrechner &#9981;</span>
+    </div>
+    <div class="logo-text" style="font-size:24px">LVL³</div>
+  </div>
+
+  <!-- Main -->
+  <div class="benzin-layout" style="padding:40px 20px">
+
+    <!-- Title Card -->
+    <div class="card" style="margin-bottom:20px;text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">&#9981;</div>
+      <h1 style="font-size:26px;margin-bottom:6px">2-Takt Mischungsrechner</h1>
+      <p style="color:var(--text-dim);font-size:15px">Für Mofas und andere 2-Takt Motoren</p>
+    </div>
+
+    <!-- Inputs Card -->
+    <div class="card" style="margin-bottom:20px;text-align:left">
+      <h2 style="font-size:16px;margin-bottom:20px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Eingabe</h2>
+
+      <!-- Tank volume -->
+      <div class="form-group">
+        <label class="label" for="tank-volume">Tankvolumen (Liter)</label>
+        <input
+          id="tank-volume"
+          type="number"
+          class="input-field"
+          min="0.5"
+          max="20"
+          step="0.1"
+          value="1"
+          placeholder="z.B. 3.5"
+        >
+      </div>
+
+      <!-- Oil ratio -->
+      <div class="form-group">
+        <label class="label" for="oil-ratio">Mischungsverhältnis</label>
+        <div style="position:relative">
+          <select id="oil-ratio" class="select-field">
+            <option value="4">1:25 (4%) — Sport / Einfahren</option>
+            <option value="2" selected>1:50 (2%) — Standard</option>
+            <option value="1">1:100 (1%) — Modern / sparsam</option>
+            <option value="custom">Benutzerdefiniert</option>
+          </select>
+          <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-dim)">&#9660;</div>
+        </div>
+      </div>
+
+      <!-- Custom percentage (hidden by default) -->
+      <div class="form-group hidden" id="custom-group">
+        <label class="label" for="custom-pct">Eigener Prozentsatz (%)</label>
+        <input
+          id="custom-pct"
+          type="number"
+          class="input-field"
+          min="0.5"
+          max="10"
+          step="0.1"
+          value="2"
+          placeholder="z.B. 2.5"
+        >
+        <div style="font-size:12px;color:var(--text-dim);margin-top:6px">Zwischen 0.5% und 10%</div>
+      </div>
+
+      <!-- Petrol price -->
+      <div class="form-group" style="margin-bottom:0">
+        <label class="label" for="petrol-price">Benzinpreis Super E5 (€/Liter) <span style="font-weight:400;opacity:0.6">optional</span></label>
+        <input
+          id="petrol-price"
+          type="number"
+          class="input-field"
+          min="0"
+          max="5"
+          step="0.01"
+          value="1.79"
+          placeholder="z.B. 1.79"
+        >
+      </div>
+    </div>
+
+    <!-- Calculate Button -->
+    <button id="calc-btn" class="btn btn-primary w-full" style="margin-bottom:20px;justify-content:center;font-size:16px;padding:16px">
+      Berechnen
+    </button>
+
+    <!-- Results Card -->
+    <div class="card hidden" id="results-card" style="margin-bottom:20px;text-align:center">
+      <div style="font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);margin-bottom:4px">Benötigtes 2-Takt Öl</div>
+      <div class="benzin-result" id="result-oil-ml">— ml</div>
+      <div class="benzin-result-label" id="result-ratio-label">bei 1:50 (2%)</div>
+
+      <div class="benzin-breakdown" style="margin-top:24px">
+        <div class="benzin-stat">
+          <div class="benzin-stat-value" id="stat-oil">—</div>
+          <div class="benzin-stat-label">Öl</div>
+        </div>
+        <div class="benzin-stat">
+          <div class="benzin-stat-value" id="stat-petrol">—</div>
+          <div class="benzin-stat-label">Benzin (Super E5)</div>
+        </div>
+        <div class="benzin-stat">
+          <div class="benzin-stat-value" id="stat-total">—</div>
+          <div class="benzin-stat-label">Gesamtmenge</div>
+        </div>
+        <div class="benzin-stat" id="stat-cost-wrap">
+          <div class="benzin-stat-value" id="stat-cost">—</div>
+          <div class="benzin-stat-label">Kosten</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference Table -->
+    <div class="card hidden" id="ref-card" style="margin-bottom:20px;text-align:left">
+      <h2 style="font-size:15px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">
+        Schnellreferenz — aktuelles Verhältnis
+      </h2>
+      <div style="overflow-x:auto">
+        <table id="ref-table" style="width:100%;border-collapse:collapse;font-size:14px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="padding:8px 12px;text-align:left;color:var(--text-dim);font-weight:600">Tankgröße</th>
+              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Öl (ml)</th>
+              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Benzin (ml)</th>
+            </tr>
+          </thead>
+          <tbody id="ref-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Info Card: Common ratios -->
+    <div class="card" style="text-align:left">
+      <h2 style="font-size:15px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">
+        Häufige Mischungsverhältnisse
+      </h2>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="padding:8px 12px;text-align:left;color:var(--text-dim);font-weight:600">Verhältnis</th>
+              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Prozent</th>
+              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Auf 1 L</th>
+              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Auf 5 L</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 12px;font-weight:700;color:var(--accent)">1:25</td>
+              <td style="padding:10px 12px;text-align:right">4 %</td>
+              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">40 ml</td>
+              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">200 ml</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 12px;font-weight:700;color:var(--green)">1:50</td>
+              <td style="padding:10px 12px;text-align:right">2 %</td>
+              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">20 ml</td>
+              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">100 ml</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 12px;font-weight:700;color:var(--text-dim)">1:100</td>
+              <td style="padding:10px 12px;text-align:right">1 %</td>
+              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">10 ml</td>
+              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">50 ml</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:16px;padding:12px 14px;background:rgba(6,182,212,0.07);border-radius:var(--radius-sm);border:1px solid rgba(6,182,212,0.2);font-size:13px;color:var(--text-dim);line-height:1.6">
+        <strong style="color:var(--accent3)">Hinweis:</strong> Das richtige Mischungsverhältnis steht im Handbuch deines Mofas / Motors.
+        Zu viel Öl kann zu Ablagerungen führen, zu wenig Öl kann den Motor beschädigen.
+      </div>
+    </div>
+
+    <div style="height:40px"></div>
+
+  </div><!-- /.benzin-layout -->
+
+  <script src="/js/games/benzinrechner.js"></script>
+</body>
+</html>

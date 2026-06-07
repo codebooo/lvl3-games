@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Song Guesser – Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/games.css">
+  <style>
+    /* ── Song Guesser specific ──────────────────────────────── */
+    .sg-layout {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 700px) {
+      .sg-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Player area */
+    .sg-player {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      min-height: 340px;
+    }
+
+    /* Waveform */
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 80px;
+      width: 200px;
+    }
+    .waveform-bar {
+      width: 6px;
+      background: var(--accent);
+      border-radius: 3px;
+      height: 20px;
+      transition: height 0.1s;
+    }
+    .waveform.playing .waveform-bar:nth-child(1) { animation: wave 0.8s 0.0s infinite ease-in-out alternate; }
+    .waveform.playing .waveform-bar:nth-child(2) { animation: wave 0.8s 0.1s infinite ease-in-out alternate; }
+    .waveform.playing .waveform-bar:nth-child(3) { animation: wave 0.8s 0.2s infinite ease-in-out alternate; }
+    .waveform.playing .waveform-bar:nth-child(4) { animation: wave 0.8s 0.05s infinite ease-in-out alternate; }
+    .waveform.playing .waveform-bar:nth-child(5) { animation: wave 0.8s 0.15s infinite ease-in-out alternate; }
+    .waveform.playing .waveform-bar:nth-child(6) { animation: wave 0.8s 0.25s infinite ease-in-out alternate; }
+    .waveform.playing .waveform-bar:nth-child(7) { animation: wave 0.8s 0.05s infinite ease-in-out alternate; }
+    .waveform.playing .waveform-bar:nth-child(8) { animation: wave 0.8s 0.18s infinite ease-in-out alternate; }
+    .waveform.playing .waveform-bar:nth-child(9) { animation: wave 0.8s 0.30s infinite ease-in-out alternate; }
+    @keyframes wave {
+      from { height: 8px; }
+      to   { height: 64px; }
+    }
+
+    /* Album art */
+    .album-art {
+      width: 160px;
+      height: 160px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      display: none;
+    }
+    .album-art.visible { display: block; }
+
+    /* Song status label */
+    .song-status {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .song-status .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent3);
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* Answer input */
+    .answer-wrap {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+    }
+    .answer-wrap input {
+      flex: 1;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .answer-wrap input:focus { border-color: var(--accent); }
+    .answer-wrap input.shake {
+      animation: shake 0.3s;
+      border-color: var(--red);
+    }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-6px)}
+      75%{transform:translateX(6px)}
+    }
+
+    /* Timer bar */
+    .timer-bar-wrap {
+      width: 100%;
+      background: var(--surface);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .timer-bar {
+      height: 100%;
+      background: var(--accent3);
+      border-radius: 999px;
+      width: 100%;
+      transition: width 1s linear, background 1s;
+    }
+    .timer-bar.urgent { background: var(--red); }
+
+    /* Reveal box */
+    .reveal-box {
+      text-align: center;
+      padding: 16px;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      width: 100%;
+    }
+    .reveal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .reveal-artist {
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+    .reveal-winner {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .reveal-winner.correct { color: var(--green); }
+    .reveal-winner.timeout { color: var(--text-dim); }
+
+    /* Round counter */
+    .round-counter {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    /* Autoplay overlay */
+    .autoplay-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10,10,18,0.85);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 10;
+    }
+    .autoplay-overlay p { color: var(--text-dim); font-size: 14px; }
+
+    /* Scoreboard sidebar */
+    .sg-sidebar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .sg-sidebar h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    /* Countdown overlay */
+    .countdown-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,18,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .countdown-number {
+      font-size: 120px;
+      font-weight: 900;
+      color: var(--accent);
+      animation: popIn 0.4s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    /* Game end */
+    .game-end-card {
+      max-width: 520px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .trophy { font-size: 72px; margin-bottom: 8px; }
+    .final-scores { margin: 24px 0; }
+    .final-score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .final-score-row:last-child { border-bottom: none; }
+    .final-score-row .rank { font-size: 18px; margin-right: 12px; }
+    .final-score-name { font-weight: 600; flex: 1; text-align: left; }
+    .final-score-pts {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent3);
+    }
+
+    /* Settings panel tweaks */
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-label { font-size: 14px; color: var(--text-dim); }
+
+    .diff-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .diff-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius-xs);
+      border: 2px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .diff-btn.active-easy   { border-color: var(--green);  color: var(--green); }
+    .diff-btn.active-normal { border-color: var(--gold);   color: var(--gold);  }
+    .diff-btn.active-hard   { border-color: var(--accent); color: var(--accent);}
+
+    /* Hidden utility */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <a href="/dashboard.html" class="btn btn-secondary btn-sm">← Zurück</a>
+    <div class="logo-text" style="font-size:22px">🎵 Song Guesser</div>
+    <div id="header-user" style="display:flex;align-items:center;gap:8px">
+      <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
+      <span id="user-name" style="font-weight:600"></span>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: LOBBY ══════════════════════════════════════════════════════ -->
+  <div id="screen-lobby" class="container" style="padding-top:40px;padding-bottom:60px">
+    <div style="max-width:520px;margin:0 auto">
+      <h1 style="text-align:center;margin-bottom:8px">Song Guesser</h1>
+      <p style="text-align:center;color:var(--text-dim);margin-bottom:32px">Rate den Song in 10 Sekunden!</p>
+
+      <!-- Join / Create -->
+      <div class="card" style="margin-bottom:20px">
+        <h3 style="margin-bottom:16px">Raum</h3>
+
+        <!-- Code display (if in room) -->
+        <div id="room-info" class="hidden" style="margin-bottom:16px;text-align:center">
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">Raum-Code</div>
+          <div id="room-code-display" style="font-size:36px;font-weight:900;letter-spacing:0.1em;color:var(--accent)"></div>
+        </div>
+
+        <!-- Create / Join toggle -->
+        <div id="create-join-area">
+          <div style="display:flex;gap:12px;margin-bottom:16px">
+            <button id="btn-create" class="btn btn-primary" style="flex:1" onclick="createRoom()">Raum erstellen</button>
+            <button id="btn-join-toggle" class="btn btn-secondary" style="flex:1" onclick="toggleJoin()">Raum beitreten</button>
+          </div>
+          <div id="join-area" class="hidden">
+            <div style="display:flex;gap:10px">
+              <input id="inp-code" class="input-field" style="flex:1;text-transform:uppercase;letter-spacing:0.1em" placeholder="CODE" maxlength="4">
+              <button class="btn btn-success" onclick="joinRoom()">Beitreten</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Players -->
+        <div id="player-list-wrap" class="hidden" style="margin-top:20px">
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.08em">Spieler</div>
+          <ul id="lobby-player-list" class="player-list"></ul>
+        </div>
+      </div>
+
+      <!-- Settings (host only) -->
+      <div id="settings-card" class="card hidden" style="margin-bottom:20px">
+        <h3 style="margin-bottom:16px">Einstellungen</h3>
+
+        <div class="settings-row">
+          <span class="settings-label">Schwierigkeit</span>
+          <div class="diff-btns">
+            <button class="diff-btn active-easy" data-diff="easy"   onclick="setDifficulty('easy')">Easy</button>
+            <button class="diff-btn" data-diff="normal" onclick="setDifficulty('normal')">Normal</button>
+            <button class="diff-btn" data-diff="hard"   onclick="setDifficulty('hard')">Hard</button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <span class="settings-label">Punkte zum Sieg</span>
+          <div style="display:flex;gap:8px">
+            <button class="diff-btn" data-pts="5"  onclick="setPoints(5)">5</button>
+            <button class="diff-btn active-normal" data-pts="10" onclick="setPoints(10)">10</button>
+            <button class="diff-btn" data-pts="15" onclick="setPoints(15)">15</button>
+            <button class="diff-btn" data-pts="20" onclick="setPoints(20)">20</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Start button (host only) -->
+      <button id="btn-start" class="btn btn-primary w-full btn-lg hidden" onclick="startGame()">Spiel starten</button>
+
+      <!-- Waiting message (non-host) -->
+      <div id="waiting-msg" class="hidden" style="text-align:center;color:var(--text-dim);margin-top:16px">
+        Warte auf den Host...
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: COUNTDOWN ════════════════════════════════════════════════ -->
+  <div id="screen-countdown" class="countdown-overlay hidden">
+    <div class="countdown-number" id="countdown-num">3</div>
+  </div>
+
+  <!-- ══ SCREEN: GAME ═════════════════════════════════════════════════════ -->
+  <div id="screen-game" class="container hidden" style="padding-top:28px;padding-bottom:60px">
+    <div class="sg-layout">
+
+      <!-- Left: player + answer -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Round counter + timer -->
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="round-counter" id="round-counter">Runde 1 / 20</span>
+          <span id="timer-label" style="font-size:14px;font-weight:700;color:var(--accent3)">15s</span>
+        </div>
+        <div class="timer-bar-wrap">
+          <div class="timer-bar" id="timer-bar"></div>
+        </div>
+
+        <!-- Player card (relative for autoplay overlay) -->
+        <div class="sg-player" style="position:relative" id="player-card">
+
+          <!-- Autoplay blocked overlay (hidden by default) -->
+          <div id="autoplay-overlay" class="autoplay-overlay hidden">
+            <div style="font-size:40px">🎵</div>
+            <p>Autoplay blockiert</p>
+            <button class="btn btn-primary" onclick="unlockAudio()">Tippen zum Starten</button>
+          </div>
+
+          <!-- Waveform (shown while playing) -->
+          <div class="waveform" id="waveform">
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+          </div>
+
+          <!-- Playing label -->
+          <div class="song-status" id="song-status">
+            <div class="dot"></div>
+            <span>Läuft...</span>
+          </div>
+
+          <!-- Album art (revealed after round) -->
+          <img id="album-art" class="album-art" src="" alt="Album Art">
+
+          <!-- Reveal info -->
+          <div id="reveal-box" class="reveal-box hidden">
+            <div class="reveal-title" id="reveal-title"></div>
+            <div class="reveal-artist" id="reveal-artist"></div>
+            <div class="reveal-winner" id="reveal-winner"></div>
+          </div>
+        </div>
+
+        <!-- Answer input -->
+        <div class="answer-wrap" id="answer-wrap">
+          <input id="answer-input" type="text" placeholder="Song-Titel oder Interpret tippen..." autocomplete="off" autocorrect="off" spellcheck="false">
+          <button class="btn btn-primary" onclick="submitAnswer()">Senden</button>
+        </div>
+
+      </div>
+
+      <!-- Right: scoreboard -->
+      <div class="sg-sidebar">
+        <h3>Punkte</h3>
+        <ul id="game-player-list" class="player-list"></ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: GAME END ═════════════════════════════════════════════════ -->
+  <div id="screen-end" class="container hidden" style="padding-top:60px;padding-bottom:60px">
+    <div class="game-end-card card">
+      <div class="trophy">🏆</div>
+      <h1 id="end-title" style="font-size:28px;margin-bottom:8px">Gewinner!</h1>
+      <p id="end-subtitle" style="color:var(--text-dim);margin-bottom:4px"></p>
+
+      <div class="final-scores" id="final-scores"></div>
+
+      <button id="btn-replay" class="btn btn-primary btn-lg w-full hidden" onclick="replayGame()">Nochmal spielen</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="/js/socket-utils.js"></script>
+  <script src="/js/games/song-guesser.js"></script>
+</body>
+</html>

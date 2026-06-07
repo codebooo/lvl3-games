@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flaggen-Quiz — Lvl 3 Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/games.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <a href="/dashboard.html" class="logo-text" style="font-size:24px;text-decoration:none">LVL³</a>
+    <div class="flex items-center gap-4">
+      <span style="color:var(--text-dim);font-size:14px">Flaggen-Quiz 🚩</span>
+      <div class="flex items-center gap-2">
+        <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
+        <span id="user-name" style="font-weight:600"></span>
+      </div>
+      <button onclick="leaveRoom()" class="btn btn-secondary btn-sm">Verlassen</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ ENTRY -->
+  <div id="section-entry" class="section active container" style="padding-top:60px;max-width:520px">
+    <div style="text-align:center;margin-bottom:40px">
+      <div style="font-size:64px;margin-bottom:12px">🚩</div>
+      <h1 style="font-size:32px;margin-bottom:8px">Flaggen-Quiz</h1>
+      <p style="color:var(--text-dim)">Erkenne die Flagge — tippe den Namen als Erster!</p>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="margin-bottom:20px">Raum erstellen</h3>
+      <button id="btn-create" class="btn btn-primary w-full">Neuen Raum erstellen</button>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:20px">Raum beitreten</h3>
+      <div class="flex gap-2">
+        <input id="inp-join-code" type="text" class="input-field" placeholder="Raumcode (z.B. AB3X)" maxlength="4"
+               style="text-transform:uppercase;letter-spacing:4px;font-size:18px;font-weight:700">
+        <button id="btn-join" class="btn btn-success" style="white-space:nowrap">Beitreten</button>
+      </div>
+      <div id="join-error" class="error-msg"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ LOBBY -->
+  <div id="section-lobby" class="section container" style="padding-top:24px;padding-bottom:40px">
+    <div class="lobby-layout">
+
+      <!-- Left: settings + code -->
+      <div class="lobby-main">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+            <h2 style="font-size:22px">Lobby</h2>
+            <div class="room-code" style="font-size:32px;padding:10px 24px;letter-spacing:6px" id="lobby-code">----</div>
+          </div>
+          <p style="color:var(--text-dim);font-size:14px;margin-bottom:24px">Teile den Code mit deinen Freunden, damit sie beitreten können.</p>
+
+          <div id="settings-panel" class="settings-panel">
+            <div class="form-group">
+              <label class="label">Schwierigkeit</label>
+              <select id="sel-difficulty" class="select-field">
+                <option value="easy">Easy — 40 bekannteste Länder (20s)</option>
+                <option value="normal" selected>Normal — ~100 Länder (15s)</option>
+                <option value="hard">Hard — Alle ~195 Länder (10s)</option>
+                <option value="crazy">Bist du verrückt!? — Schwere Länder + Bundesländer/Kantone (8s)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label">Punkte zum Sieg</label>
+              <select id="sel-points" class="select-field">
+                <option value="5">5 Punkte</option>
+                <option value="10" selected>10 Punkte</option>
+                <option value="15">15 Punkte</option>
+                <option value="20">20 Punkte</option>
+                <option value="30">30 Punkte</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="btn-start" class="btn btn-success w-full btn-lg hidden" style="margin-top:8px">Spiel starten!</button>
+          <p id="waiting-msg" class="hidden" style="text-align:center;color:var(--text-dim);margin-top:12px">Warte auf den Host…</p>
+        </div>
+      </div>
+
+      <!-- Right: player list -->
+      <div class="lobby-sidebar">
+        <div class="card" style="height:100%">
+          <h3 style="margin-bottom:16px">Spieler <span id="lobby-player-count" style="color:var(--text-dim);font-size:14px;font-weight:400"></span></h3>
+          <ul id="lobby-player-list" class="player-list"></ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ COUNTDOWN -->
+  <div id="section-countdown" class="section" style="position:relative;height:calc(100vh - 65px)">
+    <div class="countdown-overlay" style="position:absolute">
+      <div id="countdown-number" class="countdown-number">3</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ GAME -->
+  <div id="section-game" class="section container" style="padding-top:16px;padding-bottom:16px">
+    <div class="game-layout">
+
+      <!-- Main game area -->
+      <div class="game-main">
+
+        <!-- Progress + timer bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span id="q-progress" style="font-size:13px;color:var(--text-dim)">Frage 1</span>
+          <div class="timer-wrap" style="gap:8px">
+            <div id="timer-display" class="timer-display" style="font-size:28px;min-width:44px">15</div>
+          </div>
+        </div>
+        <div class="timer-bar-wrap" style="margin-bottom:16px">
+          <div id="timer-bar" class="timer-bar" style="width:100%"></div>
+        </div>
+
+        <!-- Flag display -->
+        <div class="question-area">
+          <div style="margin-bottom:8px">
+            <span id="flag-region-label" style="font-size:13px;color:var(--text-dim);font-style:italic"></span>
+          </div>
+          <div class="flag-icon-xl" style="width:320px;height:213px;margin-bottom:24px">
+            <img id="flag-img" class="flag-display" src="" alt="Flagge"
+                 style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:block">
+          </div>
+
+          <!-- Answer input -->
+          <div id="answer-area">
+            <p style="color:var(--text-dim);font-size:15px;margin-bottom:16px">Welches Land / welche Region zeigt diese Flagge?</p>
+            <div class="answer-row">
+              <input id="answer-input" type="text" class="input-field" placeholder="Antwort eingeben…" autocomplete="off" autocorrect="off" spellcheck="false">
+              <button id="btn-submit" class="btn btn-primary">Senden</button>
+            </div>
+            <div id="answer-feedback" style="min-height:28px;margin-top:10px;font-size:14px;text-align:center"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar: scores -->
+      <div class="game-sidebar">
+        <div class="card" style="height:100%">
+          <h3 style="margin-bottom:16px;font-size:16px">Punkte</h3>
+          <ul id="game-player-list" class="player-list"></ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ REVEAL -->
+  <div id="section-reveal" class="section container" style="padding-top:40px">
+    <div class="game-layout">
+      <div class="game-main" style="align-items:center;justify-content:center">
+        <div class="card" style="text-align:center;max-width:480px;width:100%;margin:0 auto">
+          <div class="flag-icon-xl" style="width:280px;height:186px;margin:0 auto 20px">
+            <img id="reveal-flag-img" src="" alt="Flagge"
+                 style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:block">
+          </div>
+          <div id="reveal-answer" style="font-size:28px;font-weight:900;margin-bottom:8px"></div>
+          <div id="reveal-region" style="font-size:13px;color:var(--text-dim);margin-bottom:16px"></div>
+          <div id="reveal-winner-msg" style="font-size:16px;margin-bottom:8px"></div>
+          <p style="color:var(--text-dim);font-size:13px">Nächste Frage in Kürze…</p>
+        </div>
+      </div>
+      <div class="game-sidebar">
+        <div class="card" style="height:100%">
+          <h3 style="margin-bottom:16px;font-size:16px">Punkte</h3>
+          <ul id="reveal-player-list" class="player-list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ GAME END -->
+  <div id="section-end" class="section container" style="padding-top:60px;max-width:560px">
+    <div class="card winner-card">
+      <span class="trophy">🏆</span>
+      <p style="color:var(--text-dim);margin-bottom:4px;font-size:15px">Gewinner</p>
+      <div id="end-winner-name" class="winner-name"></div>
+      <div id="end-final-scores" class="final-scores" style="margin-top:28px"></div>
+      <button id="btn-play-again" class="btn btn-primary w-full btn-lg hidden" style="margin-top:28px">Nochmal spielen</button>
+      <a href="/dashboard.html" class="btn btn-secondary w-full" style="margin-top:12px;justify-content:center">Zum Dashboard</a>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket-utils.js"></script>
+  <script src="/js/games/flag-quiz.js"></script>
+</body>
+</html>

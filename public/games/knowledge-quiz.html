@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wissens-Quiz — Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/games.css">
+  <style>
+    .kq-category {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent3);
+      background: rgba(6,182,212,0.12);
+      border: 1px solid rgba(6,182,212,0.25);
+      border-radius: 20px;
+      padding: 3px 12px;
+      margin-bottom: 16px;
+    }
+
+    .kq-question {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.5;
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 28px;
+    }
+
+    .score-delta {
+      position: absolute;
+      right: 12px;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--green);
+      animation: scorePop 1s ease forwards;
+      pointer-events: none;
+    }
+
+    @keyframes scorePop {
+      0%   { opacity: 1; transform: translateY(0) scale(1.2); }
+      60%  { opacity: 1; transform: translateY(-24px) scale(1); }
+      100% { opacity: 0; transform: translateY(-40px) scale(0.8); }
+    }
+
+    .round-indicator {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .kq-correct-banner {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.35);
+      color: var(--green);
+    }
+
+    .kq-correct-banner.nobody {
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.3);
+      color: var(--red);
+    }
+
+    .options-grid .option-btn {
+      font-size: 15px;
+      font-weight: 600;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .option-letter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .option-btn.selected .option-letter {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .option-btn.correct .option-letter {
+      background: rgba(34,197,94,0.3);
+    }
+
+    .option-btn.wrong .option-letter {
+      background: rgba(239,68,68,0.3);
+    }
+
+    .typing-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .game-main {
+      position: relative;
+    }
+
+    .question-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <a href="/dashboard.html" class="logo-text" style="font-size:24px">LVL³</a>
+    <div class="flex items-center gap-4">
+      <span style="color:var(--text-dim);font-size:14px">Wissens-Quiz 🧠</span>
+      <div class="flex items-center gap-2">
+        <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
+        <span id="user-name" style="font-weight:600"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ LOBBY SECTION ═══════════════════════════════════════════════════════ -->
+  <div id="section-lobby" class="section active" style="padding:24px">
+    <div class="lobby-layout">
+
+      <!-- Left: Code + Settings + Players -->
+      <div class="lobby-main">
+
+        <!-- Room Code -->
+        <div class="card" style="text-align:center">
+          <p class="label" style="margin-bottom:8px">Raum-Code</p>
+          <div id="room-code-display" class="room-code">----</div>
+          <p style="font-size:13px;color:var(--text-muted);margin-top:10px">Teile diesen Code mit deinen Freunden</p>
+        </div>
+
+        <!-- Settings (host only) -->
+        <div class="card" id="settings-card">
+          <h3 style="margin-bottom:20px">Einstellungen</h3>
+          <div id="settings-panel" class="settings-panel">
+
+            <div class="form-group" style="margin-bottom:0">
+              <label class="label">Schwierigkeit</label>
+              <select id="sel-difficulty" class="select-field">
+                <option value="easy">Easy — 20s pro Frage</option>
+                <option value="normal" selected>Normal — 15s pro Frage</option>
+                <option value="hard">Hard — 10s pro Frage</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0">
+              <label class="label">Spielmodus</label>
+              <select id="sel-mode" class="select-field">
+                <option value="mc" selected>Multiple Choice</option>
+                <option value="typing">Freitext-Eingabe</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0">
+              <label class="label">Punkte zum Gewinnen</label>
+              <select id="sel-points" class="select-field">
+                <option value="5">5 Punkte</option>
+                <option value="10" selected>10 Punkte</option>
+                <option value="15">15 Punkte</option>
+                <option value="20">20 Punkte</option>
+                <option value="30">30 Punkte</option>
+              </select>
+            </div>
+
+          </div>
+          <!-- Non-host view -->
+          <div id="settings-readonly" class="hidden" style="color:var(--text-dim);font-size:14px">
+            Warte auf den Host...
+          </div>
+        </div>
+
+        <!-- Start button (host) -->
+        <div id="start-wrap">
+          <button id="btn-start" class="btn btn-success w-full btn-lg" disabled>
+            Spiel starten
+          </button>
+          <p id="waiting-msg" style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:8px"></p>
+        </div>
+
+      </div>
+
+      <!-- Right: Player List -->
+      <div class="lobby-sidebar">
+        <div class="card" style="flex:1">
+          <h3 style="margin-bottom:16px">Spieler</h3>
+          <ul id="player-list-lobby" class="player-list"></ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ GAME SECTION ════════════════════════════════════════════════════════ -->
+  <div id="section-game" class="section" style="padding:24px">
+    <div class="game-layout">
+
+      <!-- Main -->
+      <div class="game-main card" style="overflow:hidden;position:relative">
+
+        <!-- Countdown Overlay -->
+        <div id="countdown-overlay" class="countdown-overlay hidden">
+          <div id="countdown-number" class="countdown-number">3</div>
+        </div>
+
+        <!-- Question Area -->
+        <div class="question-area" id="question-area">
+
+          <!-- Timer -->
+          <div style="width:100%;margin-bottom:20px">
+            <div class="timer-bar-wrap">
+              <div id="timer-bar" class="timer-bar" style="width:100%"></div>
+            </div>
+            <div class="timer-wrap" style="margin-top:8px">
+              <span id="timer-display" class="timer-display">--</span>
+              <div class="round-indicator" id="round-indicator"></div>
+            </div>
+          </div>
+
+          <!-- Category label -->
+          <div id="category-label" class="kq-category hidden">Kategorie</div>
+
+          <!-- Correct/wrong banner (reveal phase) -->
+          <div id="reveal-banner" class="kq-correct-banner hidden"></div>
+
+          <!-- Question text -->
+          <div id="question-text" class="kq-question" style="display:none">Frage lädt...</div>
+
+          <!-- MC options -->
+          <div id="options-grid" class="options-grid hidden">
+            <button class="option-btn" id="opt-0"><span class="option-letter">A</span><span class="option-text"></span></button>
+            <button class="option-btn" id="opt-1"><span class="option-letter">B</span><span class="option-text"></span></button>
+            <button class="option-btn" id="opt-2"><span class="option-letter">C</span><span class="option-text"></span></button>
+            <button class="option-btn" id="opt-3"><span class="option-letter">D</span><span class="option-text"></span></button>
+          </div>
+
+          <!-- Typing answer -->
+          <div id="answer-row" class="answer-row hidden">
+            <input id="answer-input" type="text" class="input-field" placeholder="Antwort eingeben..." autocomplete="off" autocorrect="off">
+            <button id="btn-submit" class="btn btn-primary">Absenden</button>
+          </div>
+          <p id="typing-hint" class="typing-hint hidden">Erster richtiger Treffer gewinnt den Punkt!</p>
+
+          <!-- Waiting for players indicator (MC mode) -->
+          <div id="waiting-answers" style="display:none;margin-top:16px;color:var(--text-dim);font-size:14px;text-align:center"></div>
+
+        </div>
+      </div>
+
+      <!-- Sidebar: Scores -->
+      <div class="game-sidebar card">
+        <h3 style="margin-bottom:16px">Punkte</h3>
+        <ul id="player-list-game" class="player-list"></ul>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted)">
+          Ziel: <span id="points-to-win-display">10</span> Punkte
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ GAME END SECTION ════════════════════════════════════════════════════ -->
+  <div id="section-end" class="section" style="padding:24px;max-width:600px;margin:0 auto">
+    <div class="card winner-card">
+      <span class="trophy">🏆</span>
+      <p style="font-size:16px;color:var(--text-dim);margin-bottom:4px">Gewinner</p>
+      <div id="winner-name" class="winner-name">---</div>
+      <div class="final-scores" id="final-scores"></div>
+      <div style="margin-top:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button id="btn-play-again" class="btn btn-primary">Nochmal spielen</button>
+        <a href="/dashboard.html" class="btn btn-secondary">Zurück</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket-utils.js"></script>
+  <script src="/js/games/knowledge-quiz.js"></script>
+</body>
+</html>

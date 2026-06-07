@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lvl 3 Games - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="logo-text" style="font-size:28px">LVL³</div>
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
+        <span id="user-name" style="font-weight:600"></span>
+      </div>
+      <button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container" style="padding-top:40px;padding-bottom:60px">
+
+    <div style="text-align:center;margin-bottom:48px">
+      <h1 style="font-size:36px;margin-bottom:8px">Wähle ein Spiel 🎮</h1>
+      <p style="color:var(--text-dim);font-size:16px">Worauf hast du heute Bock?</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px">
+
+      <!-- Game 1: Logo Guesser -->
+      <a href="/games/logo-guesser.html" class="card card-hover">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+          <div style="font-size:40px">🏷️</div>
+          <div>
+            <h3 style="font-size:20px;margin-bottom:4px">Logo Guesser</h3>
+            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Erkenne Marken an ihrem Logo. Wer tippt es zuerst?</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-easy">Easy</span>
+          <span class="badge badge-normal">Normal</span>
+          <span class="badge badge-hard">Hard</span>
+        </div>
+      </a>
+
+      <!-- Game 2: Wissens-Quiz -->
+      <a href="/games/knowledge-quiz.html" class="card card-hover">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+          <div style="font-size:40px">🧠</div>
+          <div>
+            <h3 style="font-size:20px;margin-bottom:4px">Wissens-Quiz</h3>
+            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Allgemeinwissen vom Feinsten. Multiple Choice oder freies Tippen.</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-easy">Easy</span>
+          <span class="badge badge-normal">Normal</span>
+          <span class="badge badge-hard">Hard</span>
+        </div>
+      </a>
+
+      <!-- Game 3: Flaggen-Quiz -->
+      <a href="/games/flag-quiz.html" class="card card-hover">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+          <div style="font-size:40px">🚩</div>
+          <div>
+            <h3 style="font-size:20px;margin-bottom:4px">Flaggen-Quiz</h3>
+            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Länder, Bundesstaaten, Regionen — erkennst du sie alle?</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-easy">Easy</span>
+          <span class="badge badge-normal">Normal</span>
+          <span class="badge badge-hard">Hard</span>
+          <span class="badge badge-crazy">Bist du verrückt!?</span>
+        </div>
+      </a>
+
+      <!-- Game 4: Filme & Schauspieler -->
+      <a href="/games/movies-actors.html" class="card card-hover">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+          <div style="font-size:40px">🎬</div>
+          <div>
+            <h3 style="font-size:20px;margin-bottom:4px">Filme &amp; Schauspieler</h3>
+            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Erkenne Filme, Serien und Stars. Kinofan oder totaler Noob?</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-easy">Easy</span>
+          <span class="badge badge-normal">Normal</span>
+          <span class="badge badge-hard">Hard</span>
+        </div>
+      </a>
+
+      <!-- Game 5: Benzinrechner -->
+      <a href="/games/benzinrechner.html" class="card card-hover">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+          <div style="font-size:40px">⛽</div>
+          <div>
+            <h3 style="font-size:20px;margin-bottom:4px">Benzinrechner</h3>
+            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">2-Takt Mischungskalkulator für Mofas. Super E5 + 2-Takt Öl.</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-tool">Tool</span>
+        </div>
+      </a>
+
+      <!-- Game 6: Song Guesser -->
+      <a href="/games/song-guesser.html" class="card card-hover">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+          <div style="font-size:40px">🎵</div>
+          <div>
+            <h3 style="font-size:20px;margin-bottom:4px">Song Guesser</h3>
+            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Rate den Song in 10 Sekunden! Musiknerds vs. Ahnungslose.</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-easy">Easy</span>
+          <span class="badge badge-normal">Normal</span>
+          <span class="badge badge-hard">Hard</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <script src="/js/socket-utils.js"></script>
+  <script>
+    window.lvl3.checkAuth(function (d) {
+      var av = document.getElementById("user-avatar");
+      var nm = document.getElementById("user-name");
+      if (av) {
+        av.style.background = window.lvl3.avatarColor(d.username);
+        av.textContent = window.lvl3.avatarInitial(d.username);
+      }
+      if (nm) nm.textContent = d.username;
+      // Authenticate socket
+      window.lvl3.socket.emit("auth", { username: d.username });
+    });
+
+    function logout() {
+      fetch("/api/logout").then(function () {
+        localStorage.clear();
+        window.location.href = "/";
+      });
+    }
+  </script>
+</body>
+</html>

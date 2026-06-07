@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lvl 3 Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="centered">
+
+  <div style="width:100%;max-width:420px">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:32px">
+      <div class="logo-text" style="font-size:52px;margin-bottom:8px">LVL³</div>
+      <p style="color:var(--text-dim);font-size:15px">Wo Freundschaft auf Skill trifft 🎮</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="card">
+      <h2 style="margin-bottom:24px">Einloggen</h2>
+      <form id="login-form">
+        <div class="form-group">
+          <label class="label" for="inp-username">Benutzername</label>
+          <input id="inp-username" type="text" class="input-field" placeholder="Dein Name" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label class="label" for="inp-password">Passwort</label>
+          <input id="inp-password" type="password" class="input-field" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <div id="login-error" class="error-msg"></div>
+        <button type="submit" class="btn btn-primary w-full btn-lg mt-4" id="login-btn">Einloggen</button>
+      </form>
+    </div>
+
+    <p style="text-align:center;margin-top:20px;color:var(--text-muted);font-size:12px">Lvl 3 Games — Nur für Freunde 🔒</p>
+  </div>
+
+  <!-- Change Password Overlay -->
+  <div id="change-pw-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h2>Willkommen! 👋</h2>
+      <p>Du meldest dich zum ersten Mal an. Bitte ändere dein temporäres Passwort.</p>
+      <form id="change-pw-form">
+        <div class="form-group">
+          <label class="label" for="inp-new-pw">Neues Passwort</label>
+          <input id="inp-new-pw" type="password" class="input-field" placeholder="Mindestens 6 Zeichen" required>
+        </div>
+        <div class="form-group">
+          <label class="label" for="inp-confirm-pw">Passwort bestätigen</label>
+          <input id="inp-confirm-pw" type="password" class="input-field" placeholder="Nochmal eingeben" required>
+        </div>
+        <div id="pw-error" class="error-msg"></div>
+        <button type="submit" class="btn btn-success w-full btn-lg mt-4">Passwort ändern &amp; loslegen</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/auth-client.js"></script>
+</body>
+</html>

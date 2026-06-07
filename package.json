@@ -1,0 +1,14 @@
+{
+  "name": "lvl3-games",
+  "version": "1.0.0",
+  "description": "Multiplayer party game website for 4 friends",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18.0.0" },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "socket.io": "^4.7.2"
+  }
+}

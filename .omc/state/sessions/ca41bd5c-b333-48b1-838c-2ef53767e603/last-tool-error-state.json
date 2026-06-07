@@ -1,0 +1,7 @@
+{
+  "tool_name": "PowerShell",
+  "tool_input_preview": "{\"command\":\"$json = Get-Content \\\"C:/Users/lolbo/Desktop/codebo/Lvl 3 Kommunismus/data/questions.json\\\" -Raw | ConvertFrom-Json\\n\\n# --- EASY additions: Technology (missing entirely), Art, Movies, Mus...",
+  "error": "Exit code 1\n\u001b[31;1mParserError: \u001b[0m\r\n\u001b[31;1m\u001b[36;1mLine |\u001b[0m\r\n\u001b[31;1m\u001b[36;1m\u001b[36;1m  79 | \u001b[0m … erg\"; options=@(\"Whitman\",\"Heisenberg\",\"Ozymandias\",\"Danger\"\u001b[36;1m]\u001b[0m; catego …\u001b[0m\r\n\u001b[31;1m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m     | \u001b[31;1m                                                               ~\u001b[0m\r\n\u001b[31;1m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1mUnexpected token ']' in expression or statement.\u001b[0m",
+  "timestamp": "2026-06-06T20:45:57.230Z",
+  "retry_count": 1
+}

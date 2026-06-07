@@ -1,0 +1,109 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1780832570705,
+  "projectRoot": "C:\\Users\\lolbo\\Desktop\\codebo\\Lvl 3 Kommunismus",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": ">=18.0.0",
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "express",
+        "version": "4.18.2",
+        "category": "backend"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": "Node.js 18.0.0"
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": "npm run start",
+    "scripts": {
+      "start": "node server.js"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "public"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "data": {
+      "path": "data",
+      "purpose": "Data files",
+      "fileCount": 5,
+      "lastAccessed": 1780832570677,
+      "keyFiles": [
+        "flags.json",
+        "logos.json",
+        "movies.json",
+        "questions.json",
+        "users.json"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 2,
+      "lastAccessed": 1780832570678,
+      "keyFiles": [
+        "dashboard.html",
+        "index.html"
+      ]
+    },
+    "server": {
+      "path": "server",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1780832570686,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1780833027272,
+      "type": "file"
+    },
+    {
+      "path": "render.yaml",
+      "accessCount": 1,
+      "lastAccessed": 1780833029036,
+      "type": "file"
+    },
+    {
+      "path": "start.bat",
+      "accessCount": 1,
+      "lastAccessed": 1780833031837,
+      "type": "file"
+    },
+    {
+      "path": "server.js",
+      "accessCount": 1,
+      "lastAccessed": 1780833094108,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

@@ -1,0 +1,317 @@
+/* ─── Logo Guesser ───────────────────────────────────────────── */
+.logo-display {
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 0 auto 24px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.logo-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ─── Question Area ──────────────────────────────────────────── */
+.question-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.question-text {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.5;
+  max-width: 700px;
+  margin: 0 auto 24px;
+}
+
+/* ─── Answer Row (text input style) ─────────────────────────── */
+.answer-row {
+  display: flex;
+  gap: 12px;
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.answer-row .input-field {
+  font-size: 18px;
+  padding: 14px 20px;
+}
+
+/* ─── Options Grid (multiple choice) ────────────────────────── */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 620px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.option-btn {
+  padding: 18px 20px;
+  text-align: left;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  line-height: 1.4;
+}
+
+.option-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.2);
+  transform: scale(1.01);
+}
+
+.option-btn.correct {
+  background: rgba(34,197,94,0.15);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.option-btn.wrong {
+  background: rgba(239,68,68,0.12);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.option-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ─── Flag Quiz ──────────────────────────────────────────────── */
+.flag-display {
+  display: block;
+  margin: 0 auto 24px;
+  max-height: 180px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.flag-icon-xl {
+  display: block;
+  margin: 0 auto 24px;
+  font-size: 0;
+  width: 240px;
+  height: 160px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.flag-icon-xl img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ─── Song Guesser ───────────────────────────────────────────── */
+.song-player-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.song-icon {
+  font-size: 80px;
+}
+
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 64px;
+}
+
+.waveform-bar {
+  width: 7px;
+  border-radius: 4px;
+  background: var(--accent);
+  animation: wave 1.2s ease-in-out infinite;
+}
+
+.waveform-bar:nth-child(1) { height: 20px; animation-delay: 0s; }
+.waveform-bar:nth-child(2) { height: 35px; animation-delay: 0.1s; }
+.waveform-bar:nth-child(3) { height: 50px; animation-delay: 0.2s; }
+.waveform-bar:nth-child(4) { height: 60px; animation-delay: 0.3s; }
+.waveform-bar:nth-child(5) { height: 48px; animation-delay: 0.4s; }
+.waveform-bar:nth-child(6) { height: 30px; animation-delay: 0.5s; }
+.waveform-bar:nth-child(7) { height: 18px; animation-delay: 0.6s; }
+
+.waveform.paused .waveform-bar {
+  animation-play-state: paused;
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
+}
+
+/* ─── Movies & Actors ────────────────────────────────────────── */
+.movie-display {
+  text-align: center;
+}
+
+.movie-poster {
+  width: 160px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  margin: 0 auto 16px;
+  display: block;
+}
+
+.movie-hint {
+  font-size: 15px;
+  color: var(--text-dim);
+  font-style: italic;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ─── Benzinrechner ──────────────────────────────────────────── */
+.benzin-layout {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.benzin-result {
+  font-size: 52px;
+  font-weight: 900;
+  color: var(--accent3);
+  margin: 20px 0 4px;
+}
+
+.benzin-result-label {
+  font-size: 15px;
+  color: var(--text-dim);
+}
+
+.benzin-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.benzin-stat {
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+
+.benzin-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent3);
+}
+
+.benzin-stat-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Countdown Overlay ──────────────────────────────────────── */
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,10,18,0.90);
+  z-index: 50;
+}
+
+.countdown-number {
+  font-size: 160px;
+  font-weight: 900;
+  color: var(--accent);
+  animation: bounce 0.8s ease infinite;
+}
+
+/* ─── Winner / Final Scores ──────────────────────────────────── */
+.winner-card {
+  text-align: center;
+  padding: 40px;
+}
+
+.trophy {
+  font-size: 80px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.winner-name {
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+.final-scores {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.final-score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-sm);
+}
+
+.final-score-row.first-place {
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.3);
+}
+
+/* ─── Answer Flash Animations ────────────────────────────────── */
+.correct-flash {
+  animation: correctFlash 0.6s ease;
+}
+
+.wrong-flash {
+  animation: wrongFlash 0.4s ease;
+}
+
+@keyframes correctFlash {
+  0%   { background: rgba(34,197,94,0.3); }
+  100% { background: transparent; }
+}
+
+@keyframes wrongFlash {
+  0%   { background: rgba(239,68,68,0.3); }
+  100% { background: transparent; }
+}
