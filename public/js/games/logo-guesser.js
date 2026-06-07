@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  // ── State ────────────────────────────────────────────────────
   var socket = window.lvl3.socket;
   var myUsername = null;
   var isHost = false;
@@ -15,151 +14,90 @@
   var answerSubmitted = false;
   var currentPhase = null;
 
-  // ── DOM refs ─────────────────────────────────────────────────
-  var sections = {};
-  document.querySelectorAll("[data-section]").forEach(function (el) {
-    sections[el.dataset.section] = el;
-  });
-
-  function showSection(name) {
-    Object.keys(sections).forEach(function (k) {
-      sections[k].classList.toggle("active", k === name);
-    });
+  // ── Screen switcher ───────────────────────────────────────────
+  function showScreen(name) {
+    document.querySelectorAll(".screen").forEach(function (s) { s.classList.remove("active"); });
+    var el = document.getElementById("screen-" + name);
+    if (el) el.classList.add("active");
   }
 
-  var elUserAvatar    = document.getElementById("user-avatar");
-  var elUserName      = document.getElementById("user-name");
+  // ── DOM refs ──────────────────────────────────────────────────
+  var elUserAvatar     = document.getElementById("user-avatar");
+  var elUserName       = document.getElementById("user-name");
+  var elRoomCode       = document.getElementById("room-code-display");
+  var elPlayerList     = document.getElementById("player-list");
+  var elJoinInput      = document.getElementById("join-code-input");
+  var elJoinError      = document.getElementById("join-error");
+  var elHostSettings   = document.getElementById("host-settings");
+  var elGuestSettings  = document.getElementById("guest-settings");
+  var elSelDiff        = document.getElementById("sel-difficulty");
+  var elInpPoints      = document.getElementById("inp-points");
+  var elBtnStart       = document.getElementById("btn-start");
+  var elGuestDisplay   = document.getElementById("guest-settings-display");
+  var elCountdownNum   = document.getElementById("countdown-num");
+  var elRoundInfo      = document.getElementById("round-info");
+  var elLogoImg        = document.getElementById("logo-img");
+  var elAnswerInput    = document.getElementById("answer-input");
+  var elBtnSubmit      = document.getElementById("btn-submit");
+  var elFeedbackBanner = document.getElementById("feedback-banner");
+  var elTimerDisplay   = document.getElementById("timer-display");
+  var elTimerBar       = document.getElementById("timer-bar");
+  var elWinnerName     = document.getElementById("winner-name");
+  var elFinalScores    = document.getElementById("final-scores");
 
-  // Lobby
-  var elLobbyPre      = document.getElementById("lobby-pre");
-  var elLobbyRoom     = document.getElementById("lobby-room");
-  var elRoomCode      = document.getElementById("room-code-display");
-  var elLobbyPlayers  = document.getElementById("lobby-player-list");
-  var elInputCode     = document.getElementById("input-code");
-  var elBtnCreate     = document.getElementById("btn-create");
-  var elBtnJoin       = document.getElementById("btn-join");
-  var elLobbyError    = document.getElementById("lobby-error");
-
-  // Settings (host)
-  var elSettingsPanel = document.getElementById("settings-panel");
-  var elSettingsGuest = document.getElementById("settings-guest");
-  var elSelectDiff    = document.getElementById("select-difficulty");
-  var elInputPoints   = document.getElementById("input-points");
-  var elBtnStart      = document.getElementById("btn-start");
-  var elGuestDiff     = document.getElementById("guest-difficulty");
-  var elGuestPoints   = document.getElementById("guest-points");
-
-  // Game
-  var elRoundInfo     = document.getElementById("round-info");
-  var elLogoImg       = document.getElementById("logo-img");
-  var elAnswerInput   = document.getElementById("answer-input");
-  var elBtnSubmit     = document.getElementById("btn-submit-answer");
-  var elCorrectBanner = document.getElementById("correct-banner");
-  var elTimerNumber   = document.getElementById("timer-number");
-  var elTimerBar      = document.getElementById("timer-bar");
-  var elGamePlayers   = document.getElementById("game-player-list");
-
-  // Countdown overlay
-  var elCountdownOverlay = document.getElementById("countdown-overlay");
-  var elCountdownNumber  = document.getElementById("countdown-number");
-
-  // Game-end
-  var elEndWinner     = document.getElementById("end-winner-name");
-  var elEndScores     = document.getElementById("end-scores");
-  var elBtnNewGame    = document.getElementById("btn-new-game");
-
-  // ── Helpers ──────────────────────────────────────────────────
-  function showLobbyError(msg) {
-    elLobbyError.textContent = msg;
-    elLobbyError.classList.add("visible");
-    setTimeout(function () { elLobbyError.classList.remove("visible"); }, 3500);
+  // ── Helpers ───────────────────────────────────────────────────
+  function updatePlayerList() {
+    window.lvl3.renderPlayerList(elPlayerList, players, host, currentScores);
   }
 
   function setAnswerEnabled(enabled) {
-    elAnswerInput.disabled  = !enabled;
-    elBtnSubmit.disabled    = !enabled;
-    if (enabled) {
-      elAnswerInput.value = "";
-      elAnswerInput.focus();
-    }
+    elAnswerInput.disabled = !enabled;
+    elBtnSubmit.disabled   = !enabled;
+    if (enabled) { elAnswerInput.value = ""; elAnswerInput.focus(); }
   }
 
   function clearTimer() {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   }
 
   function startTimer(seconds) {
     clearTimer();
     timerSeconds = seconds;
     timerMax = seconds;
-
     function tick() {
       var pct = (timerSeconds / timerMax) * 100;
-      elTimerBar.style.width = pct + "%";
-      elTimerBar.style.background = timerSeconds <= 5 ? "var(--red)" : "var(--accent3)";
-      elTimerNumber.textContent = timerSeconds;
-      elTimerNumber.classList.toggle("warning", timerSeconds <= 5);
-
-      if (timerSeconds <= 0) {
-        clearTimer();
-        return;
+      if (elTimerBar) {
+        elTimerBar.style.width = pct + "%";
+        elTimerBar.style.background = timerSeconds <= 5 ? "var(--red)" : "var(--accent)";
       }
+      if (elTimerDisplay) elTimerDisplay.textContent = timerSeconds;
+      if (timerSeconds <= 0) { clearTimer(); return; }
       timerSeconds--;
     }
-
     tick();
     timerInterval = setInterval(tick, 1000);
   }
 
-  function updateGamePlayerList() {
-    window.lvl3.renderPlayerList(elGamePlayers, players, host, currentScores);
-  }
-
-  function updateLobbyPlayerList() {
-    window.lvl3.renderPlayerList(elLobbyPlayers, players, host, {});
-  }
-
-  function showCountdown(count) {
-    elCountdownOverlay.classList.remove("hidden");
-    if (count === "GO" || count === 0) {
-      elCountdownNumber.textContent = "GO!";
-      elCountdownNumber.style.color = "var(--green)";
-      setTimeout(function () {
-        elCountdownOverlay.classList.add("hidden");
-        elCountdownNumber.style.color = "var(--accent)";
-      }, 700);
+  function renderLobbyControls() {
+    if (isHost) {
+      elHostSettings.style.display = "";
+      elGuestSettings.style.display = "none";
+      elBtnStart.disabled = players.length < 2;
     } else {
-      elCountdownNumber.textContent = count;
-      elCountdownNumber.style.color = "var(--accent)";
-      // Re-trigger animation
-      elCountdownNumber.style.animation = "none";
-      void elCountdownNumber.offsetWidth;
-      elCountdownNumber.style.animation = "countPop 0.6s ease";
+      elHostSettings.style.display = "none";
+      elGuestSettings.style.display = "";
     }
   }
 
-  function applySettings(settings) {
-    if (!settings) return;
-    elSelectDiff.value   = settings.difficulty || "normal";
-    elInputPoints.value  = settings.pointsToWin || 10;
-    // Guest display
+  function applySettings(s) {
+    if (!s) return;
+    if (elSelDiff) elSelDiff.value = s.difficulty || "normal";
+    if (elInpPoints) elInpPoints.value = s.pointsToWin || 10;
     var diffLabels = { easy: "Easy", normal: "Normal", hard: "Hard" };
-    elGuestDiff.textContent   = diffLabels[settings.difficulty] || "Normal";
-    elGuestPoints.textContent = settings.pointsToWin || 10;
-  }
-
-  function renderHostControls() {
-    if (isHost) {
-      elSettingsPanel.classList.remove("hidden");
-      elSettingsGuest.classList.add("hidden");
-      // Enable start button when 2+ players
-      elBtnStart.disabled = players.length < 2;
-    } else {
-      elSettingsPanel.classList.add("hidden");
-      elSettingsGuest.classList.remove("hidden");
+    if (elGuestDisplay) {
+      elGuestDisplay.textContent =
+        "Schwierigkeit: " + (diffLabels[s.difficulty] || "Normal") +
+        " · Punkte zum Sieg: " + (s.pointsToWin || 10);
     }
   }
 
@@ -168,64 +106,67 @@
     isHost   = data.isHost;
     host     = data.host;
     players  = data.players || [];
-
-    elLobbyPre.classList.add("hidden");
-    elLobbyRoom.classList.remove("hidden");
-    elRoomCode.textContent = roomCode;
-
+    if (elRoomCode) elRoomCode.textContent = roomCode;
     applySettings(data.settings);
-    renderHostControls();
-    updateLobbyPlayerList();
+    renderLobbyControls();
+    updatePlayerList();
+    showScreen("lobby");
   }
 
-  // ── Auth & connect ───────────────────────────────────────────
+  // ── Auth ──────────────────────────────────────────────────────
   window.lvl3.checkAuth(function (d) {
     myUsername = d.username;
-
     if (elUserAvatar) {
       elUserAvatar.style.background = window.lvl3.avatarColor(myUsername);
       elUserAvatar.textContent = window.lvl3.avatarInitial(myUsername);
     }
     if (elUserName) elUserName.textContent = myUsername;
-
     socket.emit("auth", { username: myUsername });
   });
 
-  // ── Lobby actions ────────────────────────────────────────────
-  elBtnCreate.addEventListener("click", function () {
-    if (!myUsername) return;
+  // ── Global actions ────────────────────────────────────────────
+  window.createRoom = function () {
     socket.emit("room:create", { gameType: "logo-guesser" });
-  });
+  };
 
-  elBtnJoin.addEventListener("click", function () {
-    var code = elInputCode.value.trim().toUpperCase();
-    if (!code) { showLobbyError("Bitte Raum-Code eingeben."); return; }
+  window.joinRoom = function () {
+    var code = elJoinInput.value.trim().toUpperCase();
+    if (!code) { elJoinError.textContent = "Bitte Code eingeben."; return; }
+    elJoinError.textContent = "";
     socket.emit("room:join", { code: code });
-  });
+  };
 
-  elInputCode.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") elBtnJoin.click();
-  });
-
-  // Host: settings change → emit to server
-  function emitSettings() {
+  window.pushSettings = function () {
     if (!isHost) return;
     socket.emit("game:settings", {
-      difficulty:   elSelectDiff.value,
-      pointsToWin:  Math.min(1000, Math.max(1, parseInt(elInputPoints.value, 10) || 10))
+      difficulty:  elSelDiff.value,
+      pointsToWin: Math.min(1000, Math.max(1, parseInt(elInpPoints.value, 10) || 10))
     });
-  }
+  };
 
-  elSelectDiff.addEventListener("change",  emitSettings);
-  elInputPoints.addEventListener("change", emitSettings);
-  elInputPoints.addEventListener("input",  emitSettings);
-
-  elBtnStart.addEventListener("click", function () {
+  window.startGame = function () {
     if (!isHost) return;
     socket.emit("game:start");
-  });
+  };
 
-  // ── Answer submission ────────────────────────────────────────
+  window.leaveRoom = function () {
+    clearTimer();
+    socket.emit("room:leave");
+    roomCode = null;
+    currentScores = {};
+    showScreen("join");
+  };
+
+  window.backToLobby = function () {
+    currentScores = {};
+    updatePlayerList();
+    renderLobbyControls();
+    showScreen("lobby");
+  };
+
+  elJoinInput.addEventListener("keydown", function (e) { if (e.key === "Enter") window.joinRoom(); });
+
+  // ── Answer ────────────────────────────────────────────────────
   function submitAnswer() {
     if (answerSubmitted) return;
     var answer = elAnswerInput.value.trim();
@@ -234,185 +175,128 @@
     setAnswerEnabled(false);
     socket.emit("game:answer", { answer: answer });
   }
-
   elBtnSubmit.addEventListener("click", submitAnswer);
-  elAnswerInput.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") submitAnswer();
-  });
+  elAnswerInput.addEventListener("keydown", function (e) { if (e.key === "Enter") submitAnswer(); });
 
-  // ── New game ─────────────────────────────────────────────────
-  elBtnNewGame.addEventListener("click", function () {
-    // Return to lobby section; host can restart
-    currentScores = {};
-    showSection("lobby");
-    // Re-render lobby state
-    if (roomCode) {
-      elLobbyPre.classList.add("hidden");
-      elLobbyRoom.classList.remove("hidden");
-      renderHostControls();
-      updateLobbyPlayerList();
-    }
-  });
+  // ── Socket events ──────────────────────────────────────────────
+  socket.on("room:created", function (data) { afterJoin(data); });
+  socket.on("room:joined",  function (data) { afterJoin(data); });
 
-  // ── Socket events ────────────────────────────────────────────
-
-  socket.on("room:created", function (data) {
-    afterJoin(data);
-  });
-
-  socket.on("room:joined", function (data) {
-    afterJoin(data);
+  socket.on("room:error", function (data) {
+    elJoinError.textContent = data.message || "Fehler";
   });
 
   socket.on("room:players", function (data) {
     players = data.players || [];
     host    = data.host;
     isHost  = host === myUsername;
-    renderHostControls();
-    updateLobbyPlayerList();
-    updateGamePlayerList();
+    renderLobbyControls();
+    updatePlayerList();
   });
 
   socket.on("room:host-changed", function (data) {
     players = data.players || [];
     host    = data.host;
     isHost  = host === myUsername;
-    renderHostControls();
-    updateLobbyPlayerList();
-    updateGamePlayerList();
-    window.lvl3.showToast("Du bist jetzt der Host!", "info", "Host gewechselt");
-  });
-
-  socket.on("room:error", function (data) {
-    showLobbyError(data.message || "Fehler beim Beitreten.");
+    renderLobbyControls();
+    updatePlayerList();
   });
 
   socket.on("room:settings", function (data) {
-    applySettings(data.settings);
+    applySettings(data.settings || data);
   });
 
-  // ── game:state ───────────────────────────────────────────────
   socket.on("game:state", function (data) {
     currentPhase = data.phase;
 
     if (data.phase === "countdown") {
-      // Show the game section behind the overlay
-      showSection("game");
-      showCountdown(data.count);
-      window.lvl3.playSound("round-start");
+      showScreen("countdown");
+      var n = data.count !== undefined ? data.count : data.countdown;
+      if (elCountdownNum) {
+        elCountdownNum.textContent = (n === 0 || n === "GO") ? "GO!" : n;
+        elCountdownNum.style.animation = "none";
+        void elCountdownNum.offsetWidth;
+        elCountdownNum.style.animation = "";
+      }
       clearTimer();
       setAnswerEnabled(false);
-      elCorrectBanner.className = "correct-banner";
-      elCorrectBanner.textContent = "";
+      return;
     }
 
-    else if (data.phase === "question") {
-      // Hide countdown overlay (last count triggers this path after GO)
-      elCountdownOverlay.classList.add("hidden");
-      showSection("game");
-
+    if (data.phase === "question") {
+      showScreen("question");
       if (data.scores) currentScores = data.scores;
-
       answerSubmitted = false;
 
-      // Logo (with fallback chain)
-      var _fallback1 = data.logo.fallbackUrl || '/img/logo-fallback.svg';
-      elLogoImg.onerror = function() {
-        elLogoImg.onerror = function() { elLogoImg.onerror = null; elLogoImg.src = '/img/logo-fallback.svg'; };
-        elLogoImg.src = _fallback1;
-      };
-      elLogoImg.src = data.logo.imageUrl;
-      elLogoImg.alt = "Logo";
+      var _fallback = (data.logo && data.logo.fallbackUrl) || "/img/logo-fallback.svg";
+      elLogoImg.onerror = function () { elLogoImg.onerror = null; elLogoImg.src = _fallback; };
+      elLogoImg.src = (data.logo && data.logo.imageUrl) || "";
 
-      // Round info
-      elRoundInfo.textContent = "Runde " + data.round;
-
-      // Timer
+      if (elRoundInfo) elRoundInfo.textContent = "Runde " + data.round;
       startTimer(data.timeLimit);
-
-      // Enable input
       setAnswerEnabled(true);
-
-      // Clear banner
-      elCorrectBanner.className = "correct-banner";
-      elCorrectBanner.textContent = "";
-
-      // Update scores sidebar
-      updateGamePlayerList();
-
+      elFeedbackBanner.className = "feedback-banner";
+      elFeedbackBanner.textContent = "";
+      updatePlayerList();
       window.lvl3.playSound("round-start");
+      return;
     }
 
-    else if (data.phase === "timeout") {
+    if (data.phase === "timeout") {
       clearTimer();
-      elTimerBar.style.width = "0%";
-      elTimerNumber.textContent = "0";
+      if (elTimerBar) elTimerBar.style.width = "0%";
+      if (elTimerDisplay) elTimerDisplay.textContent = "0";
       setAnswerEnabled(false);
-
       if (data.scores) currentScores = data.scores;
-      updateGamePlayerList();
-
-      elCorrectBanner.className = "correct-banner show-timeout";
-      elCorrectBanner.textContent = "Zeit abgelaufen! Richtige Antwort: " + data.correctAnswer;
+      updatePlayerList();
+      elFeedbackBanner.className = "feedback-banner show-timeout";
+      elFeedbackBanner.textContent = "Zeit! Richtig: " + data.correctAnswer;
+      return;
     }
   });
 
-  // ── game:correct ─────────────────────────────────────────────
   socket.on("game:correct", function (data) {
-    // Don't clear timer — round continues for other players
     if (data.scores) currentScores = data.scores;
-    updateGamePlayerList();
-
+    updatePlayerList();
     var isSelf = data.winner === myUsername;
     window.lvl3.playSound(isSelf ? "correct" : "round-start");
-
-    elCorrectBanner.className = "correct-banner show-correct";
+    elFeedbackBanner.className = "feedback-banner show-correct";
     if (isSelf) {
-      elCorrectBanner.textContent = "Richtig! +" + (data.points || 1) + " Punkte! (" + data.correctAnswer + ")";
+      elFeedbackBanner.textContent = "Richtig! +" + (data.points || 1) + " Punkte! (" + data.correctAnswer + ")";
     } else {
-      elCorrectBanner.textContent = data.winner + " war zuerst! (+" + (data.points || 1) + " Punkte)";
+      elFeedbackBanner.textContent = data.winner + " war zuerst! (+" + (data.points || 1) + " Punkte)";
     }
   });
 
-  // ── game:wrong ───────────────────────────────────────────────
   socket.on("game:wrong", function () {
-    // Allow retry while round still running
     if (currentPhase !== "question") return;
     answerSubmitted = false;
     setAnswerEnabled(true);
     window.lvl3.playSound("wrong");
-    if (elAnswerInput) {
-      elAnswerInput.classList.add("wrong-flash");
-      setTimeout(function () { elAnswerInput.classList.remove("wrong-flash"); }, 400);
-    }
+    elAnswerInput.classList.add("wrong-flash");
+    setTimeout(function () { elAnswerInput.classList.remove("wrong-flash"); }, 400);
   });
 
-  // ── game:end ─────────────────────────────────────────────────
   socket.on("game:end", function (data) {
     clearTimer();
-
     window.lvl3.playSound("game-start");
-
-    elEndWinner.textContent = data.winner || "—";
-
-    // Render final scores
-    elEndScores.innerHTML = "";
-    if (data.scores && data.scores.length) {
-      data.scores.forEach(function (entry, idx) {
+    if (elWinnerName) elWinnerName.textContent = data.winner || "—";
+    if (elFinalScores) {
+      elFinalScores.innerHTML = "";
+      (data.scores || []).forEach(function (entry, idx) {
         var row = document.createElement("div");
         row.className = "final-score-row" + (idx === 0 ? " first-place" : "");
         row.innerHTML =
-          '<div class="flex items-center gap-2">' +
-            '<span style="font-size:18px;min-width:28px">' + (idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1) + ".") + '</span>' +
-            '<div class="player-avatar" style="width:30px;height:30px;font-size:12px;background:' + window.lvl3.avatarColor(entry.username) + '">' + window.lvl3.avatarInitial(entry.username) + '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px">' +
+            '<span style="font-size:18px;min-width:28px">' + (["🥇","🥈","🥉"][idx] || (idx + 1) + ".") + '</span>' +
+            '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;background:' + window.lvl3.avatarColor(entry.username) + '">' + window.lvl3.avatarInitial(entry.username) + '</div>' +
             '<span style="font-weight:600">' + entry.username + '</span>' +
           '</div>' +
           '<span class="player-score">' + entry.score + '</span>';
-        elEndScores.appendChild(row);
+        elFinalScores.appendChild(row);
       });
     }
-
-    showSection("game-end");
+    showScreen("end");
   });
 
-})();
+}());

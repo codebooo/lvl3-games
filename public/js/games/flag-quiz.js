@@ -15,12 +15,14 @@
 
   var socket = window.lvl3.socket;
 
-  function showSection(id) {
-    document.querySelectorAll(".section").forEach(function (s) { s.classList.remove("active"); });
-    var el = document.getElementById(id);
+  // ── Screen switcher ───────────────────────────────────────────
+  function showScreen(name) {
+    document.querySelectorAll(".screen").forEach(function (s) { s.classList.remove("active"); });
+    var el = document.getElementById("screen-" + name);
     if (el) el.classList.add("active");
   }
 
+  // ── Auth ──────────────────────────────────────────────────────
   window.lvl3.checkAuth(function (d) {
     username = d.username;
     var av = document.getElementById("user-avatar");
@@ -28,22 +30,47 @@
     if (av) { av.style.background = window.lvl3.avatarColor(username); av.textContent = window.lvl3.avatarInitial(username); }
     if (nm) nm.textContent = username;
     socket.emit("auth", { username: username });
-    showSection("section-entry");
   });
 
-  document.getElementById("btn-create").addEventListener("click", function () {
+  // ── Global actions ────────────────────────────────────────────
+  window.createRoom = function () {
     socket.emit("room:create", { gameType: "flag-quiz" });
-  });
+  };
 
-  document.getElementById("btn-join").addEventListener("click", doJoin);
-  document.getElementById("inp-join-code").addEventListener("keydown", function (e) { if (e.key === "Enter") doJoin(); });
-
-  function doJoin() {
-    var code = document.getElementById("inp-join-code").value.toUpperCase().trim();
-    if (!code) return;
+  window.joinRoom = function () {
+    var inp = document.getElementById("join-code-input");
+    var err = document.getElementById("join-error");
+    var code = (inp ? inp.value : "").toUpperCase().trim();
+    if (!code) { if (err) err.textContent = "Bitte Code eingeben."; return; }
+    if (err) err.textContent = "";
     socket.emit("room:join", { code: code });
-  }
+  };
 
+  window.pushSettings = function () {
+    if (!isHost) return;
+    emitSettings();
+  };
+
+  window.startGame = function () {
+    socket.emit("flag-quiz:start");
+  };
+
+  window.leaveRoom = function () {
+    stopTimer();
+    socket.emit("room:leave");
+    roomCode = null;
+    showScreen("join");
+  };
+
+  window.playAgain = function () {
+    socket.emit("flag-quiz:restart");
+  };
+
+  // Enter key on join code
+  var joinInput = document.getElementById("join-code-input");
+  if (joinInput) joinInput.addEventListener("keydown", function (e) { if (e.key === "Enter") window.joinRoom(); });
+
+  // ── Room events ───────────────────────────────────────────────
   socket.on("room:created", function (data) {
     roomCode = data.code; isHost = true; players = data.players; host = data.host;
     settings = data.settings || settings;
@@ -58,17 +85,17 @@
 
   socket.on("room:error", function (data) {
     var err = document.getElementById("join-error");
-    if (err) { err.textContent = data.message; err.style.display = "block"; }
+    if (err) err.textContent = data.message || "Fehler";
   });
 
   socket.on("room:players", function (data) {
     players = data.players; host = data.host;
-    renderLobbyPlayers();
+    renderPlayers();
   });
 
   socket.on("room:host-changed", function (data) {
     host = data.host; players = data.players; isHost = (host === username);
-    renderLobbyPlayers(); updateHostUI();
+    renderPlayers(); updateHostUI();
   });
 
   socket.on("room:settings-updated", function (data) {
@@ -77,28 +104,31 @@
   });
 
   function enterLobby() {
-    document.getElementById("lobby-code").textContent = roomCode;
-    renderLobbyPlayers(); updateHostUI(); applySettingsToUI();
-    showSection("section-lobby");
+    var codeEl = document.getElementById("room-code-display");
+    if (codeEl) codeEl.textContent = roomCode;
+    renderPlayers(); updateHostUI(); applySettingsToUI();
+    showScreen("lobby");
   }
 
-  function renderLobbyPlayers() {
-    var list = document.getElementById("lobby-player-list");
-    var count = document.getElementById("lobby-player-count");
-    if (count) count.textContent = "(" + players.length + "/8)";
+  function renderPlayers() {
+    var list = document.getElementById("player-list");
+    var scoreMap = {};
+    players.forEach(function (p) { scoreMap[p] = 0; });
     window.lvl3.renderPlayerList(list, players, host, {});
   }
 
   function updateHostUI() {
     var btnStart = document.getElementById("btn-start");
-    var waitMsg = document.getElementById("waiting-msg");
-    var panel = document.getElementById("settings-panel");
+    var panel    = document.getElementById("host-settings");
+    var guest    = document.getElementById("guest-settings");
     if (isHost) {
-      btnStart.classList.remove("hidden"); waitMsg.classList.add("hidden");
-      panel.classList.remove("disabled");
+      if (btnStart) { btnStart.classList.remove("hidden"); btnStart.disabled = players.length < 2; }
+      if (panel) panel.style.display = "";
+      if (guest) guest.style.display = "none";
     } else {
-      btnStart.classList.add("hidden"); waitMsg.classList.remove("hidden");
-      panel.classList.add("disabled");
+      if (btnStart) btnStart.classList.add("hidden");
+      if (panel) panel.style.display = "none";
+      if (guest) guest.style.display = "";
     }
   }
 
@@ -124,38 +154,30 @@
     });
   }
 
-  ["sel-difficulty", "sel-answer-mode"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) el.addEventListener("change", emitSettings);
-  });
-  var inpPts = document.getElementById("inp-points");
-  if (inpPts) { inpPts.addEventListener("change", emitSettings); inpPts.addEventListener("input", emitSettings); }
-
-  document.getElementById("btn-start").addEventListener("click", function () {
-    socket.emit("flag-quiz:start");
-  });
-
-  // ─── Game state ───────────────────────────────────────────────
+  // ── Game state ────────────────────────────────────────────────
   socket.on("game:state", function (msg) {
     var phase = msg.phase;
-    var data = msg.data || {};
+    var data  = msg.data || {};
 
     if (phase === "lobby") { isHost = (host === username); enterLobby(); return; }
 
     if (phase === "countdown") {
-      showSection("section-countdown");
-      var num = document.getElementById("countdown-number");
-      if (num) { num.textContent = data.count; num.style.animation = "none"; void num.offsetWidth; num.style.animation = "countPop 0.7s ease"; }
+      showScreen("countdown");
+      var num = document.getElementById("countdown-num");
+      if (num) {
+        num.textContent = data.count;
+        num.style.animation = "none"; void num.offsetWidth; num.style.animation = "";
+      }
       window.lvl3.playSound("game-start");
       return;
     }
 
-    if (phase === "question") { showQuestion(data); return; }
-    if (phase === "answer-reveal") { showReveal(data); return; }
-    if (phase === "game-end") { showGameEnd(data); return; }
+    if (phase === "question")     { showQuestion(data); return; }
+    if (phase === "answer-reveal"){ showReveal(data);   return; }
+    if (phase === "game-end")     { showGameEnd(data);  return; }
   });
 
-  // ─── Question ────────────────────────────────────────────────
+  // ── Question ──────────────────────────────────────────────────
   function showQuestion(data) {
     stopTimer();
     inputLocked = false;
@@ -182,13 +204,17 @@
       if (mcArea)   mcArea.classList.add("hidden");
       var inp = document.getElementById("answer-input");
       var feedback = document.getElementById("answer-feedback");
-      if (inp) { inp.value = ""; inp.disabled = false; inp.focus(); }
+      if (inp)      { inp.value = ""; inp.disabled = false; inp.focus(); }
       if (feedback) { feedback.textContent = ""; feedback.style.color = ""; }
-      document.getElementById("btn-submit").disabled = false;
+      var btn = document.getElementById("btn-submit");
+      if (btn) btn.disabled = false;
     }
 
     var scoreMap = data.scores || {};
-    window.lvl3.renderPlayerList(document.getElementById("game-player-list"), Object.keys(scoreMap), host, scoreMap);
+    window.lvl3.renderPlayerList(
+      document.getElementById("player-list"),
+      Object.keys(scoreMap), host, scoreMap
+    );
 
     timerLeft = data.timeLeft || 15;
     timerTotal = timerLeft;
@@ -196,7 +222,7 @@
     startTimer();
 
     window.lvl3.playSound("round-start");
-    showSection("section-game");
+    showScreen("question");
   }
 
   function renderMcOptions(options) {
@@ -217,6 +243,7 @@
     });
   }
 
+  // ── Timer ─────────────────────────────────────────────────────
   function startTimer() {
     stopTimer();
     timerInterval = setInterval(function () {
@@ -239,37 +266,38 @@
       disp.classList.toggle("warning", t <= 5);
     }
     if (bar) {
-      var pct = Math.max(0, (t / timerTotal) * 100);
-      bar.style.width = pct + "%";
+      bar.style.width = Math.max(0, (t / timerTotal) * 100) + "%";
       bar.style.background = t <= 5 ? "var(--red)" : "var(--accent3)";
     }
   }
 
-  document.getElementById("btn-submit").addEventListener("click", submitAnswer);
-  document.getElementById("answer-input").addEventListener("keydown", function (e) { if (e.key === "Enter") submitAnswer(); });
+  // ── Answer submission ──────────────────────────────────────────
+  var btnSubmit = document.getElementById("btn-submit");
+  var ansInput  = document.getElementById("answer-input");
+  if (btnSubmit) btnSubmit.addEventListener("click", submitAnswer);
+  if (ansInput)  ansInput.addEventListener("keydown", function (e) { if (e.key === "Enter") submitAnswer(); });
 
   function submitAnswer() {
     if (inputLocked) return;
     var inp = document.getElementById("answer-input");
-    var answer = inp.value.trim();
+    var answer = inp ? inp.value.trim() : "";
     if (!answer) return;
     inputLocked = true;
-    inp.disabled = true;
-    document.getElementById("btn-submit").disabled = true;
+    if (inp) inp.disabled = true;
+    var btn = document.getElementById("btn-submit");
+    if (btn) btn.disabled = true;
     socket.emit("flag-quiz:answer", { answer: answer });
   }
 
+  // ── Answer feedback ───────────────────────────────────────────
   socket.on("flag-quiz:wrong", function () {
-    if (currentAnswerMode === "mc") {
-      // Already locked in MC — highlight wrong option if visible
-      window.lvl3.playSound("wrong");
-      return;
-    }
+    if (currentAnswerMode === "mc") { window.lvl3.playSound("wrong"); return; }
     inputLocked = false;
-    var inp = document.getElementById("answer-input");
+    var inp      = document.getElementById("answer-input");
     var feedback = document.getElementById("answer-feedback");
+    var btn      = document.getElementById("btn-submit");
     if (inp) { inp.disabled = false; inp.value = ""; inp.focus(); }
-    document.getElementById("btn-submit").disabled = false;
+    if (btn) btn.disabled = false;
     if (feedback) { feedback.textContent = "Falsch! Versuch es nochmal."; feedback.style.color = "var(--red)"; }
     window.lvl3.playSound("wrong");
     if (inp) {
@@ -279,7 +307,6 @@
   });
 
   socket.on("flag-quiz:correct", function (data) {
-    // Personal feedback
     var feedback = document.getElementById("answer-feedback");
     if (feedback && currentAnswerMode === "type") {
       feedback.textContent = "✓ +" + data.points + " Punkte!";
@@ -287,25 +314,30 @@
     }
     window.lvl3.playSound("correct");
     if (data.scores) {
-      window.lvl3.renderPlayerList(document.getElementById("game-player-list"), Object.keys(data.scores), host, data.scores);
+      window.lvl3.renderPlayerList(
+        document.getElementById("player-list"),
+        Object.keys(data.scores), host, data.scores
+      );
     }
   });
 
   socket.on("flag-quiz:player-correct", function (data) {
     if (data.scores) {
-      window.lvl3.renderPlayerList(document.getElementById("game-player-list"), Object.keys(data.scores), host, data.scores);
+      window.lvl3.renderPlayerList(
+        document.getElementById("player-list"),
+        Object.keys(data.scores), host, data.scores
+      );
     }
   });
 
-  // ─── Reveal ──────────────────────────────────────────────────
+  // ── Reveal ────────────────────────────────────────────────────
   function showReveal(data) {
     stopTimer();
-
     var img = document.getElementById("reveal-flag-img");
     if (img) img.src = data.flagImageUrl || "";
 
     var ans = document.getElementById("reveal-answer");
-    if (ans) { ans.textContent = data.correctName || ""; ans.classList.add("correct-flash"); setTimeout(function () { ans.classList.remove("correct-flash"); }, 600); }
+    if (ans) ans.textContent = data.correctName || "";
 
     var reg = document.getElementById("reveal-region");
     if (reg) reg.textContent = data.region || "";
@@ -318,7 +350,8 @@
           winMsg.innerHTML = '<span style="color:var(--green);font-weight:700">Du hast es gewusst!</span>';
           window.lvl3.playSound("correct");
         } else {
-          winMsg.innerHTML = '<span style="color:var(--gold)">' + esc(winners[0]) + (winners.length > 1 ? " u.a." : "") + " hat es gewusst!</span>";
+          winMsg.innerHTML = '<span style="color:var(--gold)">' + esc(winners[0]) +
+            (winners.length > 1 ? " u.a." : "") + " hat es gewusst!</span>";
         }
       } else {
         winMsg.innerHTML = '<span style="color:var(--text-dim)">Niemand hat es gewusst.</span>';
@@ -329,21 +362,21 @@
     var sorted = Object.keys(scoreMap).sort(function (a, b) { return scoreMap[b] - scoreMap[a]; });
     window.lvl3.renderPlayerList(document.getElementById("reveal-player-list"), sorted, host, scoreMap);
 
-    showSection("section-reveal");
+    showScreen("reveal");
   }
 
-  // ─── Game end ─────────────────────────────────────────────────
+  // ── Game end ──────────────────────────────────────────────────
   function showGameEnd(data) {
     stopTimer();
-    var winnerName = document.getElementById("end-winner-name");
-    if (winnerName) winnerName.textContent = data.winner || "—";
+    var winnerEl = document.getElementById("end-winner-name");
+    if (winnerEl) winnerEl.textContent = data.winner || "—";
 
     var scoresEl = document.getElementById("end-final-scores");
     if (scoresEl) {
       scoresEl.innerHTML = (data.scores || []).map(function (row, i) {
         var medal = ["🥇","🥈","🥉"][i] || (i + 1) + ".";
         return '<div class="final-score-row' + (i === 0 ? " first-place" : "") + '">' +
-          '<div class="flex items-center gap-2">' +
+          '<div style="display:flex;align-items:center;gap:8px">' +
           '<span style="font-size:16px;min-width:24px">' + medal + '</span>' +
           '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;background:' + window.lvl3.avatarColor(row.player) + '">' + window.lvl3.avatarInitial(row.player) + '</div>' +
           '<span style="font-weight:700">' + esc(row.player) + '</span>' +
@@ -355,19 +388,8 @@
 
     var btnAgain = document.getElementById("btn-play-again");
     if (btnAgain) btnAgain.classList.toggle("hidden", !isHost);
-    showSection("section-end");
+    showScreen("end");
   }
-
-  document.getElementById("btn-play-again").addEventListener("click", function () {
-    socket.emit("flag-quiz:restart");
-  });
-
-  window.leaveRoom = function () {
-    stopTimer();
-    socket.emit("room:leave");
-    roomCode = null;
-    showSection("section-entry");
-  };
 
   function esc(str) {
     return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");

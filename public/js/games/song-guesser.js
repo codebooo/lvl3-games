@@ -1,60 +1,44 @@
 (function () {
   "use strict";
 
-  // ── State ──────────────────────────────────────────────────────────────────
   var socket = window.lvl3.socket;
   var me = null;
   var isHost = false;
   var currentRoom = null;
   var currentSettings = { difficulty: "easy", pointsToWin: 10 };
-  var currentSong = null;   // { previewUrl, albumArt, index, total }
-  var audio = null;         // HTMLAudioElement
+  var currentSong = null;
+  var audio = null;
   var timerInterval = null;
   var timerSecondsLeft = 15;
-  var pendingPreviewUrl = null; // used when autoplay was blocked
+  var pendingPreviewUrl = null;
   var audioUnlocked = false;
 
-  // ── Auth ───────────────────────────────────────────────────────────────────
+  // ── Screen switcher ───────────────────────────────────────────
+  function showScreen(name) {
+    document.querySelectorAll(".screen").forEach(function (s) { s.classList.remove("active"); });
+    var el = document.getElementById("screen-" + name);
+    if (el) el.classList.add("active");
+  }
+
+  // ── Auth ───────────────────────────────────────────────────────
   window.lvl3.checkAuth(function (d) {
     me = d.username;
     var av = document.getElementById("user-avatar");
     var nm = document.getElementById("user-name");
-    if (av) {
-      av.style.background = window.lvl3.avatarColor(me);
-      av.textContent = window.lvl3.avatarInitial(me);
-    }
+    if (av) { av.style.background = window.lvl3.avatarColor(me); av.textContent = window.lvl3.avatarInitial(me); }
     if (nm) nm.textContent = me;
     socket.emit("auth", { username: me });
   });
 
-  // ── Screen helpers ─────────────────────────────────────────────────────────
-  function showScreen(id) {
-    ["screen-lobby", "screen-game", "screen-end"].forEach(function (s) {
-      var el = document.getElementById(s);
-      if (el) el.classList.add("hidden");
-    });
-    var target = document.getElementById(id);
-    if (target) target.classList.remove("hidden");
-  }
-
-  // ── Lobby helpers ──────────────────────────────────────────────────────────
-  function renderLobbyPlayers(players, host) {
-    window.lvl3.renderPlayerList(
-      document.getElementById("lobby-player-list"),
-      players, host, {}
-    );
-  }
-
+  // ── Settings helpers ───────────────────────────────────────────
   function applySettings(settings) {
     currentSettings = Object.assign(currentSettings, settings);
-    // Difficulty buttons
     document.querySelectorAll(".diff-btn[data-diff]").forEach(function (btn) {
       btn.classList.remove("active-easy", "active-normal", "active-hard");
       if (btn.dataset.diff === currentSettings.difficulty) {
         btn.classList.add("active-" + currentSettings.difficulty);
       }
     });
-    // Points number input
     var inpPts = document.getElementById("inp-points");
     if (inpPts && document.activeElement !== inpPts) {
       inpPts.value = currentSettings.pointsToWin || 10;
@@ -62,27 +46,25 @@
   }
 
   function updateHostUI() {
-    document.getElementById("settings-card").classList.toggle("hidden", !isHost);
-    document.getElementById("btn-start").classList.toggle("hidden", !isHost);
-    document.getElementById("waiting-msg").classList.toggle("hidden", isHost);
+    var hostSettings = document.getElementById("host-settings");
+    var guestSettings = document.getElementById("guest-settings");
+    var btnStart = document.getElementById("btn-start");
+    if (hostSettings) hostSettings.style.display = isHost ? "" : "none";
+    if (guestSettings) guestSettings.style.display = isHost ? "none" : "";
+    if (btnStart) { btnStart.disabled = !isHost; }
   }
 
-  // ── Room actions ───────────────────────────────────────────────────────────
+  // ── Global actions ─────────────────────────────────────────────
   window.createRoom = function () {
     socket.emit("room:create", { gameType: "song-guesser" });
   };
 
-  window.toggleJoin = function () {
-    var area = document.getElementById("join-area");
-    area.classList.toggle("hidden");
-    if (!area.classList.contains("hidden")) {
-      document.getElementById("inp-code").focus();
-    }
-  };
-
   window.joinRoom = function () {
-    var code = (document.getElementById("inp-code").value || "").toUpperCase().trim();
-    if (code.length !== 4) { window.lvl3.showToast("4-stelligen Code eingeben", "error"); return; }
+    var inp = document.getElementById("join-code-input");
+    var err = document.getElementById("join-error");
+    var code = (inp ? inp.value : "").toUpperCase().trim();
+    if (code.length !== 4) { if (err) err.textContent = "4-stelligen Code eingeben"; return; }
+    if (err) err.textContent = "";
     socket.emit("room:join", { code: code });
   };
 
@@ -106,31 +88,45 @@
     socket.emit("game:start");
   };
 
-  // ── Answer ─────────────────────────────────────────────────────────────────
-  window.submitAnswer = function () {
-    var inp = document.getElementById("answer-input");
-    var val = (inp.value || "").trim();
-    if (!val) return;
-    socket.emit("game:answer", { answer: val });
-    inp.value = "";
+  window.leaveRoom = function () {
+    stopAudio();
+    stopTimer();
+    socket.emit("room:leave");
+    currentRoom = null;
+    showScreen("join");
   };
 
-  document.addEventListener("DOMContentLoaded", function () {
-    var inp = document.getElementById("answer-input");
-    if (inp) {
-      inp.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") window.submitAnswer();
-      });
-    }
-  });
+  window.replayGame = function () {
+    socket.emit("game:replay");
+  };
 
-  // ── Audio ──────────────────────────────────────────────────────────────────
-  function stopAudio() {
-    if (audio) {
-      audio.pause();
-      audio.src = "";
-      audio = null;
+  window.submitAnswer = function () {
+    var inp = document.getElementById("answer-input");
+    var val = (inp ? inp.value : "").trim();
+    if (!val) return;
+    socket.emit("game:answer", { answer: val });
+    if (inp) inp.value = "";
+  };
+
+  window.unlockAudio = function () {
+    hideAutoplayOverlay();
+    audioUnlocked = true;
+    if (pendingPreviewUrl) {
+      playPreview(pendingPreviewUrl);
+      pendingPreviewUrl = null;
     }
+  };
+
+  // Enter key on join + answer
+  var joinInput = document.getElementById("join-code-input");
+  if (joinInput) joinInput.addEventListener("keydown", function (e) { if (e.key === "Enter") window.joinRoom(); });
+
+  var answerInput = document.getElementById("answer-input");
+  if (answerInput) answerInput.addEventListener("keydown", function (e) { if (e.key === "Enter") window.submitAnswer(); });
+
+  // ── Audio ──────────────────────────────────────────────────────
+  function stopAudio() {
+    if (audio) { audio.pause(); audio.src = ""; audio = null; }
     stopTimer();
     setWaveformPlaying(false);
   }
@@ -149,16 +145,8 @@
       }
     };
 
-    audio.onended = function () {
-      setWaveformPlaying(false);
-      setSongStatus(false);
-      stopTimer();
-    };
-
-    audio.onerror = function () {
-      setWaveformPlaying(false);
-      setSongStatus(false);
-    };
+    audio.onended = function () { setWaveformPlaying(false); setSongStatus(false); stopTimer(); };
+    audio.onerror = function () { setWaveformPlaying(false); setSongStatus(false); };
 
     var playPromise = audio.play();
     if (playPromise !== undefined) {
@@ -168,51 +156,34 @@
         setSongStatus(true);
         hideAutoplayOverlay();
       }).catch(function () {
-        // Autoplay blocked — show overlay
         pendingPreviewUrl = previewUrl;
         showAutoplayOverlay();
       });
     }
   }
 
-  window.unlockAudio = function () {
-    hideAutoplayOverlay();
-    audioUnlocked = true;
-    if (pendingPreviewUrl) {
-      playPreview(pendingPreviewUrl);
-      pendingPreviewUrl = null;
-    }
-  };
-
   function showAutoplayOverlay() {
     var o = document.getElementById("autoplay-overlay");
     if (o) o.classList.remove("hidden");
   }
-
   function hideAutoplayOverlay() {
     var o = document.getElementById("autoplay-overlay");
     if (o) o.classList.add("hidden");
   }
-
   function setWaveformPlaying(playing) {
     var wf = document.getElementById("waveform");
-    if (!wf) return;
-    if (playing) wf.classList.add("playing");
-    else wf.classList.remove("playing");
+    if (wf) { if (playing) wf.classList.add("playing"); else wf.classList.remove("playing"); }
   }
-
   function setSongStatus(playing) {
     var el = document.getElementById("song-status");
-    if (!el) return;
-    el.style.display = playing ? "flex" : "none";
+    if (el) el.style.display = playing ? "flex" : "none";
   }
 
-  // ── Timer ──────────────────────────────────────────────────────────────────
+  // ── Timer ──────────────────────────────────────────────────────
   function startTimer(seconds) {
     stopTimer();
     timerSecondsLeft = seconds;
     updateTimerDisplay(seconds, seconds);
-
     timerInterval = setInterval(function () {
       timerSecondsLeft--;
       updateTimerDisplay(timerSecondsLeft, seconds);
@@ -221,14 +192,11 @@
   }
 
   function stopTimer() {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   }
 
   function updateTimerDisplay(left, total) {
-    var bar = document.getElementById("timer-bar");
+    var bar   = document.getElementById("timer-bar");
     var label = document.getElementById("timer-label");
     if (bar) {
       var pct = Math.max(0, (left / total) * 100);
@@ -238,56 +206,57 @@
     if (label) label.textContent = Math.max(0, left) + "s";
   }
 
-  // ── Show question phase ────────────────────────────────────────────────────
+  // ── Scoreboard ─────────────────────────────────────────────────
+  function renderScoreboard(scores) {
+    var list = document.getElementById("player-list");
+    if (!list) return;
+    var entries = Object.entries(scores).sort(function (a, b) { return b[1] - a[1]; });
+    list.innerHTML = entries.map(function (e) {
+      return '<li class="player-item' + (e[0] === me ? " is-host" : "") + '">' +
+        '<div class="player-avatar" style="background:' + window.lvl3.avatarColor(e[0]) + '">' + window.lvl3.avatarInitial(e[0]) + '</div>' +
+        '<span class="player-name">' + e[0] + '</span>' +
+        '<span class="player-score">' + e[1] + '</span>' +
+        '</li>';
+    }).join("");
+  }
+
+  // ── Question phase ─────────────────────────────────────────────
   function showQuestion(data) {
     currentSong = data.song;
-    showScreen("screen-game");
+    showScreen("game");
 
-    // Round counter
     var rc = document.getElementById("round-counter");
     if (rc) rc.textContent = "Runde " + data.song.index + " / " + data.song.total;
 
-    // Hide album art, hide reveal box, show waveform
-    var albumArt = document.getElementById("album-art");
-    if (albumArt) albumArt.classList.remove("visible");
+    var albumArt  = document.getElementById("album-art");
     var revealBox = document.getElementById("reveal-box");
+    var wf        = document.getElementById("waveform");
+    if (albumArt)  albumArt.classList.remove("visible");
     if (revealBox) revealBox.classList.add("hidden");
-    var wf = document.getElementById("waveform");
-    if (wf) wf.style.display = "flex";
+    if (wf)        wf.style.display = "flex";
 
-    // Enable input
-    var inp = document.getElementById("answer-input");
-    if (inp) { inp.disabled = false; inp.value = ""; inp.focus(); }
-    var answerWrap = document.getElementById("answer-wrap");
+    var inp         = document.getElementById("answer-input");
+    var answerWrap  = document.getElementById("answer-wrap");
+    if (inp)        { inp.disabled = false; inp.value = ""; inp.focus(); }
     if (answerWrap) answerWrap.style.opacity = "1";
 
-    // Scores
     if (data.scores) renderScoreboard(data.scores);
-
-    // Start timer
     startTimer(data.timeLimit || 15);
-
-    // Play audio
     playPreview(data.song.previewUrl);
   }
 
-  // ── Show reveal phase ──────────────────────────────────────────────────────
+  // ── Reveal phase ───────────────────────────────────────────────
   function showReveal(data) {
     stopAudio();
     stopTimer();
 
-    // Hide waveform, show album art
     var wf = document.getElementById("waveform");
     if (wf) wf.style.display = "none";
     setSongStatus(false);
 
     var albumArt = document.getElementById("album-art");
-    if (albumArt && data.albumArt) {
-      albumArt.src = data.albumArt;
-      albumArt.classList.add("visible");
-    }
+    if (albumArt && data.albumArt) { albumArt.src = data.albumArt; albumArt.classList.add("visible"); }
 
-    // Reveal box
     var rb = document.getElementById("reveal-box");
     var rt = document.getElementById("reveal-title");
     var ra = document.getElementById("reveal-artist");
@@ -295,15 +264,11 @@
     if (rb) rb.classList.remove("hidden");
     if (rt && data.correctAnswer) rt.textContent = data.correctAnswer.title;
     if (ra && data.correctAnswer) ra.textContent = data.correctAnswer.artist;
-
     if (rw) {
       if (data.winner) {
         rw.className = "reveal-winner correct";
-        rw.textContent = data.winner === me
-          ? "Du hast es erraten! +1 Punkt"
-          : data.winner + " hat es erraten!";
-        if (data.winner === me) window.lvl3.playSound("correct");
-        else window.lvl3.playSound("round-start");
+        rw.textContent = data.winner === me ? "Du hast es erraten! +" + (data.points || 1) + " Punkt" : data.winner + " hat es erraten!";
+        window.lvl3.playSound(data.winner === me ? "correct" : "round-start");
       } else {
         rw.className = "reveal-winner timeout";
         rw.textContent = "Niemand hat es erraten.";
@@ -311,58 +276,42 @@
       }
     }
 
-    // Disable input during reveal
-    var inp = document.getElementById("answer-input");
-    if (inp) inp.disabled = true;
+    var inp        = document.getElementById("answer-input");
     var answerWrap = document.getElementById("answer-wrap");
+    if (inp)        inp.disabled = true;
     if (answerWrap) answerWrap.style.opacity = "0.4";
 
-    // Update scores
     if (data.scores) renderScoreboard(data.scores);
   }
 
-  // ── Scoreboard ─────────────────────────────────────────────────────────────
-  function renderScoreboard(scores) {
-    var list = document.getElementById("game-player-list");
-    if (!list) return;
-    var entries = Object.entries(scores).sort(function (a, b) { return b[1] - a[1]; });
-    list.innerHTML = entries.map(function (e) {
-      var p = e[0], s = e[1];
-      return '<li class="player-item' + (p === me ? " is-host" : "") + '">' +
-        '<div class="player-avatar" style="background:' + window.lvl3.avatarColor(p) + '">' +
-        window.lvl3.avatarInitial(p) + '</div>' +
-        '<span class="player-name">' + p + '</span>' +
-        '<span class="player-score">' + s + '</span>' +
-        '</li>';
-    }).join("");
-  }
-
-  // ── Game end ───────────────────────────────────────────────────────────────
+  // ── Game end ───────────────────────────────────────────────────
   function showGameEnd(data) {
     stopAudio();
     stopTimer();
-    showScreen("screen-end");
+    showScreen("end");
 
-    var title = document.getElementById("end-title");
-    var subtitle = document.getElementById("end-subtitle");
+    var title      = document.getElementById("end-title");
+    var subtitle   = document.getElementById("end-subtitle");
     var finalScores = document.getElementById("final-scores");
-    var btnReplay = document.getElementById("btn-replay");
+    var btnReplay  = document.getElementById("btn-replay");
 
     if (data.winners && data.winners.length > 0) {
       var winnerStr = data.winners.join(" & ");
-      if (title) title.textContent = data.winners.includes(me) ? "Du gewinnst! 🎉" : winnerStr + " gewinnt!";
+      if (title)    title.textContent    = data.winners.includes(me) ? "Du gewinnst! 🎉" : winnerStr + " gewinnt!";
       if (subtitle) subtitle.textContent = winnerStr + " mit " + data.topScore + " Punkten";
     }
 
-    // Render final scores sorted
     if (finalScores && data.scores) {
       var entries = Object.entries(data.scores).sort(function (a, b) { return b[1] - a[1]; });
-      var medals = ["🥇", "🥈", "🥉"];
+      var medals  = ["🥇","🥈","🥉"];
       finalScores.innerHTML = entries.map(function (e, i) {
         return '<div class="final-score-row">' +
-          '<span class="rank">' + (medals[i] || (i + 1) + ".") + '</span>' +
-          '<span class="final-score-name">' + e[0] + '</span>' +
-          '<span class="final-score-pts">' + e[1] + '</span>' +
+          '<div style="display:flex;align-items:center;gap:8px">' +
+            '<span style="font-size:18px;min-width:24px">' + (medals[i] || (i + 1) + ".") + '</span>' +
+            '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;background:' + window.lvl3.avatarColor(e[0]) + '">' + window.lvl3.avatarInitial(e[0]) + '</div>' +
+            '<span style="font-weight:600">' + e[0] + '</span>' +
+          '</div>' +
+          '<span class="player-score">' + e[1] + '</span>' +
           '</div>';
       }).join("");
     }
@@ -370,86 +319,64 @@
     if (btnReplay) btnReplay.classList.toggle("hidden", !isHost);
   }
 
-  window.replayGame = function () {
-    socket.emit("game:replay");
-  };
-
-  // ── Socket events ──────────────────────────────────────────────────────────
+  // ── Socket events ──────────────────────────────────────────────
   socket.on("room:created", function (data) {
     currentRoom = data.code;
     isHost = true;
     applySettings(data.settings || {});
-
-    document.getElementById("room-code-display").textContent = data.code;
-    document.getElementById("room-info").classList.remove("hidden");
-    document.getElementById("create-join-area").classList.add("hidden");
-    document.getElementById("player-list-wrap").classList.remove("hidden");
-    renderLobbyPlayers(data.players, data.host);
+    var rcd = document.getElementById("room-code-display");
+    if (rcd) rcd.textContent = data.code;
+    if (data.players) window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {});
     updateHostUI();
-    showScreen("screen-lobby");
+    showScreen("lobby");
   });
 
   socket.on("room:joined", function (data) {
     currentRoom = data.code;
     isHost = data.isHost;
     applySettings(data.settings || {});
-
-    document.getElementById("room-code-display").textContent = data.code;
-    document.getElementById("room-info").classList.remove("hidden");
-    document.getElementById("create-join-area").classList.add("hidden");
-    document.getElementById("player-list-wrap").classList.remove("hidden");
-    renderLobbyPlayers(data.players, data.host);
+    var rcd = document.getElementById("room-code-display");
+    if (rcd) rcd.textContent = data.code;
+    if (data.players) window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {});
     updateHostUI();
-    showScreen("screen-lobby");
+    showScreen("lobby");
   });
 
   socket.on("room:players", function (data) {
-    renderLobbyPlayers(data.players, data.host);
+    window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {});
   });
 
   socket.on("room:host-changed", function (data) {
     isHost = data.host === me;
-    renderLobbyPlayers(data.players, data.host);
+    window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {});
     updateHostUI();
   });
 
-  socket.on("room:settings", function (settings) {
-    applySettings(settings);
+  socket.on("room:settings", function (settings) { applySettings(settings); });
+  socket.on("room:error",    function (data) {
+    var err = document.getElementById("join-error");
+    if (err) err.textContent = data.message || "Fehler";
   });
-
-  socket.on("room:error", function (data) {
-    window.lvl3.showToast(data.message, "error");
-  });
-
-  socket.on("game:error", function (data) {
-    window.lvl3.showToast(data.message, "error");
-  });
+  socket.on("game:error",    function (data) { window.lvl3.showToast(data.message, "error"); });
 
   socket.on("game:state", function (data) {
     switch (data.phase) {
       case "lobby":
-        showScreen("screen-lobby");
+        showScreen("lobby");
         applySettings(currentSettings);
         break;
 
       case "countdown":
-        // Show countdown overlay on top of lobby
-        var cd = document.getElementById("screen-countdown");
+        showScreen("countdown");
         var num = document.getElementById("countdown-num");
-        if (cd) cd.classList.remove("hidden");
         if (num) {
           num.textContent = data.countdown;
-          // Re-trigger animation
-          num.style.animation = "none";
-          void num.offsetWidth;
-          num.style.animation = "";
+          num.style.animation = "none"; void num.offsetWidth; num.style.animation = "";
         }
         window.lvl3.playSound("tick");
         break;
 
       case "question":
-        var cd2 = document.getElementById("screen-countdown");
-        if (cd2) cd2.classList.add("hidden");
         window.lvl3.playSound("game-start");
         showQuestion(data);
         break;
@@ -466,10 +393,7 @@
 
   socket.on("game:wrong", function () {
     var inp = document.getElementById("answer-input");
-    if (inp) {
-      inp.classList.add("shake");
-      setTimeout(function () { inp.classList.remove("shake"); }, 350);
-    }
+    if (inp) { inp.classList.add("shake"); setTimeout(function () { inp.classList.remove("shake"); }, 350); }
     window.lvl3.playSound("wrong");
   });
 
