@@ -2,12 +2,13 @@ const path  = require("path");
 const stats = require("../stats");
 
 // Logo images — Clearbit's Logo API was shut down, so use keyless favicon services.
-// DuckDuckGo's ip3 service gives the best quality; Google's favicon service is a reliable fallback.
+// Google's favicon service at 256px is the primary (consistent, always resolves);
+// DuckDuckGo's ip3 service is the fallback.
 function logoImageUrl(domain) {
-  return "https://icons.duckduckgo.com/ip3/" + domain + ".ico";
+  return "https://www.google.com/s2/favicons?domain=" + domain + "&sz=256";
 }
 function logoFallbackUrl(domain) {
-  return "https://www.google.com/s2/favicons?domain=" + domain + "&sz=256";
+  return "https://icons.duckduckgo.com/ip3/" + domain + ".ico";
 }
 
 const FALLBACK_LOGOS = [
@@ -52,7 +53,18 @@ function loadLogos(difficulty) {
   } catch (e) {
     all = FALLBACK_LOGOS;
   }
-  return shuffle(all.filter(l => l.difficulty === difficulty));
+  // Tiered difficulty so "normal" isn't brutally hard: easy = easy only,
+  // normal = easy + normal brands, hard = everything.
+  let pool;
+  if (difficulty === "easy") {
+    pool = all.filter(l => l.difficulty === "easy");
+  } else if (difficulty === "normal") {
+    pool = all.filter(l => l.difficulty === "easy" || l.difficulty === "normal");
+  } else {
+    pool = all.slice();
+  }
+  if (pool.length === 0) pool = all.slice();
+  return shuffle(pool);
 }
 
 function checkAnswer(answer, logo) {

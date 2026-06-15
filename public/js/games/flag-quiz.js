@@ -122,7 +122,7 @@
     var panel    = document.getElementById("host-settings");
     var guest    = document.getElementById("guest-settings");
     if (isHost) {
-      if (btnStart) { btnStart.classList.remove("hidden"); btnStart.disabled = players.length < 2; }
+      if (btnStart) { btnStart.classList.remove("hidden"); btnStart.disabled = players.length < 1; }
       if (panel) panel.style.display = "";
       if (guest) guest.style.display = "none";
     } else {

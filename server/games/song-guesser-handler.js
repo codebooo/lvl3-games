@@ -1,6 +1,11 @@
 const https = require("https");
 const stats = require("../stats");
 
+// Pre-fetched song list (data/songs.json) so the game doesn't depend on a live API call
+// at start time. Regenerate with `node scripts/fetch-songs.js`.
+let LOCAL_SONGS = {};
+try { LOCAL_SONGS = require("../../data/songs.json"); } catch (e) { LOCAL_SONGS = {}; }
+
 const SEARCH_TERMS = {
   easy: [
     "top hits 2024", "pop hits 2023", "chart hits 2022",
@@ -106,41 +111,50 @@ module.exports = function (socket, io, rooms) {
     room.started = true;
     const difficulty = room.settings.difficulty || "normal";
 
+    // Prefer the bundled local song list (no live-API dependency); fall back to iTunes.
+    const local = LOCAL_SONGS[difficulty] || [];
+    if (local.length >= 5) {
+      beginGame(code, room, shuffle(local).slice(0, 20));
+      return;
+    }
+
     fetchSongs(difficulty, (err, songs) => {
       if (err || songs.length < 5) {
         room.started = false;
         socket.emit("game:error", { message: "Konnte keine Songs laden. Bitte erneut versuchen." });
         return;
       }
-
-      const shuffled = shuffle(songs).slice(0, 20);
-      room.gameData = {
-        songs: shuffled,
-        index: 0,
-        scores: {},
-        phase: "idle",
-        roundWinner: null,
-        roundTimer: null,
-        answered: false
-      };
-
-      // Init scores
-      room.players.forEach(p => { room.gameData.scores[p] = 0; });
-
-      // Countdown then first round
-      io.to(code).emit("game:state", { phase: "countdown", countdown: 3, scores: room.gameData.scores });
-      let count = 3;
-      const countInterval = setInterval(() => {
-        count--;
-        if (count > 0) {
-          io.to(code).emit("game:state", { phase: "countdown", countdown: count, scores: room.gameData.scores });
-        } else {
-          clearInterval(countInterval);
-          startRound(code, room);
-        }
-      }, 1000);
+      beginGame(code, room, shuffle(songs).slice(0, 20));
     });
   });
+
+  function beginGame(code, room, songs) {
+    room.gameData = {
+      songs,
+      index: 0,
+      scores: {},
+      phase: "idle",
+      roundWinner: null,
+      roundTimer: null,
+      answered: false
+    };
+
+    // Init scores
+    room.players.forEach(p => { room.gameData.scores[p] = 0; });
+
+    // Countdown then first round
+    io.to(code).emit("game:state", { phase: "countdown", countdown: 3, scores: room.gameData.scores });
+    let count = 3;
+    const countInterval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        io.to(code).emit("game:state", { phase: "countdown", countdown: count, scores: room.gameData.scores });
+      } else {
+        clearInterval(countInterval);
+        startRound(code, room);
+      }
+    }, 1000);
+  }
 
   // ─── Answer ──────────────────────────────────────────────────────────────────
   socket.on("game:answer", ({ answer }) => {

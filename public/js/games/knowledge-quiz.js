@@ -80,8 +80,8 @@
     if (isHost) {
       if (elSettingsPanel) elSettingsPanel.classList.remove("hidden");
       if (elSettingsRO)    elSettingsRO.classList.add("hidden");
-      if (elBtnStart)      { elBtnStart.style.display = ""; elBtnStart.disabled = currentPlayers.length < 2; }
-      if (elWaitingMsg)    elWaitingMsg.textContent = currentPlayers.length < 2 ? "Mindestens 2 Spieler erforderlich" : "";
+      if (elBtnStart)      { elBtnStart.style.display = ""; elBtnStart.disabled = currentPlayers.length < 1; }
+      if (elWaitingMsg)    elWaitingMsg.textContent = currentPlayers.length < 1 ? "Warte auf Spieler…" : "";
     } else {
       if (elSettingsPanel) elSettingsPanel.classList.add("hidden");
       if (elSettingsRO)    elSettingsRO.classList.remove("hidden");
@@ -197,10 +197,14 @@
   });
 
   // ── Game state ────────────────────────────────────────────────
-  socket.on("game:state", function (data) {
-    if (data.phase === "countdown") {
+  socket.on("game:state", function () {
+    var msg = arguments[0];
+    var d = (msg && msg.data) ? msg.data : {};
+    var phase = msg && msg.phase;
+
+    if (phase === "countdown") {
       showScreen("countdown");
-      var n = data.count !== undefined ? data.count : data.countdown;
+      var n = d.count !== undefined ? d.count : 0;
       if (elCountdownNum) {
         elCountdownNum.textContent = (n === 0 || n === "GO") ? "GO!" : n;
         elCountdownNum.style.animation = "none"; void elCountdownNum.offsetWidth; elCountdownNum.style.animation = "";
@@ -209,11 +213,12 @@
       return;
     }
 
-    if (data.phase === "question")     { showQuestion(data); return; }
-    if (data.phase === "answer-reveal") { showReveal(data); return; }
-    if (data.phase === "game-end")      { showEnd(data); return; }
+    if (phase === "question")      { showQuestion(d); return; }
+    if (phase === "answer-reveal") { showReveal(d); return; }
+    if (phase === "timeout")       { showReveal(d); return; }
+    if (phase === "game-end")      { showEnd(d); return; }
 
-    if (data.phase === "lobby") {
+    if (phase === "lobby") {
       isHost = currentHost === username;
       renderHostControls();
       updatePlayerList();
@@ -231,7 +236,9 @@
     updatePlayerList();
 
     var timeLimit = data.timeLimit || 15;
-    if (elRoundIndicator) elRoundIndicator.textContent = "Frage " + (data.questionNumber || "");
+    var qNum = (data.index !== undefined) ? (data.index + 1) : "";
+    var qTotal = data.total ? "/" + data.total : "";
+    if (elRoundIndicator) elRoundIndicator.textContent = "Frage " + qNum + qTotal;
     if (elCategoryLabel)  { elCategoryLabel.textContent = data.category || ""; elCategoryLabel.classList.toggle("hidden", !data.category); }
     if (elRevealBanner)   elRevealBanner.classList.add("hidden");
     if (elQuestionText)   { elQuestionText.textContent = data.question || ""; elQuestionText.style.display = "block"; }
@@ -345,14 +352,14 @@
     if (elWinnerName) elWinnerName.textContent = data.winner || "—";
     if (elFinalScores) {
       elFinalScores.innerHTML = "";
-      (data.scores || []).forEach(function (entry, idx) {
+      (data.sorted || []).forEach(function (entry, idx) {
         var row = document.createElement("div");
         row.className = "final-score-row" + (idx === 0 ? " first-place" : "");
         row.innerHTML =
           '<div style="display:flex;align-items:center;gap:8px">' +
             '<span style="font-size:18px;min-width:28px">' + (["1.","2.","3."][idx] || (idx + 1) + ".") + '</span>' +
-            '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;background:' + window.lvl3.avatarColor(entry.username) + '">' + window.lvl3.avatarInitial(entry.username) + '</div>' +
-            '<span style="font-weight:600">' + entry.username + '</span>' +
+            '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;background:' + window.lvl3.avatarColor(entry.name) + '">' + window.lvl3.avatarInitial(entry.name) + '</div>' +
+            '<span style="font-weight:600">' + entry.name + '</span>' +
           '</div>' +
           '<span class="player-score">' + entry.score + '</span>';
         elFinalScores.appendChild(row);

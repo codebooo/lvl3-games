@@ -83,7 +83,7 @@
     if (isHost) {
       elHostSettings.style.display = "";
       elGuestSettings.style.display = "none";
-      elBtnStart.disabled = players.length < 2;
+      elBtnStart.disabled = players.length < 1;
     } else {
       elHostSettings.style.display = "none";
       elGuestSettings.style.display = "";

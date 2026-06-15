@@ -183,6 +183,14 @@
         </form>
       </div>
 
+      <!-- Vorschläge (admin only) -->
+      <div id="vorschlaege-section" style="display:none">
+        <div class="settings-section">
+          <h3>Vorschläge</h3>
+          <div id="vorschlaege-list" style="color:var(--text-dim);font-size:14px">Wird geladen…</div>
+        </div>
+      </div>
+
       <div style="display:flex;justify-content:flex-end;margin-top:24px">
         <button id="settings-close" class="btn btn-secondary btn-sm">Schließen</button>
       </div>
@@ -233,6 +241,43 @@
         _lbData = data;
         renderLeaderboard("overall");
       });
+
+      /* Vorschläge — admin only */
+      if (d.username.toLowerCase() === "bosse") {
+        var vorschlaege = document.getElementById("vorschlaege-section");
+        if (vorschlaege) vorschlaege.style.display = "block";
+        fetch("/api/requests")
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var list = document.getElementById("vorschlaege-list");
+            if (!list) return;
+            if (!data.requests || data.requests.length === 0) {
+              list.innerHTML = '<span style="color:var(--text-dim)">Noch keine Vorschläge.</span>';
+              return;
+            }
+            var html = '<div style="max-height:280px;overflow:auto">';
+            for (var i = 0; i < data.requests.length; i++) {
+              var item = data.requests[i];
+              var d2 = item.date ? new Date(item.date) : null;
+              var dateStr = d2 && !isNaN(d2)
+                ? d2.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })
+                : "";
+              html += '<div style="padding:10px 0;border-bottom:1px solid var(--border-thick)">'
+                + '<div style="margin-bottom:4px">' + window.lvl3.escapeHtml(item.text) + '</div>'
+                + '<div style="color:var(--text-dim);font-size:12px">'
+                + window.lvl3.escapeHtml(item.username || "")
+                + (dateStr ? ' &middot; ' + dateStr : '')
+                + '</div>'
+                + '</div>';
+            }
+            html += '</div>';
+            list.innerHTML = html;
+          })
+          .catch(function () {
+            var list = document.getElementById("vorschlaege-list");
+            if (list) list.innerHTML = '<span style="color:var(--text-dim)">Fehler beim Laden der Vorschläge.</span>';
+          });
+      }
     });
 
     function logout() {

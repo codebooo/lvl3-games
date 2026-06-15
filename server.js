@@ -287,6 +287,17 @@ app.post("/api/request-game", (req, res) => {
   return res.json({ success: true });
 });
 
+app.get("/api/requests", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+  if (req.session.username.toLowerCase() !== "bosse") {
+    return res.status(403).json({ error: "Keine Berechtigung." });
+  }
+  const reqs = loadRequests();
+  return res.json({ requests: reqs.slice().reverse() });
+});
+
 // ─── Room Management ──────────────────────────────────────────────────────────
 const rooms = new Map();
 
