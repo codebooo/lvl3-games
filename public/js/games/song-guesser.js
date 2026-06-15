@@ -125,30 +125,42 @@
   if (answerInput) answerInput.addEventListener("keydown", function (e) { if (e.key === "Enter") window.submitAnswer(); });
 
   // ── Audio ──────────────────────────────────────────────────────
+  // Reuse ONE <audio> element (unlocked on the first user gesture) instead of creating a
+  // new one per round. Browsers block autoplay until the page is interacted with, and strict
+  // mobile browsers (iOS) only allow an element that was first played during a user gesture.
+  function ensureAudio() {
+    if (!audio) { audio = new Audio(); audio.volume = 0.85; }
+    return audio;
+  }
+
   function stopAudio() {
-    if (audio) { audio.pause(); audio.src = ""; audio = null; }
+    if (audio) { audio.pause(); try { audio.currentTime = 0; } catch (e) {} }
     stopTimer();
     setWaveformPlaying(false);
   }
 
   function playPreview(previewUrl) {
-    stopAudio();
-    audio = new Audio(previewUrl);
-    audio.volume = 0.85;
+    var el = ensureAudio();
+    el.pause();
+    try { el.currentTime = 0; } catch (e) {}
+    setWaveformPlaying(false);
+    el.muted = false;
+    el.volume = 0.85;
+    el.src = previewUrl;
 
-    audio.ontimeupdate = function () {
-      if (audio && audio.currentTime >= 10) {
-        audio.pause();
+    el.ontimeupdate = function () {
+      if (el.currentTime >= 10) {
+        el.pause();
         stopTimer();
         setWaveformPlaying(false);
         setSongStatus(false);
       }
     };
 
-    audio.onended = function () { setWaveformPlaying(false); setSongStatus(false); stopTimer(); };
-    audio.onerror = function () { setWaveformPlaying(false); setSongStatus(false); };
+    el.onended = function () { setWaveformPlaying(false); setSongStatus(false); stopTimer(); };
+    el.onerror = function () { setWaveformPlaying(false); setSongStatus(false); };
 
-    var playPromise = audio.play();
+    var playPromise = el.play();
     if (playPromise !== undefined) {
       playPromise.then(function () {
         audioUnlocked = true;
@@ -161,6 +173,25 @@
       });
     }
   }
+
+  // Prime the reusable element on the first user gesture (players always click create/join/
+  // start), so the first song preview can autoplay instead of getting blocked.
+  var SILENT_WAV = "data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==";
+  function primeAudioOnGesture() {
+    if (audioUnlocked) return;
+    var el = ensureAudio();
+    try {
+      el.muted = true;
+      el.src = SILENT_WAV;
+      var p = el.play();
+      var fin = function () { el.pause(); try { el.currentTime = 0; } catch (e) {} el.muted = false; audioUnlocked = true; };
+      if (p && p.then) p.then(fin).catch(function () { el.muted = false; });
+      else fin();
+    } catch (e) {}
+  }
+  ["click", "keydown", "touchstart"].forEach(function (evt) {
+    document.addEventListener(evt, primeAudioOnGesture, true);
+  });
 
   function showAutoplayOverlay() {
     var o = document.getElementById("autoplay-overlay");

@@ -1,6 +1,15 @@
 const path  = require("path");
 const stats = require("../stats");
 
+// Logo images — Clearbit's Logo API was shut down, so use keyless favicon services.
+// DuckDuckGo's ip3 service gives the best quality; Google's favicon service is a reliable fallback.
+function logoImageUrl(domain) {
+  return "https://icons.duckduckgo.com/ip3/" + domain + ".ico";
+}
+function logoFallbackUrl(domain) {
+  return "https://www.google.com/s2/favicons?domain=" + domain + "&sz=256";
+}
+
 const FALLBACK_LOGOS = [
   { name: "Apple",      domain: "apple.com",      difficulty: "easy",   aliases: ["apple inc"] },
   { name: "Google",     domain: "google.com",      difficulty: "easy",   aliases: [] },
@@ -169,7 +178,7 @@ module.exports = function (socket, io, rooms) {
       const gd = room.gameData;
       const isLast = (i === counts.length - 1);
       const nextImageUrl = (isLast && gd && gd.logos && gd.logos.length > 0)
-        ? "https://logo.clearbit.com/" + gd.logos[0].domain
+        ? logoImageUrl(gd.logos[0].domain)
         : undefined;
       const payload = { phase: "countdown", count: counts[i] };
       if (nextImageUrl) payload.nextImageUrl = nextImageUrl;
@@ -200,8 +209,8 @@ module.exports = function (socket, io, rooms) {
       phase: "question",
       logo: {
         id: gd.index,
-        imageUrl: "https://logo.clearbit.com/" + logo.domain,
-        fallbackUrl: "https://img.logo.dev/" + logo.domain + "?token=pk_X0RtLpQiT6Z9mxqUjV3wvQ",
+        imageUrl: logoImageUrl(logo.domain),
+        fallbackUrl: logoFallbackUrl(logo.domain),
         difficulty: logo.difficulty
       },
       timeLimit,
@@ -227,7 +236,7 @@ module.exports = function (socket, io, rooms) {
     const logo = gd.logos[gd.index];
     const nextIndex = gd.index + 1;
     const nextImageUrl = gd.logos.length > 0
-      ? "https://logo.clearbit.com/" + gd.logos[nextIndex % gd.logos.length].domain
+      ? logoImageUrl(gd.logos[nextIndex % gd.logos.length].domain)
       : undefined;
 
     io.to(code).emit("game:state", {

@@ -29,8 +29,10 @@ function checkAnswer(input, flag) {
 }
 
 function getFlagImageUrl(flag) {
-  if (flag.imageUrl) return flag.imageUrl;
-  return "https://flagpedia.net/data/flags/w320/" + flag.iso2.toLowerCase() + ".png";
+  // flagpedia.net hotlink-protects /data/flags; flagcdn.com serves the same paths for embedding.
+  if (flag.imageUrl) return flag.imageUrl.replace("flagpedia.net/data/flags", "flagcdn.com");
+  if (flag.iso2) return "https://flagcdn.com/w320/" + flag.iso2.toLowerCase() + ".png";
+  return "";
 }
 
 function calcPoints(position, timeLeft, timeLimit) {
