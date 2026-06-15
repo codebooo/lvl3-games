@@ -20,8 +20,8 @@
         <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
         <span id="user-name" style="font-weight:600"></span>
       </div>
-      <button id="theme-toggle" class="theme-toggle" aria-label="Theme wechseln"></button>
       <button id="btn-suggest" class="btn btn-secondary btn-sm">💡 Spiel vorschlagen</button>
+      <button id="btn-settings" class="icon-btn" aria-label="Einstellungen" title="Einstellungen">⚙</button>
       <button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>
     </div>
   </div>
@@ -147,6 +147,46 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h2>Einstellungen</h2>
+
+      <!-- Appearance -->
+      <div class="settings-section">
+        <h3>Darstellung</h3>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Theme</div>
+            <div class="settings-row-hint">Heller oder dunkler Modus</div>
+          </div>
+          <button id="theme-toggle" class="icon-btn" aria-label="Theme wechseln"></button>
+        </div>
+      </div>
+
+      <!-- Account -->
+      <div class="settings-section">
+        <h3>Konto</h3>
+        <form id="settings-pw-form">
+          <div class="form-group">
+            <label class="label" for="set-new-pw">Neues Passwort</label>
+            <input id="set-new-pw" type="password" class="input-field" placeholder="Mindestens 6 Zeichen" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label class="label" for="set-confirm-pw">Passwort bestätigen</label>
+            <input id="set-confirm-pw" type="password" class="input-field" placeholder="Nochmal eingeben" autocomplete="new-password">
+          </div>
+          <div id="set-pw-error" style="color:var(--red);font-size:13px;min-height:18px;margin-bottom:8px"></div>
+          <button type="submit" class="btn btn-success btn-sm">Passwort ändern</button>
+        </form>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:24px">
+        <button id="settings-close" class="btn btn-secondary btn-sm">Schließen</button>
+      </div>
+    </div>
   </div>
 
   <!-- Spiel-vorschlagen Modal -->
@@ -313,6 +353,67 @@
           btn.disabled = false;
           btn.textContent = "Senden";
           window.lvl3.showToast("Fehler beim Senden.", "error");
+        });
+    });
+
+    /* ── Settings menu ── */
+    var settingsOverlay = document.getElementById("settings-overlay");
+
+    function closeSettings() { settingsOverlay.classList.add("hidden"); }
+
+    document.getElementById("btn-settings").addEventListener("click", function () {
+      settingsOverlay.classList.remove("hidden");
+    });
+    document.getElementById("settings-close").addEventListener("click", closeSettings);
+    settingsOverlay.addEventListener("click", function (e) {
+      if (e.target === this) closeSettings();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !settingsOverlay.classList.contains("hidden")) closeSettings();
+    });
+
+    /* Change password (endpoint only needs the new password) */
+    document.getElementById("settings-pw-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var newPw = document.getElementById("set-new-pw").value;
+      var confirmPw = document.getElementById("set-confirm-pw").value;
+      var err = document.getElementById("set-pw-error");
+      err.textContent = "";
+
+      if (newPw.length < 6) {
+        err.textContent = "Das Passwort muss mindestens 6 Zeichen lang sein.";
+        return;
+      }
+      if (newPw !== confirmPw) {
+        err.textContent = "Die Passwörter stimmen nicht überein.";
+        return;
+      }
+
+      var btn = this.querySelector("button[type=submit]");
+      btn.disabled = true;
+      btn.textContent = "Speichern…";
+      fetch("/api/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: newPw })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          btn.disabled = false;
+          btn.textContent = "Passwort ändern";
+          if (data.success) {
+            document.getElementById("set-new-pw").value = "";
+            document.getElementById("set-confirm-pw").value = "";
+            closeSettings();
+            window.lvl3.showToast("Passwort geändert.", "success");
+          } else {
+            err.textContent = data.error || "Fehler beim Ändern des Passworts.";
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = "Passwort ändern";
+          err.textContent = "Verbindungsfehler. Bitte erneut versuchen.";
         });
     });
   </script>
