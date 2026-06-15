@@ -6,8 +6,9 @@
   <title>Lvl 3 Games</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css?v=2">
+  <script src="/js/theme.js"></script>
 </head>
 <body class="centered">
 
@@ -32,6 +33,10 @@
           <input id="inp-password" type="password" class="input-field" placeholder="••••••••" autocomplete="current-password">
         </div>
         <div id="login-error" class="error-msg"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+          <input type="checkbox" id="inp-remember" style="width:15px;height:15px;cursor:pointer;accent-color:var(--accent)">
+          <label for="inp-remember" style="font-size:13px;color:var(--text-dim);cursor:pointer">Eingeloggt bleiben</label>
+        </div>
         <button type="submit" class="btn btn-primary w-full btn-lg mt-4" id="login-btn">Einloggen</button>
       </form>
     </div>

@@ -1,6 +1,7 @@
 "use strict";
 
 const https = require("https");
+const stats = require("../stats");
 
 // ─── Hardcoded fallback questions ────────────────────────────────────────────
 const FALLBACK_QUESTIONS = {
@@ -132,15 +133,20 @@ function fetchOpentdbQuestions(difficulty) {
 // ─── Handler ──────────────────────────────────────────────────────────────────
 module.exports = function (socket, io, rooms) {
 
-  // Update settings (host only)
-  socket.on("game:settings", ({ difficulty, pointsToWin, mode }) => {
-    const room = rooms.get(socket.roomCode);
+  // Shared settings applier (used by both game:settings and room:settings)
+  function applySettings(roomCode, { difficulty, pointsToWin, mode }) {
+    const room = rooms.get(roomCode);
     if (!room || room.host !== socket.username || room.started) return;
+    if (room.gameType !== "knowledge-quiz") return;
     if (difficulty) room.settings.difficulty = difficulty;
     if (pointsToWin) room.settings.pointsToWin = parseInt(pointsToWin, 10) || 10;
     if (mode) room.settings.mode = mode;
-    io.to(socket.roomCode).emit("game:settings-updated", room.settings);
-  });
+    io.to(roomCode).emit("game:settings-updated", room.settings);
+  }
+
+  // Update settings (host only) — clients may send either event name
+  socket.on("game:settings", (payload) => applySettings(socket.roomCode, payload));
+  socket.on("room:settings",  (payload) => applySettings(socket.roomCode, payload));
 
   // Start game (host only)
   socket.on("game:start", async () => {
@@ -401,13 +407,19 @@ module.exports = function (socket, io, rooms) {
 
     room.started = false;
 
+    const winner = sorted[0] ? sorted[0].name : null;
+
     io.to(code).emit("game:state", {
       phase: "game-end",
       data: {
         scores: room.gameData.scores,
         sorted,
-        winner: sorted[0] ? sorted[0].name : null
+        winner
       }
     });
+
+    // Normalise to {username, score} for stats
+    const sortedForStats = sorted.map(e => ({ username: e.name, score: e.score }));
+    try { stats.recordGameResult(room.gameType, sortedForStats, winner); } catch (e) { /* stats failure must not crash game */ }
   }
 };

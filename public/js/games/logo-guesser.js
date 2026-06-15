@@ -13,6 +13,7 @@
   var timerMax = 15;
   var answerSubmitted = false;
   var currentPhase = null;
+  var _preloadImg = null; // kept at module scope to prevent GC
 
   // ── Screen switcher ───────────────────────────────────────────
   function showScreen(name) {
@@ -220,6 +221,10 @@
       }
       clearTimer();
       setAnswerEnabled(false);
+      if (data.nextImageUrl) {
+        _preloadImg = new Image();
+        _preloadImg.src = data.nextImageUrl;
+      }
       return;
     }
 
@@ -251,6 +256,10 @@
       updatePlayerList();
       elFeedbackBanner.className = "feedback-banner show-timeout";
       elFeedbackBanner.textContent = "Zeit! Richtig: " + data.correctAnswer;
+      if (data.nextImageUrl) {
+        _preloadImg = new Image();
+        _preloadImg.src = data.nextImageUrl;
+      }
       return;
     }
   });

@@ -1,4 +1,5 @@
-const path = require("path");
+const path  = require("path");
+const stats = require("../stats");
 
 const FALLBACK_LOGOS = [
   { name: "Apple",      domain: "apple.com",      difficulty: "easy",   aliases: ["apple inc"] },
@@ -66,6 +67,7 @@ module.exports = function (socket, io, rooms) {
     if (!code) return;
     const room = rooms.get(code);
     if (!room || room.host !== socket.username) return;
+    if (room.gameType !== "logo-guesser") return;
 
     if (difficulty) room.settings.difficulty = difficulty;
     if (pointsToWin != null) room.settings.pointsToWin = Number(pointsToWin) || 10;
@@ -79,6 +81,7 @@ module.exports = function (socket, io, rooms) {
     if (!code) return;
     const room = rooms.get(code);
     if (!room || room.host !== socket.username) return;
+    if (room.gameType !== "logo-guesser") return;
     if (room.started) return;
 
     const difficulty = room.settings.difficulty || "normal";
@@ -110,6 +113,7 @@ module.exports = function (socket, io, rooms) {
     if (!code) return;
     const room = rooms.get(code);
     if (!room || !room.started) return;
+    if (room.gameType !== "logo-guesser") return;
 
     const gd = room.gameData;
     if (!gd || gd.phase !== "question") return;
@@ -162,7 +166,14 @@ module.exports = function (socket, io, rooms) {
 
     function emitCount() {
       if (!rooms.has(code)) return;
-      io.to(code).emit("game:state", { phase: "countdown", count: counts[i] });
+      const gd = room.gameData;
+      const isLast = (i === counts.length - 1);
+      const nextImageUrl = (isLast && gd && gd.logos && gd.logos.length > 0)
+        ? "https://logo.clearbit.com/" + gd.logos[0].domain
+        : undefined;
+      const payload = { phase: "countdown", count: counts[i] };
+      if (nextImageUrl) payload.nextImageUrl = nextImageUrl;
+      io.to(code).emit("game:state", payload);
       i++;
       if (i < counts.length) {
         setTimeout(emitCount, 1000);
@@ -214,11 +225,16 @@ module.exports = function (socket, io, rooms) {
     gd.phase = "timeout";
 
     const logo = gd.logos[gd.index];
+    const nextIndex = gd.index + 1;
+    const nextImageUrl = gd.logos.length > 0
+      ? "https://logo.clearbit.com/" + gd.logos[nextIndex % gd.logos.length].domain
+      : undefined;
 
     io.to(code).emit("game:state", {
       phase: "timeout",
       correctAnswer: logo.name,
-      scores: gd.scores
+      scores: gd.scores,
+      nextImageUrl
     });
 
     // Check win condition
@@ -264,5 +280,7 @@ module.exports = function (socket, io, rooms) {
       winner,
       scores: sorted
     });
+
+    try { stats.recordGameResult(room.gameType, sorted, winner); } catch (e) { /* stats failure must not crash game */ }
   }
 };

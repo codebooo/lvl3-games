@@ -1,4 +1,5 @@
 const https = require("https");
+const stats = require("../stats");
 
 const SEARCH_TERMS = {
   easy: [
@@ -89,6 +90,7 @@ module.exports = function (socket, io, rooms) {
   socket.on("game:settings", ({ difficulty, pointsToWin }) => {
     const room = rooms.get(socket.roomCode);
     if (!room || room.host !== socket.username || room.started) return;
+    if (room.gameType !== "song-guesser") return;
     if (difficulty) room.settings.difficulty = difficulty;
     if (pointsToWin) room.settings.pointsToWin = parseInt(pointsToWin, 10) || 10;
     io.to(socket.roomCode).emit("room:settings", room.settings);
@@ -99,6 +101,7 @@ module.exports = function (socket, io, rooms) {
     const code = socket.roomCode;
     const room = rooms.get(code);
     if (!room || room.host !== socket.username || room.started) return;
+    if (room.gameType !== "song-guesser") return;
 
     room.started = true;
     const difficulty = room.settings.difficulty || "normal";
@@ -144,6 +147,7 @@ module.exports = function (socket, io, rooms) {
     const code = socket.roomCode;
     const room = rooms.get(code);
     if (!room || !room.gameData || room.gameData.phase !== "question") return;
+    if (room.gameType !== "song-guesser") return;
     if (room.gameData.answered) return; // round already won
 
     const song = room.gameData.songs[room.gameData.index];
@@ -270,5 +274,12 @@ module.exports = function (socket, io, rooms) {
       winners,
       topScore: maxScore
     });
+
+    // Record stats — use first winner (alphabetical tiebreak is fine for a party game)
+    const winner = winners.length > 0 ? winners[0] : null;
+    const sortedScores = Object.entries(scores)
+      .sort(([, a], [, b]) => b - a)
+      .map(([username, score]) => ({ username, score }));
+    try { stats.recordGameResult(room.gameType, sortedScores, winner); } catch (e) { /* stats failure must not crash game */ }
   }
 };

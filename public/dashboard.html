@@ -6,19 +6,22 @@
   <title>Lvl 3 Games - Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css?v=2">
+  <script src="/js/theme.js"></script>
 </head>
 <body>
 
   <!-- Header -->
-  <div class="page-header">
+  <div class="page-header" style="flex-wrap:wrap;gap:8px;height:auto;min-height:56px">
     <div class="logo-text" style="font-size:28px">LVL<span>³</span></div>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2" style="flex-wrap:wrap">
       <div class="flex items-center gap-2">
         <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
         <span id="user-name" style="font-weight:600"></span>
       </div>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Theme wechseln"></button>
+      <button id="btn-suggest" class="btn btn-secondary btn-sm">💡 Spiel vorschlagen</button>
       <button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>
     </div>
   </div>
@@ -123,11 +126,54 @@
       </a>
 
     </div>
+
+    <!-- Leaderboard -->
+    <div style="margin-top:60px">
+      <h2 style="font-size:28px;margin-bottom:24px">Leaderboard</h2>
+
+      <!-- Tab buttons -->
+      <div id="lb-tabs" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+        <button class="btn btn-secondary btn-sm lb-tab lb-tab-active" data-key="overall">Gesamt</button>
+        <button class="btn btn-secondary btn-sm lb-tab" data-key="logo-guesser">Logo Guesser</button>
+        <button class="btn btn-secondary btn-sm lb-tab" data-key="knowledge-quiz">Wissens-Quiz</button>
+        <button class="btn btn-secondary btn-sm lb-tab" data-key="flag-quiz">Flaggen-Quiz</button>
+        <button class="btn btn-secondary btn-sm lb-tab" data-key="movies-actors">Filme &amp; Schauspieler</button>
+        <button class="btn btn-secondary btn-sm lb-tab" data-key="song-guesser">Song Guesser</button>
+      </div>
+
+      <!-- Table card -->
+      <div class="card" id="lb-card">
+        <p style="color:var(--text-dim);font-size:14px">Leaderboard wird geladen…</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Spiel-vorschlagen Modal -->
+  <div id="suggest-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h2>Spiel vorschlagen</h2>
+      <p>Welches Spiel oder Tool sollen wir bauen?</p>
+      <div class="form-group">
+        <textarea id="suggest-text" class="input-field" maxlength="500" rows="4" placeholder="Deine Idee…" style="resize:vertical;font-family:inherit"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
+        <button id="suggest-cancel" class="btn btn-secondary btn-sm">Abbrechen</button>
+        <button id="suggest-submit" class="btn btn-primary btn-sm">Senden</button>
+      </div>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/socket-utils.js"></script>
+  <script src="/js/socket-utils.js?v=2"></script>
   <script>
+    /* ── Eager leaderboard fetch — starts immediately, parallel to auth ── */
+    var _lbData = null;
+    var lbPromise = fetch("/api/leaderboard")
+      .then(function (r) { return r.json(); })
+      .catch(function () { return null; });
+
+    /* ── Auth ── */
     window.lvl3.checkAuth(function (d) {
       var av = document.getElementById("user-avatar");
       var nm = document.getElementById("user-name");
@@ -136,8 +182,17 @@
         av.textContent = window.lvl3.avatarInitial(d.username);
       }
       if (nm) nm.textContent = d.username;
-      // Authenticate socket
-      window.lvl3.socket.emit("auth", { username: d.username });
+
+      /* Consume the already-in-flight leaderboard promise */
+      lbPromise.then(function (data) {
+        if (!data) {
+          document.getElementById("lb-card").innerHTML =
+            '<p style="color:var(--text-dim);font-size:14px">Leaderboard konnte nicht geladen werden.</p>';
+          return;
+        }
+        _lbData = data;
+        renderLeaderboard("overall");
+      });
     });
 
     function logout() {
@@ -146,6 +201,120 @@
         window.location.href = "/";
       });
     }
+
+    /* ── Leaderboard ── */
+    function renderLeaderboard(key) {
+      var card = document.getElementById("lb-card");
+      if (!_lbData) return;
+
+      var rows;
+      if (key === "overall") {
+        rows = _lbData.overall || [];
+      } else {
+        rows = (_lbData.perGame && _lbData.perGame[key]) ? _lbData.perGame[key] : [];
+      }
+
+      if (!rows.length) {
+        card.innerHTML = '<p style="color:var(--text-dim);font-size:14px">Noch keine Spiele gespielt.</p>';
+        return;
+      }
+
+      var html = '<div style="overflow-x:auto">'
+        + '<table style="width:100%;border-collapse:collapse;font-size:14px">'
+        + '<thead><tr style="border-bottom:2px solid var(--border-thick);text-align:left">'
+        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;white-space:nowrap">Platz</th>'
+        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600">Spieler</th>'
+        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;text-align:right;white-space:nowrap">Siege</th>'
+        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;text-align:right;white-space:nowrap">Punkte</th>'
+        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;text-align:right;white-space:nowrap">Spiele</th>'
+        + '</tr></thead><tbody>';
+
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        var rank = i + 1;
+        var isFirst = rank === 1;
+        var rowStyle = isFirst
+          ? 'border-bottom:1px solid var(--border-thick);background:rgba(255,215,0,0.07)'
+          : 'border-bottom:1px solid var(--border-thick)';
+        var rankStyle = isFirst
+          ? 'padding:10px 12px;font-weight:700;color:var(--gold)'
+          : 'padding:10px 12px;color:var(--text-dim)';
+
+        var dotStyle = 'display:inline-flex;align-items:center;justify-content:center;'
+          + 'width:26px;height:26px;border-radius:50%;font-size:11px;font-weight:700;'
+          + 'color:#fff;background:' + window.lvl3.avatarColor(r.username) + ';'
+          + 'flex-shrink:0;margin-right:8px';
+
+        html += '<tr style="' + rowStyle + '">'
+          + '<td style="' + rankStyle + '">' + (isFirst ? '🥇' : rank) + '</td>'
+          + '<td style="padding:10px 12px">'
+          +   '<div style="display:flex;align-items:center">'
+          +     '<span style="' + dotStyle + '">' + window.lvl3.avatarInitial(r.username) + '</span>'
+          +     '<span style="font-weight:600">' + window.lvl3.escapeHtml(r.username) + '</span>'
+          +   '</div>'
+          + '</td>'
+          + '<td style="padding:10px 12px;text-align:right;font-weight:600">' + (r.wins || 0) + '</td>'
+          + '<td style="padding:10px 12px;text-align:right;font-weight:600">' + (r.points || 0) + '</td>'
+          + '<td style="padding:10px 12px;text-align:right;color:var(--text-dim)">' + (r.gamesPlayed || 0) + '</td>'
+          + '</tr>';
+      }
+
+      html += '</tbody></table></div>';
+      card.innerHTML = html;
+    }
+
+    /* Tab clicks */
+    var tabs = document.querySelectorAll(".lb-tab");
+    for (var t = 0; t < tabs.length; t++) {
+      tabs[t].addEventListener("click", function () {
+        for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove("lb-tab-active");
+        this.classList.add("lb-tab-active");
+        renderLeaderboard(this.getAttribute("data-key"));
+      });
+    }
+
+    /* ── Spiel vorschlagen ── */
+    document.getElementById("btn-suggest").addEventListener("click", function () {
+      document.getElementById("suggest-overlay").classList.remove("hidden");
+    });
+
+    document.getElementById("suggest-cancel").addEventListener("click", function () {
+      document.getElementById("suggest-overlay").classList.add("hidden");
+    });
+
+    document.getElementById("suggest-overlay").addEventListener("click", function (e) {
+      if (e.target === this) this.classList.add("hidden");
+    });
+
+    document.getElementById("suggest-submit").addEventListener("click", function () {
+      var text = document.getElementById("suggest-text").value.trim();
+      if (!text) return;
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = "Senden…";
+      fetch("/api/request-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          btn.disabled = false;
+          btn.textContent = "Senden";
+          if (data.success) {
+            document.getElementById("suggest-overlay").classList.add("hidden");
+            document.getElementById("suggest-text").value = "";
+            window.lvl3.showToast("Danke! Vorschlag gespeichert.", "success");
+          } else {
+            window.lvl3.showToast(data.error || "Fehler beim Senden.", "error");
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = "Senden";
+          window.lvl3.showToast("Fehler beim Senden.", "error");
+        });
+    });
   </script>
 </body>
 </html>

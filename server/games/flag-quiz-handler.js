@@ -1,4 +1,5 @@
-const path = require("path");
+const path    = require("path");
+const stats   = require("../stats");
 const ALL_FLAGS = require("../../data/flags.json");
 
 const DIFFICULTY_TIME = { easy: 20, normal: 15, hard: 10, crazy: 8 };
@@ -140,6 +141,7 @@ module.exports = function (socket, io, rooms) {
     if (!code) return;
     const room = rooms.get(code);
     if (!room || room.host !== socket.username || room.started) return;
+    if (room.gameType !== "flag-quiz") return;
     if (difficulty !== undefined) room.settings.difficulty = difficulty;
     if (pointsToWin !== undefined) room.settings.pointsToWin = Math.min(1000, Math.max(1, parseInt(pointsToWin, 10) || 10));
     if (answerMode !== undefined) room.settings.answerMode = answerMode;
@@ -224,9 +226,15 @@ module.exports = function (socket, io, rooms) {
       .sort((a, b) => b[1] - a[1])
       .map(([player, score]) => ({ player, score }));
 
+    const winner = sorted[0] ? sorted[0].player : null;
+
     io.to(code).emit("game:state", {
       phase: "game-end",
-      data: { winner: sorted[0] ? sorted[0].player : null, scores: sorted }
+      data: { winner, scores: sorted }
     });
+
+    // Normalise to {username, score} for stats
+    const sortedForStats = sorted.map(e => ({ username: e.player, score: e.score }));
+    try { stats.recordGameResult(room.gameType, sortedForStats, winner); } catch (e) { /* stats failure must not crash game */ }
   }
 };

@@ -1,4 +1,5 @@
-const path = require("path");
+const path  = require("path");
+const stats = require("../stats");
 
 let moviesData = null;
 function getMoviesData() {
@@ -286,6 +287,8 @@ module.exports = function (socket, io, rooms) {
       phase: "game-end",
       data: { winner, finalScores }
     });
+
+    try { stats.recordGameResult(room.gameType, finalScores, winner); } catch (e) { /* stats failure must not crash game */ }
 
     room.started = false;
     room.gameData = {};

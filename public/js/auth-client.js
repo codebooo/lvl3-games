@@ -35,10 +35,13 @@ document.addEventListener("DOMContentLoaded", function () {
       loginBtn.textContent = "Einloggen…";
       hideLoginError();
 
+      var rememberEl = document.getElementById("inp-remember");
+      var rememberMe = rememberEl ? rememberEl.checked : false;
+
       fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username, password: password })
+        body: JSON.stringify({ username: username, password: password, rememberMe: rememberMe })
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -50,6 +53,10 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
               window.location.href = "/dashboard.html";
             }
+          } else if (data.needsPassword) {
+            var pwField = document.getElementById("inp-password");
+            if (pwField) pwField.focus();
+            showLoginError("Bitte Passwort eingeben.");
           } else {
             showLoginError(data.error || "Ungültige Anmeldedaten.");
           }

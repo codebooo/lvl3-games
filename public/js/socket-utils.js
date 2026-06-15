@@ -36,6 +36,49 @@ window.lvl3 = (function () {
       .catch(() => { window.location.href = "/"; });
   }
 
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    return m + ":" + (s % 60 < 10 ? "0" : "") + (s % 60);
+  }
+
+  // Shared AudioContext — reused across calls to avoid browser context cap
+  let audioCtx = null;
+
+  function playSound(type) {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      const configs = {
+        correct:      { freq: 880,  type: "sine",     dur: 0.15, vol: 0.3  },
+        wrong:        { freq: 200,  type: "sawtooth",  dur: 0.2,  vol: 0.2  },
+        "round-start":{ freq: 660,  type: "sine",     dur: 0.3,  vol: 0.25 },
+        "game-start": { freq: 440,  type: "sine",     dur: 0.5,  vol: 0.3  },
+        tick:         { freq: 1200, type: "sine",     dur: 0.05, vol: 0.1  }
+      };
+      const c = configs[type] || configs.tick;
+      o.frequency.value = c.freq;
+      o.type = c.type;
+      g.gain.setValueAtTime(c.vol, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + c.dur);
+      o.start();
+      o.stop(audioCtx.currentTime + c.dur);
+    } catch (e) {
+      // AudioContext not available or blocked — fail silently
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function showToast(msg, type, title) {
     type = type || "info";
     title = title || "";
@@ -48,60 +91,33 @@ window.lvl3 = (function () {
     const t = document.createElement("div");
     t.className = "toast" + (type === "success" ? " success" : type === "error" ? " error" : "");
     t.innerHTML =
-      (title ? '<div class="toast-title">' + title + "</div>" : "") +
-      '<div class="toast-msg">' + msg + "</div>";
+      (title ? '<div class="toast-title">' + escapeHtml(title) + "</div>" : "") +
+      '<div class="toast-msg">' + escapeHtml(msg) + "</div>";
     container.appendChild(t);
     setTimeout(() => t.remove(), 3500);
-  }
-
-  function formatTime(s) {
-    const m = Math.floor(s / 60);
-    return m + ":" + (s % 60 < 10 ? "0" : "") + (s % 60);
   }
 
   function renderPlayerList(el, players, host, scores) {
     if (!el) return;
     scores = scores || {};
     el.innerHTML = players.map(function (p) {
+      var ep = escapeHtml(p);
       return '<li class="player-item' + (p === host ? " is-host" : "") + '">' +
         '<div class="player-avatar" style="background:' + avatarColor(p) + '">' + avatarInitial(p) + '</div>' +
-        '<span class="player-name">' + p + (p === host ? '<span class="host-badge">Host</span>' : "") + '</span>' +
+        '<span class="player-name">' + ep + (p === host ? '<span class="host-badge">Host</span>' : "") + '</span>' +
         '<span class="player-score">' + (scores[p] || 0) + '</span>' +
         '</li>';
     }).join("");
   }
 
-  function playSound(type) {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.connect(g);
-      g.connect(ctx.destination);
-      const configs = {
-        correct:      { freq: 880,  type: "sine",     dur: 0.15, vol: 0.3  },
-        wrong:        { freq: 200,  type: "sawtooth",  dur: 0.2,  vol: 0.2  },
-        "round-start":{ freq: 660,  type: "sine",     dur: 0.3,  vol: 0.25 },
-        "game-start": { freq: 440,  type: "sine",     dur: 0.5,  vol: 0.3  },
-        tick:         { freq: 1200, type: "sine",     dur: 0.05, vol: 0.1  }
-      };
-      const c = configs[type] || configs.tick;
-      o.frequency.value = c.freq;
-      o.type = c.type;
-      g.gain.setValueAtTime(c.vol, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + c.dur);
-      o.start();
-      o.stop(ctx.currentTime + c.dur);
-    } catch (e) {
-      // AudioContext not available or blocked — fail silently
-    }
-  }
-
-  // Skip HTTP polling handshake — go straight to WebSocket (saves 2 round trips)
-  const socket = io({ transports: ["websocket", "polling"], upgrade: true });
+  // Lazy socket — only connect when first accessed (game pages access it during load)
+  let _socket = null;
 
   return {
-    socket,
+    get socket() {
+      if (!_socket) _socket = io({ transports: ["websocket", "polling"], upgrade: true });
+      return _socket;
+    },
     getUsername,
     setUsername,
     checkAuth,
@@ -110,6 +126,7 @@ window.lvl3 = (function () {
     avatarColor,
     avatarInitial,
     renderPlayerList,
-    playSound
+    playSound,
+    escapeHtml
   };
 })();

@@ -1,17 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
 
 :root {
   --bg: #0d0d0d;
   --surface: #111111;
   --card: #161616;
   --accent: #ff2244;
+  --accent-hover: #cc1833;
   --accent2: #a855f7;
   --accent3: #00ccff;
   --text: #f0f0f0;
   --text-dim: #888888;
   --text-muted: #444444;
+  --text-on-accent: #ffffff;
   --green: #00ff88;
+  --green-hover: #00cc6f;
   --red: #ff3333;
+  --red-hover: #cc2222;
   --gold: #ffd700;
   --orange: #ff8800;
   --radius: 0px;
@@ -21,6 +24,43 @@
   --shadow-sm: none;
   --border: #2a2a2a;
   --border-thick: #444444;
+  --input-bg: #111111;
+  --modal-overlay-bg: rgba(0, 0, 0, 0.85);
+  --logo-display-bg: #ffffff;
+  --countdown-overlay-bg: rgba(13, 13, 13, 0.93);
+  --option-hover-bg: rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Light Theme ──────────────────────────────────────
+   Brutalist character preserved: near-white bg, dark borders,
+   sharp edges, same accent colors (red/purple/cyan).
+   Toggle class lives on <html data-theme="light">.
+──────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg: #f5f5f3;
+  --surface: #ebebea;
+  --card: #ffffff;
+  --accent: #e8001e;
+  --accent-hover: #b50018;
+  --accent2: #8b35d6;
+  --accent3: #0099cc;
+  --text: #0d0d0d;
+  --text-dim: #555555;
+  --text-muted: #999999;
+  --text-on-accent: #ffffff;
+  --green: #009952;
+  --green-hover: #007a40;
+  --red: #cc2222;
+  --red-hover: #a31a1a;
+  --gold: #b8860b;
+  --orange: #cc6600;
+  --border: #cccccc;
+  --border-thick: #888888;
+  --input-bg: #f0f0ee;
+  --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+  --logo-display-bg: #f8f8f8;
+  --countdown-overlay-bg: rgba(245, 245, 243, 0.93);
+  --option-hover-bg: rgba(0, 0, 0, 0.04);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,6 +71,7 @@ body {
   font-family: 'Poppins', sans-serif;
   line-height: 1.5;
   min-height: 100vh;
+  transition: background-color 0.15s ease-out, color 0.15s ease-out;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -49,8 +90,11 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
 }
 
 .card-sm { padding: 14px; }
-.card-hover { cursor: pointer; transition: border-color 0.15s; }
-.card-hover:hover { border-color: var(--text-dim); }
+.card-hover {
+  cursor: pointer;
+  transition: border-color 0.15s ease-out, transform 0.15s ease-out;
+}
+.card-hover:hover { border-color: var(--accent); transform: translate(-2px, -2px); }
 
 /* ─── Buttons ──────────────────────────────────────── */
 .btn {
@@ -65,19 +109,22 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  transition: background 0.1s, color 0.1s;
+  transition: background 0.1s ease-out, color 0.1s ease-out, transform 0.1s ease-out, border-color 0.1s ease-out;
   text-decoration: none;
   user-select: none;
   white-space: nowrap;
   background: transparent;
 }
+/* button press — brutalist tactile snap */
+.btn:active:not(:disabled) { transform: translateY(2px); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .btn-primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--text-on-accent);
   border-color: var(--accent);
 }
-.btn-primary:hover:not(:disabled) { background: #cc1833; border-color: #cc1833; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
 
 .btn-secondary {
   background: transparent;
@@ -88,17 +135,17 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
 
 .btn-success {
   background: var(--green);
-  color: #000;
+  color: var(--text-on-accent);
   border-color: var(--green);
 }
-.btn-success:hover:not(:disabled) { background: #00cc6f; border-color: #00cc6f; }
+.btn-success:hover:not(:disabled) { background: var(--green-hover); border-color: var(--green-hover); }
 
 .btn-danger {
   background: var(--red);
-  color: #fff;
+  color: var(--text-on-accent);
   border-color: var(--red);
 }
-.btn-danger:hover:not(:disabled) { background: #cc2222; }
+.btn-danger:hover:not(:disabled) { background: var(--red-hover); border-color: var(--red-hover); }
 
 .btn-lg { padding: 16px 36px; font-size: 16px; }
 .btn-sm { padding: 8px 16px; font-size: 12px; }
@@ -108,13 +155,13 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
 .input-field {
   width: 100%;
   padding: 12px 14px;
-  background: #111;
+  background: var(--input-bg);
   border: 2px solid var(--border-thick);
   color: var(--text);
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s ease-out, background-color 0.15s ease-out;
 }
 .input-field:focus { border-color: var(--accent); }
 .input-field::placeholder { color: var(--text-muted); }
@@ -122,7 +169,7 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
 .select-field {
   width: 100%;
   padding: 12px 14px;
-  background: #111;
+  background: var(--input-bg);
   border: 2px solid var(--border-thick);
   color: var(--text);
   font-family: 'Poppins', sans-serif;
@@ -130,6 +177,7 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
   outline: none;
   appearance: none;
   cursor: pointer;
+  transition: border-color 0.15s ease-out, background-color 0.15s ease-out;
 }
 .select-field:focus { border-color: var(--accent); }
 .select-field option { background: var(--card); color: var(--text); }
@@ -203,7 +251,7 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
 .host-badge {
   font-size: 9px;
   background: var(--accent);
-  color: #fff;
+  color: var(--text-on-accent);
   padding: 2px 6px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -238,7 +286,7 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
 
 /* ─── Modal ────────────────────────────────────────── */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  position: fixed; inset: 0; background: var(--modal-overlay-bg);
   z-index: 1000; display: flex; align-items: center; justify-content: center;
 }
 .modal-overlay.hidden { display: none; }
@@ -308,17 +356,71 @@ h1, h2, h3, h4 { font-weight: 900; line-height: 1.1; text-transform: uppercase; 
 
 .hidden { display: none !important; }
 
-/* ─── Animations ───────────────────────────────────── */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes blink  { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
-@keyframes slideInRight { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes pulse  { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-@keyframes countPop { 0% { transform: scale(1.4); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
-@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+/* ─── Theme Toggle Button ──────────────────────────────── */
+.theme-toggle {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 2px solid var(--border-thick);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.1s ease-out, color 0.1s ease-out, border-color 0.1s ease-out, transform 0.1s ease-out;
+  flex-shrink: 0;
+  padding: 0;
+}
+/* hover inverts — monochrome brutalist toggle */
+.theme-toggle:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+.theme-toggle:active { transform: translateY(2px); }
+.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ─── Keyframes ────────────────────────────────────── */
+/* page-load / section entry */
+@keyframes fadeIn        { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+/* timer warning blink */
+@keyframes blink         { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+/* toast entrance from right */
+@keyframes slideInRight  { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+/* toast exit to right */
+@keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(110%); opacity: 0; } }
+/* generic pulse dimmer */
+@keyframes pulse         { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+/* countdown number pop */
+@keyframes countPop      { 0% { transform: scale(1.4); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+/* legacy bounce (waveform etc.) */
+@keyframes bounce        { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+/* modal / dialog scale-in */
+@keyframes scaleIn       { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+/* modal overlay fade */
+@keyframes overlayIn     { from { opacity: 0; } to { opacity: 1; } }
+
+/* ─── Animation Utilities ──────────────────────────── */
+/* .anim-in — page-load entry; add .anim-in-N for stagger */
+.anim-in   { animation: fadeIn 0.2s ease-out both; }
+.anim-in-1 { animation-delay: 0.05s; }
+.anim-in-2 { animation-delay: 0.10s; }
+.anim-in-3 { animation-delay: 0.15s; }
+.anim-in-4 { animation-delay: 0.20s; }
+
+/* modal overlay + content distinct enter animations */
+.modal-overlay:not(.hidden) { animation: overlayIn 0.15s ease-out both; }
+.modal-overlay:not(.hidden) .modal { animation: scaleIn 0.15s ease-out both; }
+
+/* toast removing state — JS adds .removing before node removal */
+.toast.removing { animation: slideOutRight 0.2s ease-out forwards; }
 
 /* ─── Responsive ───────────────────────────────────── */
 @media (max-width: 768px) {
   .lobby-layout, .game-layout { grid-template-columns: 1fr; }
   .room-code { font-size: 32px; letter-spacing: 5px; padding: 12px 20px; }
   .container { padding: 0 12px; }
+}
+
+/* ─── Reduced Motion ───────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
