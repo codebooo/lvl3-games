@@ -6,8 +6,8 @@
   <title>Filme &amp; Schauspieler – Lvl 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=4">
   <link rel="stylesheet" href="/css/games.css?v=2">
   <script src="/js/theme.js?v=2"></script>
   <style>
@@ -92,7 +92,7 @@
     /* ── Timer bar ── */
     .timer-bar-wrap {
       height: 5px;
-      background: rgba(255,255,255,0.07);
+      background: rgba(20,18,12,.06);
       position: absolute;
       top: 0; left: 0; right: 0;
     }
@@ -168,11 +168,11 @@
     /* ── Input ── */
     .input-field {
       width: 100%;
-      background: rgba(255,255,255,0.05);
-      border: 2px solid var(--border);
+      background: var(--input-bg);
+      border: 1px solid var(--border-thick);
       border-radius: var(--radius-sm);
       color: var(--text);
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 16px;
       padding: 12px 16px;
       outline: none;
@@ -189,24 +189,26 @@
       justify-content: center;
       gap: 8px;
       padding: 12px 24px;
-      border-radius: var(--radius-sm);
-      font-family: 'Poppins', sans-serif;
+      border-radius: 999px;
+      font-family: 'Inter', sans-serif;
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
       border: none;
     }
-    .btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     .btn-primary { background: var(--accent); color: #fff; }
-    .btn-secondary { background: rgba(255,255,255,0.08); color: var(--text); border: 1px solid var(--border); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: var(--shadow-sm); }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-thick); }
+    .btn-secondary:hover:not(:disabled) { background: rgba(0,0,0,.04); }
     .btn-full { width: 100%; }
     .btn-sm { padding: 8px 16px; font-size: 13px; }
 
     /* ── Player list ── */
     .player-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .player-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); border: 1px solid transparent; }
+    .player-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); }
     .player-item.is-host { border-color: rgba(245,158,11,0.25); }
     .player-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
     .player-name { flex: 1; font-size: 14px; font-weight: 600; }
@@ -397,7 +399,7 @@
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="/js/socket-utils.js"></script>
+<script src="/js/socket-utils.js?v=3"></script>
 <script src="/js/games/movies-actors.js"></script>
 </body>
 </html>

@@ -97,6 +97,22 @@ window.lvl3 = (function () {
     setTimeout(() => t.remove(), 3500);
   }
 
+  function applyAvatar(el, username, avatarUrl) {
+    if (avatarUrl && typeof avatarUrl === "string" && avatarUrl.length > 0) {
+      el.style.backgroundImage = "url(" + avatarUrl + ")";
+      el.style.backgroundSize = "cover";
+      el.style.backgroundPosition = "center";
+      el.style.background = "";
+      el.textContent = "";
+    } else {
+      el.style.backgroundImage = "";
+      el.style.backgroundSize = "";
+      el.style.backgroundPosition = "";
+      el.style.background = avatarColor(username);
+      el.textContent = avatarInitial(username);
+    }
+  }
+
   function renderPlayerList(el, players, host, scores) {
     if (!el) return;
     scores = scores || {};
@@ -125,6 +141,7 @@ window.lvl3 = (function () {
     formatTime,
     avatarColor,
     avatarInitial,
+    applyAvatar,
     renderPlayerList,
     playSound,
     escapeHtml

@@ -6,9 +6,9 @@
   <title>Lvl 3 Games - Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=3">
-  <script src="/js/theme.js?v=2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=4">
+  <script src="/js/theme.js?v=3"></script>
 </head>
 <body>
 
@@ -151,7 +151,7 @@
 
   <!-- Settings Modal -->
   <div id="settings-overlay" class="modal-overlay hidden">
-    <div class="modal">
+    <div class="modal" style="max-width:520px">
       <h2>Einstellungen</h2>
 
       <!-- Appearance -->
@@ -163,6 +163,23 @@
             <div class="settings-row-hint">Heller oder dunkler Modus</div>
           </div>
           <button id="theme-toggle" class="icon-btn" aria-label="Theme wechseln"></button>
+        </div>
+      </div>
+
+      <!-- Profilbild -->
+      <div class="settings-section">
+        <h3>Profilbild</h3>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div id="avatar-preview-wrap" style="display:none">
+            <img id="avatar-preview" src="" alt="Profilbild Vorschau"
+              style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--border-thick);display:block">
+          </div>
+          <div style="flex:1;min-width:0">
+            <label class="label" for="avatar-file-input" style="margin-bottom:8px">Bild auswählen (max. 10 MB)</label>
+            <input id="avatar-file-input" type="file" accept="image/*"
+              style="display:block;width:100%;font-size:13px;color:var(--text-dim);cursor:pointer">
+            <div id="avatar-upload-error" style="color:var(--red);font-size:13px;min-height:18px;margin-top:6px"></div>
+          </div>
         </div>
       </div>
 
@@ -213,7 +230,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/socket-utils.js?v=2"></script>
+  <script src="/js/socket-utils.js?v=3"></script>
   <script>
     /* ── Eager leaderboard fetch — starts immediately, parallel to auth ── */
     var _lbData = null;
@@ -226,8 +243,15 @@
       var av = document.getElementById("user-avatar");
       var nm = document.getElementById("user-name");
       if (av) {
-        av.style.background = window.lvl3.avatarColor(d.username);
-        av.textContent = window.lvl3.avatarInitial(d.username);
+        if (d.avatar) {
+          av.style.backgroundImage = "url('" + d.avatar + "')";
+          av.style.backgroundSize = "cover";
+          av.style.backgroundPosition = "center";
+          av.textContent = "";
+        } else {
+          av.style.background = window.lvl3.avatarColor(d.username);
+          av.textContent = window.lvl3.avatarInitial(d.username);
+        }
       }
       if (nm) nm.textContent = d.username;
 
@@ -306,7 +330,7 @@
 
       var html = '<div style="overflow-x:auto">'
         + '<table style="width:100%;border-collapse:collapse;font-size:14px">'
-        + '<thead><tr style="border-bottom:2px solid var(--border-thick);text-align:left">'
+        + '<thead><tr style="border-bottom:1px solid var(--border-thick);text-align:left">'
         + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;white-space:nowrap">Platz</th>'
         + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600">Spieler</th>'
         + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;text-align:right;white-space:nowrap">Siege</th>'
@@ -319,8 +343,8 @@
         var rank = i + 1;
         var isFirst = rank === 1;
         var rowStyle = isFirst
-          ? 'border-bottom:1px solid var(--border-thick);background:rgba(255,215,0,0.07)'
-          : 'border-bottom:1px solid var(--border-thick)';
+          ? 'border-bottom:1px solid var(--border);background:rgba(184,137,59,0.07)'
+          : 'border-bottom:1px solid var(--border)';
         var rankStyle = isFirst
           ? 'padding:10px 12px;font-weight:700;color:var(--gold)'
           : 'padding:10px 12px;color:var(--text-dim)';
@@ -462,6 +486,81 @@
           btn.textContent = "Passwort ändern";
           err.textContent = "Verbindungsfehler. Bitte erneut versuchen.";
         });
+    });
+
+    /* ── Avatar Upload ── */
+    document.getElementById("avatar-file-input").addEventListener("change", function (e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      var errEl = document.getElementById("avatar-upload-error");
+      errEl.textContent = "";
+
+      /* 10 MB size guard */
+      if (file.size > 10 * 1024 * 1024) {
+        errEl.textContent = "Bild zu groß. Maximal 10 MB erlaubt.";
+        e.target.value = "";
+        return;
+      }
+
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        var img = new Image();
+        img.onload = function () {
+          /* Downscale + center-crop to 256×256 */
+          var size = 256;
+          var canvas = document.createElement("canvas");
+          canvas.width = size;
+          canvas.height = size;
+          var ctx = canvas.getContext("2d");
+
+          var srcW = img.naturalWidth;
+          var srcH = img.naturalHeight;
+          var scale = Math.max(size / srcW, size / srcH);
+          var drawW = srcW * scale;
+          var drawH = srcH * scale;
+          var offsetX = (size - drawW) / 2;
+          var offsetY = (size - drawH) / 2;
+
+          ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+
+          var dataURL = canvas.toDataURL("image/jpeg", 0.85);
+
+          /* Show local preview immediately */
+          var previewWrap = document.getElementById("avatar-preview-wrap");
+          var previewImg = document.getElementById("avatar-preview");
+          previewImg.src = dataURL;
+          previewWrap.style.display = "block";
+
+          /* POST to backend */
+          fetch("/api/avatar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: dataURL })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.success) {
+                /* Update the header avatar */
+                var av = document.getElementById("user-avatar");
+                if (av) {
+                  av.style.backgroundImage = "url('" + (data.avatar || dataURL) + "')";
+                  av.style.backgroundSize = "cover";
+                  av.style.backgroundPosition = "center";
+                  av.textContent = "";
+                }
+                window.lvl3.showToast("Profilbild aktualisiert.", "success");
+              } else {
+                errEl.textContent = data.error || "Fehler beim Hochladen.";
+              }
+            })
+            .catch(function () {
+              errEl.textContent = "Verbindungsfehler. Bitte erneut versuchen.";
+            });
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
     });
   </script>
 </body>

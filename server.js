@@ -23,8 +23,8 @@ const io = new Server(server, {
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(compression({ level: 6, threshold: 512 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "12mb" }));
+app.use(express.urlencoded({ extended: true, limit: "12mb" }));
 app.use(express.static(path.join(__dirname, "public"), {
   maxAge: "30d",
   immutable: true,
@@ -218,7 +218,35 @@ app.get("/api/me", (req, res) => {
   if (!user) {
     return res.status(401).json({ error: "User not found" });
   }
-  return res.json({ username: user.username, passwordChanged: user.passwordChanged });
+  return res.json({ username: user.username, passwordChanged: user.passwordChanged, avatar: user.avatar || null });
+});
+
+app.post("/api/avatar", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ success: false, error: "Nicht angemeldet." });
+  }
+  const { image } = req.body;
+  if (!image || typeof image !== "string" || !image.startsWith("data:image/")) {
+    return res.status(400).json({ success: false, error: "Ungültiges Bildformat." });
+  }
+
+  // Compute approximate decoded byte size from the base64 portion
+  const commaIdx = image.indexOf(",");
+  const base64Part = commaIdx !== -1 ? image.slice(commaIdx + 1) : image;
+  const byteSize = Math.floor(base64Part.length * 0.75);
+  if (byteSize > 10 * 1024 * 1024) {
+    return res.status(400).json({ success: false, error: "Bild zu groß (max 10 MB)." });
+  }
+
+  const users = loadUsers();
+  const user = users.find(u => u.username === req.session.username);
+  if (!user) {
+    return res.status(404).json({ success: false, error: "Benutzer nicht gefunden." });
+  }
+
+  user.avatar = image;
+  saveUsers(users);
+  return res.json({ success: true, avatar: image });
 });
 
 app.get("/api/logout", (req, res) => {
