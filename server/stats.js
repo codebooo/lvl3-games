@@ -1,39 +1,20 @@
 "use strict";
 
 // ─── Stats Module ─────────────────────────────────────────────────────────────
-// Persists per-user win/score/gamesPlayed stats to data/stats.json.
-// Uses synchronous fs to match the loadUsers/saveUsers style in server.js.
+// Persists per-user win/score/gamesPlayed stats via the shared store
+// (Redis-backed in production, data/stats.json on disk in dev).
+// Stays synchronous — the store hydrates all keys at boot before handlers run.
 
-const fs   = require("fs");
-const path = require("path");
-
-const STATS_FILE = path.join(__dirname, "../data/stats.json");
+const store = require("./store");
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
 function loadStats() {
-  try {
-    const raw = fs.readFileSync(STATS_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    // Basic sanity check — must be an object with the expected keys
-    if (parsed && typeof parsed === "object" && parsed.overall && parsed.perGame) {
-      return parsed;
-    }
-    throw new Error("Unexpected shape");
-  } catch (e) {
-    // Missing or corrupt — start fresh
-    return { overall: {}, perGame: {} };
-  }
+  return store.get("stats");
 }
 
 function saveStats(data) {
-  const dir = path.dirname(STATS_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  const tmp = STATS_FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), "utf8");
-  fs.renameSync(tmp, STATS_FILE);
+  store.set("stats", data);
 }
 
 function emptyEntry() {

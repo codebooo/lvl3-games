@@ -5,9 +5,9 @@ const { Server } = require("socket.io");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
 const compression = require("compression");
-const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const store = require("./server/store");
 const stats = require("./server/stats");
 
 // ─── Remember-Me (stateless, signed cookie) ───────────────────────────────────
@@ -137,43 +137,13 @@ app.use(function rememberMe(req, res, next) {
 io.engine.use(sessionMiddleware);
 
 // ─── User Data ────────────────────────────────────────────────────────────────
-const USERS_FILE = path.join(__dirname, "data", "users.json");
-
-let usersCache = null;
-
 function loadUsers() {
-  if (usersCache) return usersCache;
-  try {
-    usersCache = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
-    return usersCache;
-  } catch (e) {
-    console.error("Could not load users.json:", e.message);
-    return [];
-  }
+  return store.get("users");
 }
 
 function saveUsers(users) {
-  usersCache = users;
-  const tmp = USERS_FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(users, null, 2), "utf8");
-  fs.renameSync(tmp, USERS_FILE);
+  store.set("users", users);
 }
-
-// Hash any plaintext passwords on startup
-(async function hashPlaintextPasswords() {
-  const users = loadUsers();
-  let changed = false;
-  for (const user of users) {
-    if (!user.password.startsWith("$2")) {
-      user.password = await bcrypt.hash(user.password, 10);
-      changed = true;
-    }
-  }
-  if (changed) {
-    saveUsers(users);
-    console.log("Hashed plaintext passwords and saved to users.json");
-  }
-})();
 
 // ─── Auth Routes ──────────────────────────────────────────────────────────────
 app.post("/api/login", async (req, res) => {
@@ -301,25 +271,12 @@ app.get("/api/leaderboard", (req, res) => {
 });
 
 // ─── Game Requests ────────────────────────────────────────────────────────────
-const REQUESTS_FILE = path.join(__dirname, "data", "requests.json");
-
 function loadRequests() {
-  try {
-    const raw    = fs.readFileSync(REQUESTS_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed;
-    throw new Error("Unexpected shape");
-  } catch (e) {
-    return [];
-  }
+  return store.get("requests");
 }
 
 function saveRequests(reqs) {
-  const dir = path.dirname(REQUESTS_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const tmp = REQUESTS_FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(reqs, null, 2), "utf8");
-  fs.renameSync(tmp, REQUESTS_FILE);
+  store.set("requests", reqs);
 }
 
 app.post("/api/request-game", (req, res) => {
@@ -354,25 +311,12 @@ app.get("/api/requests", (req, res) => {
 });
 
 // ─── Bug Reports ─────────────────────────────────────────────────────────────
-const BUG_REPORTS_FILE = path.join(__dirname, "data", "bug-reports.json");
-
 function loadBugReports() {
-  try {
-    const raw    = fs.readFileSync(BUG_REPORTS_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed;
-    throw new Error("Unexpected shape");
-  } catch (e) {
-    return [];
-  }
+  return store.get("bugReports");
 }
 
 function saveBugReports(reports) {
-  const dir = path.dirname(BUG_REPORTS_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const tmp = BUG_REPORTS_FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(reports, null, 2), "utf8");
-  fs.renameSync(tmp, BUG_REPORTS_FILE);
+  store.set("bugReports", reports);
 }
 
 app.post("/api/bug-report", (req, res) => {
@@ -427,25 +371,12 @@ app.get("/api/members", (req, res) => {
 });
 
 // ─── Finanzamt ────────────────────────────────────────────────────────────────
-const FINANZAMT_FILE = path.join(__dirname, "data", "finanzamt.json");
-
 function loadFinanzamt() {
-  try {
-    const raw    = fs.readFileSync(FINANZAMT_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed;
-    throw new Error("Unexpected shape");
-  } catch (e) {
-    return [];
-  }
+  return store.get("finanzamt");
 }
 
 function saveFinanzamt(records) {
-  const dir = path.dirname(FINANZAMT_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const tmp = FINANZAMT_FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(records, null, 2), "utf8");
-  fs.renameSync(tmp, FINANZAMT_FILE);
+  store.set("finanzamt", records);
 }
 
 app.post("/api/finanzamt", (req, res) => {
@@ -540,27 +471,14 @@ app.delete("/api/finanzamt/:id", (req, res) => {
 });
 
 // ─── Spiele-Liste (Playlist) ──────────────────────────────────────────────────
-const PLAYLIST_FILE = path.join(__dirname, "data", "playlist.json");
-
 const PLAYLIST_CATEGORIES = ["pc", "web", "brettspiel"];
 
 function loadPlaylist() {
-  try {
-    const raw    = fs.readFileSync(PLAYLIST_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed;
-    throw new Error("Unexpected shape");
-  } catch (e) {
-    return [];
-  }
+  return store.get("playlist");
 }
 
 function savePlaylist(items) {
-  const dir = path.dirname(PLAYLIST_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const tmp = PLAYLIST_FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(items, null, 2), "utf8");
-  fs.renameSync(tmp, PLAYLIST_FILE);
+  store.set("playlist", items);
 }
 
 app.get("/api/playlist", (req, res) => {
@@ -786,15 +704,35 @@ app.get("/api/health", (req, res) => res.json({ ok: true, uptime: process.uptime
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Lvl 3 Games server running on port ${PORT} — http://localhost:${PORT}`);
 
-  // Keep Render free tier alive — ping self every 14 minutes to prevent spin-down
-  if (process.env.RENDER_EXTERNAL_URL) {
-    const keepAliveUrl = process.env.RENDER_EXTERNAL_URL + "/api/health";
-    setInterval(() => {
-      https.get(keepAliveUrl, (r) => r.resume()).on("error", () => {});
-    }, 14 * 60 * 1000);
-    console.log("Keep-alive enabled →", keepAliveUrl);
+(async () => {
+  // Hydrate the in-memory store (Redis or fs) before handling any request.
+  await store.hydrate();
+
+  // Hash any plaintext passwords on startup (runs after hydrate so loadUsers works)
+  const users = loadUsers();
+  let changed = false;
+  for (const user of users) {
+    if (!user.password.startsWith("$2")) {
+      user.password = await bcrypt.hash(user.password, 10);
+      changed = true;
+    }
   }
-});
+  if (changed) {
+    saveUsers(users);
+    console.log("Hashed plaintext passwords and saved to users.json");
+  }
+
+  server.listen(PORT, () => {
+    console.log(`Lvl 3 Games server running on port ${PORT} — http://localhost:${PORT}`);
+
+    // Keep Render free tier alive — ping self every 14 minutes to prevent spin-down
+    if (process.env.RENDER_EXTERNAL_URL) {
+      const keepAliveUrl = process.env.RENDER_EXTERNAL_URL + "/api/health";
+      setInterval(() => {
+        https.get(keepAliveUrl, (r) => r.resume()).on("error", () => {});
+      }, 14 * 60 * 1000);
+      console.log("Keep-alive enabled →", keepAliveUrl);
+    }
+  });
+})();
