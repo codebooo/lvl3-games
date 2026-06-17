@@ -55,6 +55,7 @@ function ensureUser(bucket, username) {
  */
 function recordGameResult(gameType, sortedScores, winner) {
   if (!Array.isArray(sortedScores) || sortedScores.length < 2) return;
+  const winnerList = Array.isArray(winner) ? winner : (winner ? [winner] : []);
 
   const data = loadStats();
 
@@ -68,13 +69,13 @@ function recordGameResult(gameType, sortedScores, winner) {
     ensureUser(data.overall, username);
     data.overall[username].gamesPlayed += 1;
     data.overall[username].points      += score;
-    if (winner && username === winner) data.overall[username].wins += 1;
+    if (winnerList.indexOf(username) !== -1) data.overall[username].wins += 1;
 
     // per-game
     ensureUser(data.perGame[gameType], username);
     data.perGame[gameType][username].gamesPlayed += 1;
     data.perGame[gameType][username].points      += score;
-    if (winner && username === winner) data.perGame[gameType][username].wins += 1;
+    if (winnerList.indexOf(username) !== -1) data.perGame[gameType][username].wins += 1;
   }
 
   saveStats(data);

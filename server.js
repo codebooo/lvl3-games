@@ -10,6 +10,57 @@ const path = require("path");
 const crypto = require("crypto");
 const stats = require("./server/stats");
 
+// ─── Remember-Me (stateless, signed cookie) ───────────────────────────────────
+// The token is fully self-contained and HMAC-signed, so it survives server
+// restarts AND redeploys (no dependency on any runtime-written file). It stays
+// valid for 3 months. Secret falls back to a stable constant so it keeps working
+// even when no env var is set.
+const REMEMBER_SECRET   = process.env.SESSION_SECRET || "lvl3games_s3cr3t_2024";
+const REMEMBER_COOKIE   = "lvl3_remember";
+const REMEMBER_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000; // ~3 months
+
+function b64url(str) {
+  return Buffer.from(str, "utf8").toString("base64")
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlDecode(str) {
+  str = String(str).replace(/-/g, "+").replace(/_/g, "/");
+  return Buffer.from(str, "base64").toString("utf8");
+}
+function signRemember(payload) {
+  return crypto.createHmac("sha256", REMEMBER_SECRET).update(payload).digest("hex");
+}
+function makeRememberToken(username) {
+  const expires = Date.now() + REMEMBER_MAX_AGE_MS;
+  const payload = b64url(username) + "." + expires;
+  return payload + "." + signRemember(payload);
+}
+function verifyRememberToken(token) {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const payload = parts[0] + "." + parts[1];
+  const expected = signRemember(payload);
+  const a = Buffer.from(parts[2]);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  const expires = parseInt(parts[1], 10);
+  if (!expires || Date.now() > expires) return null;
+  let username;
+  try { username = b64urlDecode(parts[0]); } catch (e) { return null; }
+  if (!username) return null;
+  return { username, expires };
+}
+function setRememberCookie(res, username) {
+  const token = encodeURIComponent(makeRememberToken(username));
+  res.append("Set-Cookie",
+    REMEMBER_COOKIE + "=" + token +
+    "; Path=/; HttpOnly; SameSite=Lax; Max-Age=" + Math.floor(REMEMBER_MAX_AGE_MS / 1000));
+}
+function clearRememberCookie(res) {
+  res.append("Set-Cookie", REMEMBER_COOKIE + "=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
+}
+
 // ─── App Setup ───────────────────────────────────────────────────────────────
 const app = express();
 const server = http.createServer(app);
@@ -55,41 +106,30 @@ app.use(function rememberMe(req, res, next) {
   let rememberVal = null;
   for (const part of cookieHeader.split(";")) {
     const trimmed = part.trim();
-    if (trimmed.startsWith("lvl3_remember=")) {
-      rememberVal = decodeURIComponent(trimmed.slice("lvl3_remember=".length));
+    if (trimmed.startsWith(REMEMBER_COOKIE + "=")) {
+      rememberVal = decodeURIComponent(trimmed.slice((REMEMBER_COOKIE + "=").length));
       break;
     }
   }
   if (!rememberVal) return next();
 
-  const colonIdx = rememberVal.lastIndexOf(":");
-  if (colonIdx === -1) return next();
+  const parsed = verifyRememberToken(rememberVal);
+  if (!parsed) {
+    clearRememberCookie(res); // invalid / expired / tampered — drop it
+    return next();
+  }
 
-  const cookieUsername = rememberVal.slice(0, colonIdx);
-  const token          = rememberVal.slice(colonIdx + 1);
-  if (!cookieUsername || !token) return next();
-
+  // Make sure the user still exists (e.g. removed account)
   const users = loadUsers();
-  const user  = users.find(u => u.username.toLowerCase() === cookieUsername.toLowerCase());
-
-  if (!user || !user.rememberTokenHash) {
-    // Clear stale cookie
-    res.setHeader("Set-Cookie", "lvl3_remember=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
+  const user  = users.find(u => u.username.toLowerCase() === parsed.username.toLowerCase());
+  if (!user) {
+    clearRememberCookie(res);
     return next();
   }
 
-  const hash = crypto.createHash("sha256").update(token).digest("hex");
-  const hashBuf = Buffer.from(hash);
-  const storedBuf = Buffer.from(user.rememberTokenHash);
-  const tokenValid = hashBuf.length === storedBuf.length &&
-    crypto.timingSafeEqual(hashBuf, storedBuf);
-  if (!tokenValid) {
-    res.setHeader("Set-Cookie", "lvl3_remember=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
-    return next();
-  }
-
-  // Valid token — restore session
+  // Valid token — restore session and keep it long-lived
   req.session.username = user.username;
+  req.session.cookie.maxAge = REMEMBER_MAX_AGE_MS;
   return next();
 });
 
@@ -149,9 +189,13 @@ app.post("/api/login", async (req, res) => {
     return res.status(401).json({ success: false, error: "Unbekannter Benutzer." });
   }
 
-  // First login: skip password check, log in immediately (no remember-me for first-login flow)
+  // First login: skip password check, log in immediately
   if (!user.passwordChanged) {
     req.session.username = user.username;
+    if (rememberMe) {
+      req.session.cookie.maxAge = REMEMBER_MAX_AGE_MS;
+      setRememberCookie(res, user.username);
+    }
     req.session.save();
     return res.json({ success: true, username: user.username, passwordChanged: false });
   }
@@ -169,18 +213,9 @@ app.post("/api/login", async (req, res) => {
   req.session.username = user.username;
 
   if (rememberMe) {
-    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-    req.session.cookie.maxAge = THIRTY_DAYS;
-
-    const token = crypto.randomBytes(32).toString("hex");
-    user.rememberTokenHash = crypto.createHash("sha256").update(token).digest("hex");
-    saveUsers(users);
-
-    const cookieVal = encodeURIComponent(user.username + ":" + token);
-    res.setHeader(
-      "Set-Cookie",
-      `lvl3_remember=${cookieVal}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${THIRTY_DAYS / 1000}`
-    );
+    // Keep both the session cookie and the signed remember cookie alive 3 months.
+    req.session.cookie.maxAge = REMEMBER_MAX_AGE_MS;
+    setRememberCookie(res, user.username);
   }
 
   req.session.save();
@@ -250,16 +285,8 @@ app.post("/api/avatar", (req, res) => {
 });
 
 app.get("/api/logout", (req, res) => {
-  // Clear remember-me token from users.json and expire the cookie
-  if (req.session.username) {
-    const users = loadUsers();
-    const user  = users.find(u => u.username === req.session.username);
-    if (user && user.rememberTokenHash) {
-      delete user.rememberTokenHash;
-      saveUsers(users);
-    }
-  }
-  res.setHeader("Set-Cookie", "lvl3_remember=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
+  // Expire the signed remember cookie and destroy the session.
+  clearRememberCookie(res);
   req.session.destroy(() => {
     res.json({ success: true });
   });
@@ -467,7 +494,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => handleLeave(socket));
 
   // Load game handlers
-  ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser"].forEach(g => {
+  ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten"].forEach(g => {
     try {
       require("./server/games/" + g + "-handler")(socket, io, rooms);
     } catch (e) {

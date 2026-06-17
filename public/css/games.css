@@ -2,8 +2,7 @@
 .logo-display {
   width: 260px; height: 260px;
   display: flex; align-items: center; justify-content: center;
-  background: var(--logo-display-bg); border: 1px solid var(--border-thick);
-  border-radius: var(--radius);
+  background: var(--logo-display-bg); border: 3px solid var(--border-thick);
   margin: 0 auto 20px; padding: 20px; overflow: hidden;
 }
 .logo-img { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -13,7 +12,7 @@
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center; text-align: center; padding: 20px 0;
 }
-.question-text { font-size: 24px; font-weight: 600; max-width: 680px; margin: 0 auto 20px; font-family: 'Fraunces', serif; }
+.question-text { font-size: 24px; font-weight: 700; max-width: 680px; margin: 0 auto 20px; }
 
 /* ─── Answer Row ───────────────────────────────────── */
 .answer-row { display: flex; gap: 10px; max-width: 520px; width: 100%; margin: 0 auto; }
@@ -24,27 +23,22 @@
 
 .option-btn {
   padding: 16px 18px; text-align: left;
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer; font-family: 'Inter', sans-serif; font-size: 14px;
-  color: var(--text); transition: border-color 0.2s, background 0.2s, box-shadow 0.2s; line-height: 1.4;
-  font-weight: 500;
+  background: transparent; border: 2px solid var(--border-thick);
+  cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 14px;
+  color: var(--text); transition: border-color 0.1s, background 0.1s; line-height: 1.4;
+  font-weight: 600;
 }
-.option-btn:hover:not(:disabled) {
-  border-color: var(--border-thick);
-  background: var(--option-hover-bg);
-  box-shadow: var(--shadow-sm);
-}
-.option-btn.correct { background: rgba(47,125,91,0.10); border-color: var(--green); color: var(--green); }
-.option-btn.wrong   { background: rgba(192,57,43,0.08);  border-color: var(--red);   color: var(--red);   }
+.option-btn:hover:not(:disabled) { border-color: var(--text); background: var(--option-hover-bg); }
+.option-btn.correct { background: rgba(0,255,136,0.12); border-color: var(--green); color: var(--green); }
+.option-btn.wrong   { background: rgba(255,51,51,0.10);  border-color: var(--red);   color: var(--red);   }
 .option-btn:disabled { cursor: not-allowed; opacity: 0.55; }
 
 /* ─── Flag Quiz ────────────────────────────────────── */
-.flag-display { display: block; margin: 0 auto 20px; max-height: 160px; border: 1px solid var(--border); border-radius: var(--radius-xs); }
+.flag-display { display: block; margin: 0 auto 20px; max-height: 160px; border: 2px solid var(--border-thick); }
 .flag-icon-xl {
   display: block; margin: 0 auto 20px;
   font-size: 0; width: 240px; height: 160px;
-  border: 1px solid var(--border); border-radius: var(--radius-xs); overflow: hidden;
+  border: 2px solid var(--border-thick); overflow: hidden;
 }
 .flag-icon-xl img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -53,23 +47,23 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
 }
 .waveform { display: flex; align-items: center; justify-content: center; gap: 5px; height: 60px; }
-.waveform-bar { width: 6px; background: var(--accent); border-radius: 999px; height: 20px; }
+.waveform-bar { width: 6px; background: var(--accent); height: 20px; }
 .waveform.paused .waveform-bar { animation: none !important; }
 
 @keyframes wave { 0%,100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
 
 /* ─── Movies & Actors ──────────────────────────────── */
 .movie-display { text-align: center; }
-.movie-poster { width: 140px; height: 210px; object-fit: cover; border: 1px solid var(--border); border-radius: var(--radius-xs); margin: 0 auto 14px; display: block; }
+.movie-poster { width: 140px; height: 210px; object-fit: cover; border: 2px solid var(--border-thick); margin: 0 auto 14px; display: block; }
 .movie-hint { font-size: 14px; color: var(--text-dim); font-style: italic; max-width: 380px; margin: 0 auto; }
 
 /* ─── Benzinrechner ────────────────────────────────── */
 .benzin-layout { max-width: 540px; margin: 0 auto; text-align: center; }
-.benzin-result { font-size: 56px; font-weight: 700; font-family: 'Fraunces', serif; color: var(--accent3); margin: 16px 0 4px; font-variant-numeric: tabular-nums; }
+.benzin-result { font-size: 56px; font-weight: 900; color: var(--accent3); margin: 16px 0 4px; font-variant-numeric: tabular-nums; }
 .benzin-result-label { font-size: 14px; color: var(--text-dim); }
 .benzin-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-.benzin-stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; }
-.benzin-stat-value { font-size: 22px; font-weight: 700; font-family: 'Fraunces', serif; color: var(--accent3); font-variant-numeric: tabular-nums; }
+.benzin-stat { background: transparent; border: 2px solid var(--border-thick); padding: 14px; }
+.benzin-stat-value { font-size: 22px; font-weight: 900; color: var(--accent3); font-variant-numeric: tabular-nums; }
 .benzin-stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
 /* ─── Countdown Overlay ────────────────────────────── */
@@ -78,32 +72,30 @@
   background: var(--countdown-overlay-bg); z-index: 50;
 }
 .countdown-number {
-  font-size: 180px; font-weight: 700; font-family: 'Fraunces', serif; color: var(--accent);
+  font-size: 180px; font-weight: 900; color: var(--accent);
   animation: countPop 0.7s ease;
 }
 
 /* ─── Winner / Final Scores ────────────────────────── */
 .winner-card { text-align: center; padding: 40px; }
 .trophy { font-size: 72px; display: block; margin-bottom: 14px; }
-.winner-name { font-size: 40px; font-weight: 700; font-family: 'Fraunces', serif; color: var(--gold); }
+.winner-name { font-size: 40px; font-weight: 900; color: var(--gold); text-transform: uppercase; }
 
 .final-scores { margin-top: 28px; display: flex; flex-direction: column; gap: 6px; }
 .final-score-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 16px; background: transparent;
-  border-left: 3px solid var(--border);
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  padding: 10px 16px; background: transparent; border-left: 3px solid var(--border-thick);
 }
-.final-score-row.first-place { border-left-color: var(--gold); background: rgba(184,137,59,0.07); }
+.final-score-row.first-place { border-left-color: var(--gold); background: rgba(255,215,0,0.06); }
 
 /* ─── Flash Animations ─────────────────────────────── */
 .correct-flash { animation: correctFlash 0.5s ease; }
 .wrong-flash   { animation: wrongFlash 0.35s ease; }
 
-@keyframes correctFlash { 0% { background: rgba(47,125,91,0.20); } 100% { background: transparent; } }
-@keyframes wrongFlash   { 0% { background: rgba(192,57,43,0.18); }  100% { background: transparent; } }
+@keyframes correctFlash { 0% { background: rgba(0,255,136,0.25); } 100% { background: transparent; } }
+@keyframes wrongFlash   { 0% { background: rgba(255,51,51,0.25); }  100% { background: transparent; } }
 
 /* ─── Correct Banner (logo-guesser) ────────────────── */
-.correct-banner { min-height: 36px; font-size: 14px; font-weight: 600; text-align: center; padding: 8px 12px; margin-top: 12px; border-radius: var(--radius-xs); }
-.correct-banner.show-correct { background: rgba(47,125,91,0.10); color: var(--green); border: 1px solid var(--green); }
-.correct-banner.show-timeout { background: rgba(192,57,43,0.08); color: var(--red); border: 1px solid var(--red); }
+.correct-banner { min-height: 36px; font-size: 14px; font-weight: 600; text-align: center; padding: 8px 12px; margin-top: 12px; }
+.correct-banner.show-correct { background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid var(--green); }
+.correct-banner.show-timeout { background: rgba(255,51,51,0.1); color: var(--red); border: 1px solid var(--red); }

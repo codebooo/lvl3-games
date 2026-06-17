@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galgenraten – Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=5">
+  <link rel="stylesheet" href="/css/games.css?v=3">
+  <script src="/js/theme.js?v=4"></script>
+  <style>
+    .game-layout{display:grid;grid-template-columns:260px 1fr;gap:20px;min-height:calc(100vh - 64px);padding:20px;max-width:1100px;margin:0 auto}
+    @media(max-width:760px){.game-layout{grid-template-columns:1fr}.sidebar{display:none}}
+    .page-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:64px;background:var(--surface);border-bottom:2px solid var(--border-thick);position:sticky;top:0;z-index:20}
+    .sidebar{display:flex;flex-direction:column;gap:16px}
+    .room-code-box{background:var(--card);padding:20px;text-align:center;border:2px solid var(--border-thick)}
+    .room-code-box .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px}
+    .room-code-box .code{font-size:32px;font-weight:900;letter-spacing:6px;color:var(--accent)}
+    .main-panel{background:var(--card);border:2px solid var(--border-thick);display:flex;flex-direction:column;position:relative;min-height:520px}
+    .screen{display:none;padding:28px;flex:1;flex-direction:column;align-items:center;justify-content:center}
+    .screen.active{display:flex}
+    .setting-block{margin-bottom:16px;width:100%}
+    .setting-block label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+    .teams-preview{display:flex;gap:12px;width:100%;margin:8px 0 18px}
+    .team-box{flex:1;border:2px solid var(--border-thick);padding:12px;font-size:14px}
+    .team-box .team-name{font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-size:12px}
+    .team-box.team-a{border-color:var(--accent)}
+    .team-box.team-a .team-name{color:var(--accent)}
+    .team-box.team-b{border-color:var(--accent3)}
+    .team-box.team-b .team-name{color:var(--accent3)}
+    .boards-container{display:flex;gap:24px;justify-content:center;align-items:flex-start;width:100%;flex-wrap:wrap}
+    .board-card{flex:0 1 auto;max-width:420px;display:flex;flex-direction:column;align-items:center}
+    .boards-container.two .board-card{border:2px solid var(--border-thick);padding:14px;min-width:260px}
+    .board-card.mine{box-shadow:0 0 0 2px var(--accent) inset}
+    .board-card.team-a .board-label{color:var(--accent)}
+    .board-card.team-b .board-label{color:var(--accent3)}
+    .board-label{font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--text-dim);margin-bottom:8px}
+    .gallows-wrap{height:150px;display:flex;align-items:center;justify-content:center}
+    .word-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 6px}
+    .word-row.small{gap:4px}
+    .slot{display:inline-flex;align-items:flex-end;justify-content:center;min-width:26px;height:36px;font-size:24px;font-weight:800;color:var(--text);border-bottom:3px solid var(--border-thick)}
+    .word-row.small .slot{min-width:18px;height:26px;font-size:16px}
+    .slot.filled{color:var(--accent3)}
+    .slot.space{border-bottom:none;min-width:16px}
+    .slot.sep{border-bottom:none}
+    .slot.empty{color:transparent}
+    .lives{font-size:13px;color:var(--text-dim);margin-top:4px}
+    #alphabet-grid{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:520px;margin:18px auto 0}
+    .key{width:40px;height:46px;font-size:18px;font-weight:700;background:var(--card);color:var(--text);border:2px solid var(--border-thick);cursor:pointer;transition:transform .08s,background .12s,color .12s,opacity .12s}
+    .key:hover:not(:disabled){background:var(--text);color:var(--bg)}
+    .key:active:not(:disabled){transform:translateY(2px)}
+    .key.correct{background:var(--green);color:#06231a;border-color:var(--green)}
+    .key.wrong{opacity:.28;color:var(--text-muted);cursor:default}
+    .key:disabled{cursor:default}
+    .game-status{min-height:24px;margin-top:16px;font-size:15px;font-weight:600;text-align:center}
+    .game-status .ok{color:var(--green)}
+    .game-status .bad{color:var(--red)}
+    .winner-card{border:2px solid var(--border-thick);padding:28px;text-align:center;width:100%;max-width:480px}
+    .end-boards{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+    .hidden{display:none!important}
+    .text-dim{color:var(--text-dim)}
+    .full{width:100%}
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <a href="/dashboard.html" class="logo-text">LVL<span>³</span></a>
+  <div class="flex items-center gap-4">
+    <span style="color:var(--text-dim);font-size:13px;text-transform:uppercase;letter-spacing:1px">Galgenraten</span>
+    <div class="flex items-center gap-2">
+      <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px;border:2px solid var(--border-thick)"></div>
+      <span id="user-name" style="font-weight:700;font-size:14px"></span>
+    </div>
+    <button onclick="leaveRoom()" class="btn btn-secondary btn-sm">Verlassen</button>
+  </div>
+</div>
+
+<div class="game-layout">
+  <aside class="sidebar">
+    <div class="room-code-box">
+      <div class="label">Raum-Code</div>
+      <div class="code" id="room-code-display">––––</div>
+    </div>
+    <div class="card" style="padding:20px;flex:1">
+      <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);margin-bottom:12px">Spieler</div>
+      <ul class="player-list" id="player-list"></ul>
+    </div>
+  </aside>
+
+  <main class="main-panel">
+
+    <!-- Join -->
+    <div class="screen active" id="screen-join">
+      <div style="max-width:360px;width:100%;text-align:center">
+        <h2 style="font-size:26px;margin-bottom:8px">Galgenraten</h2>
+        <p class="text-dim" style="margin-bottom:28px;font-size:14px">Errate das Wort, bevor der Galgen fertig ist. Solo oder Team gegen Team.</p>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <button onclick="createRoom()" class="btn btn-primary btn-full">Raum erstellen</button>
+          <div style="display:flex;gap:8px">
+            <input id="join-code-input" class="input-field" placeholder="Code" maxlength="4" style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-weight:700">
+            <button onclick="joinRoom()" class="btn btn-secondary" style="white-space:nowrap">Beitreten</button>
+          </div>
+          <div id="join-error" style="color:var(--red);font-size:13px;min-height:18px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lobby -->
+    <div class="screen" id="screen-lobby">
+      <div style="max-width:480px;width:100%">
+        <div style="text-align:center;margin-bottom:22px"><h2 style="font-size:22px">Lobby</h2></div>
+
+        <div id="host-settings" class="full">
+          <div class="setting-block">
+            <label>Modus</label>
+            <select id="sel-playmode" class="input-field" onchange="pushSettings()">
+              <option value="solo">Solo (Zufallswort)</option>
+              <option value="team">Team gegen Team</option>
+            </select>
+          </div>
+          <div class="setting-block team-only" style="display:none">
+            <label>Team-Modus</label>
+            <select id="sel-wordmode" class="input-field" onchange="pushSettings()">
+              <option value="pick">Eigene Wörter — jedes Team wählt, der schnellere Rater gewinnt</option>
+              <option value="race">Zufalls-Rennen — gleiches Wort, beide Teams raten gleichzeitig</option>
+            </select>
+          </div>
+          <div class="setting-block" id="difficulty-row">
+            <label>Schwierigkeit (Zufallswort)</label>
+            <select id="sel-difficulty" class="input-field" onchange="pushSettings()">
+              <option value="easy">Leicht</option>
+              <option value="normal" selected>Mittel</option>
+              <option value="hard">Schwer</option>
+            </select>
+          </div>
+
+          <div class="teams-preview" id="teams-preview" style="display:none"></div>
+
+          <button onclick="startGame()" id="btn-start" class="btn btn-primary btn-full" style="margin-top:6px">Spiel starten</button>
+          <p id="start-hint" style="text-align:center;color:var(--text-dim);font-size:13px;margin-top:8px"></p>
+        </div>
+
+        <div id="guest-settings" style="display:none;text-align:center">
+          <p class="text-dim" style="margin-bottom:10px">Wartet auf den Host…</p>
+          <div id="guest-settings-display" style="font-size:14px;color:var(--text-dim);margin-bottom:16px"></div>
+          <div class="teams-preview" id="teams-preview-guest" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pick a word -->
+    <div class="screen" id="screen-pick">
+      <div style="max-width:420px;width:100%;text-align:center">
+        <div id="pick-info" style="font-size:15px;margin-bottom:20px"></div>
+        <div id="pick-setter-area" style="display:none">
+          <p class="text-dim" style="font-size:13px;margin-bottom:10px">Gebt ein Wort ein (3–30 Buchstaben). Das andere Team sieht es nicht.</p>
+          <input id="set-word-input" class="input-field" placeholder="Geheimes Wort…" autocomplete="off" autocorrect="off" spellcheck="false" style="text-align:center;font-weight:700;letter-spacing:2px;text-transform:uppercase">
+          <div id="set-word-error" style="color:var(--red);font-size:13px;min-height:18px;margin:6px 0"></div>
+          <button onclick="setWord()" class="btn btn-primary btn-full">Wort festlegen</button>
+        </div>
+        <div id="pick-wait-area" style="display:none">
+          <div class="gallows-wrap"><div style="font-size:46px">✎</div></div>
+          <p id="pick-wait-text" class="text-dim"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game -->
+    <div class="screen" id="screen-game" style="justify-content:flex-start;padding-top:24px">
+      <div id="boards-container" class="boards-container full"></div>
+      <div id="alphabet-grid"></div>
+      <div id="game-status" class="game-status"></div>
+    </div>
+
+    <!-- End -->
+    <div class="screen" id="screen-end">
+      <div class="winner-card">
+        <div class="text-dim" style="margin-bottom:6px;font-size:13px;text-transform:uppercase;letter-spacing:1px">Ergebnis</div>
+        <div id="end-title" style="font-size:28px;font-weight:900;margin-bottom:10px"></div>
+        <div id="end-detail" style="font-size:15px;color:var(--text-dim)"></div>
+        <div id="end-boards" class="end-boards"></div>
+        <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button id="btn-play-again" onclick="playAgain()" class="btn btn-primary hidden">Nochmal spielen</button>
+          <a href="/dashboard.html" class="btn btn-secondary">Dashboard</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/socket-utils.js?v=4"></script>
+<script src="/js/games/galgenraten.js?v=1"></script>
+</body>
+</html>

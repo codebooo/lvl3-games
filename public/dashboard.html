@@ -6,9 +6,9 @@
   <title>Lvl 3 Games - Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=4">
-  <script src="/js/theme.js?v=3"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=5">
+  <script src="/js/theme.js?v=4"></script>
 </head>
 <body>
 
@@ -125,6 +125,21 @@
         </div>
       </a>
 
+      <!-- Game 7: Galgenraten -->
+      <a href="/games/galgenraten.html" class="card card-hover">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+          <div>
+            <h3 style="font-size:20px;margin-bottom:4px">Galgenraten</h3>
+            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Errate das Wort, Buchstabe für Buchstabe. Solo oder Team gegen Team.</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-easy">Solo</span>
+          <span class="badge badge-normal">1v1</span>
+          <span class="badge badge-hard">2v2</span>
+        </div>
+      </a>
+
     </div>
 
     <!-- Leaderboard -->
@@ -139,6 +154,7 @@
         <button class="btn btn-secondary btn-sm lb-tab" data-key="flag-quiz">Flaggen-Quiz</button>
         <button class="btn btn-secondary btn-sm lb-tab" data-key="movies-actors">Filme &amp; Schauspieler</button>
         <button class="btn btn-secondary btn-sm lb-tab" data-key="song-guesser">Song Guesser</button>
+        <button class="btn btn-secondary btn-sm lb-tab" data-key="galgenraten">Galgenraten</button>
       </div>
 
       <!-- Table card -->
@@ -151,7 +167,7 @@
 
   <!-- Settings Modal -->
   <div id="settings-overlay" class="modal-overlay hidden">
-    <div class="modal" style="max-width:520px">
+    <div class="modal">
       <h2>Einstellungen</h2>
 
       <!-- Appearance -->
@@ -230,7 +246,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/socket-utils.js?v=3"></script>
+  <script src="/js/socket-utils.js?v=4"></script>
   <script>
     /* ── Eager leaderboard fetch — starts immediately, parallel to auth ── */
     var _lbData = null;
@@ -330,7 +346,7 @@
 
       var html = '<div style="overflow-x:auto">'
         + '<table style="width:100%;border-collapse:collapse;font-size:14px">'
-        + '<thead><tr style="border-bottom:1px solid var(--border-thick);text-align:left">'
+        + '<thead><tr style="border-bottom:2px solid var(--border-thick);text-align:left">'
         + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;white-space:nowrap">Platz</th>'
         + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600">Spieler</th>'
         + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;text-align:right;white-space:nowrap">Siege</th>'
@@ -343,8 +359,8 @@
         var rank = i + 1;
         var isFirst = rank === 1;
         var rowStyle = isFirst
-          ? 'border-bottom:1px solid var(--border);background:rgba(184,137,59,0.07)'
-          : 'border-bottom:1px solid var(--border)';
+          ? 'border-bottom:1px solid var(--border-thick);background:rgba(255,215,0,0.07)'
+          : 'border-bottom:1px solid var(--border-thick)';
         var rankStyle = isFirst
           ? 'padding:10px 12px;font-weight:700;color:var(--gold)'
           : 'padding:10px 12px;color:var(--text-dim)';
@@ -488,75 +504,38 @@
         });
     });
 
-    /* ── Avatar Upload ── */
+    /* Avatar Upload */
     document.getElementById("avatar-file-input").addEventListener("change", function (e) {
       var file = e.target.files && e.target.files[0];
       if (!file) return;
-
       var errEl = document.getElementById("avatar-upload-error");
       errEl.textContent = "";
-
-      /* 10 MB size guard */
-      if (file.size > 10 * 1024 * 1024) {
-        errEl.textContent = "Bild zu groß. Maximal 10 MB erlaubt.";
-        e.target.value = "";
-        return;
-      }
-
+      if (file.size > 10 * 1024 * 1024) { errEl.textContent = "Bild zu groß. Maximal 10 MB erlaubt."; e.target.value = ""; return; }
       var reader = new FileReader();
       reader.onload = function (ev) {
         var img = new Image();
         img.onload = function () {
-          /* Downscale + center-crop to 256×256 */
           var size = 256;
           var canvas = document.createElement("canvas");
-          canvas.width = size;
-          canvas.height = size;
+          canvas.width = size; canvas.height = size;
           var ctx = canvas.getContext("2d");
-
-          var srcW = img.naturalWidth;
-          var srcH = img.naturalHeight;
-          var scale = Math.max(size / srcW, size / srcH);
-          var drawW = srcW * scale;
-          var drawH = srcH * scale;
-          var offsetX = (size - drawW) / 2;
-          var offsetY = (size - drawH) / 2;
-
-          ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
-
+          var scale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
+          var drawW = img.naturalWidth * scale, drawH = img.naturalHeight * scale;
+          ctx.drawImage(img, (size - drawW) / 2, (size - drawH) / 2, drawW, drawH);
           var dataURL = canvas.toDataURL("image/jpeg", 0.85);
-
-          /* Show local preview immediately */
-          var previewWrap = document.getElementById("avatar-preview-wrap");
-          var previewImg = document.getElementById("avatar-preview");
-          previewImg.src = dataURL;
-          previewWrap.style.display = "block";
-
-          /* POST to backend */
-          fetch("/api/avatar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: dataURL })
-          })
+          var pw = document.getElementById("avatar-preview-wrap");
+          document.getElementById("avatar-preview").src = dataURL;
+          pw.style.display = "block";
+          fetch("/api/avatar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ image: dataURL }) })
             .then(function (r) { return r.json(); })
             .then(function (data) {
               if (data.success) {
-                /* Update the header avatar */
                 var av = document.getElementById("user-avatar");
-                if (av) {
-                  av.style.backgroundImage = "url('" + (data.avatar || dataURL) + "')";
-                  av.style.backgroundSize = "cover";
-                  av.style.backgroundPosition = "center";
-                  av.textContent = "";
-                }
+                if (av) { av.style.backgroundImage = "url('" + (data.avatar || dataURL) + "')"; av.style.backgroundSize = "cover"; av.style.backgroundPosition = "center"; av.textContent = ""; }
                 window.lvl3.showToast("Profilbild aktualisiert.", "success");
-              } else {
-                errEl.textContent = data.error || "Fehler beim Hochladen.";
-              }
+              } else { errEl.textContent = data.error || "Fehler beim Hochladen."; }
             })
-            .catch(function () {
-              errEl.textContent = "Verbindungsfehler. Bitte erneut versuchen.";
-            });
+            .catch(function () { errEl.textContent = "Verbindungsfehler. Bitte erneut versuchen."; });
         };
         img.src = ev.target.result;
       };
