@@ -353,6 +353,70 @@ app.get("/api/requests", (req, res) => {
   return res.json({ requests: reqs.slice().reverse() });
 });
 
+// ─── Bug Reports ─────────────────────────────────────────────────────────────
+const BUG_REPORTS_FILE = path.join(__dirname, "data", "bug-reports.json");
+
+function loadBugReports() {
+  try {
+    const raw    = fs.readFileSync(BUG_REPORTS_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    throw new Error("Unexpected shape");
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveBugReports(reports) {
+  const dir = path.dirname(BUG_REPORTS_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const tmp = BUG_REPORTS_FILE + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(reports, null, 2), "utf8");
+  fs.renameSync(tmp, BUG_REPORTS_FILE);
+}
+
+app.post("/api/bug-report", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+
+  const { game, details, screenshot, url, userAgent } = req.body;
+
+  if (!details || typeof details !== "string" || details.trim().length < 30) {
+    return res.status(400).json({ error: "Bitte mindestens 30 Zeichen beschreiben." });
+  }
+
+  // screenshot must be a data:image/... string if present; otherwise ignore it
+  const safeScreenshot = (screenshot && typeof screenshot === "string" && screenshot.startsWith("data:image/"))
+    ? screenshot
+    : null;
+
+  const reports = loadBugReports();
+  reports.push({
+    username:  req.session.username,
+    game:      String(game || "").slice(0, 60),
+    details:   details.trim().slice(0, 4000),
+    screenshot: safeScreenshot,
+    url:       String(url || "").slice(0, 300),
+    userAgent: String(userAgent || "").slice(0, 300),
+    date:      new Date().toISOString()
+  });
+  saveBugReports(reports);
+
+  return res.json({ success: true });
+});
+
+app.get("/api/bug-reports", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+  if (req.session.username.toLowerCase() !== "bosse") {
+    return res.status(403).json({ error: "Keine Berechtigung." });
+  }
+  const reports = loadBugReports();
+  return res.json({ reports: reports.slice().reverse() });
+});
+
 // ─── Room Management ──────────────────────────────────────────────────────────
 const rooms = new Map();
 
