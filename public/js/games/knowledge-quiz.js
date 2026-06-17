@@ -333,10 +333,18 @@
 
     if (elRevealBanner) {
       elRevealBanner.classList.remove("hidden", "nobody");
-      if (data.winner) {
-        elRevealBanner.textContent = data.winner === username
-          ? "Richtig! +" + (data.points || "") + " Punkte"
-          : data.winner + " hat es gewusst! (" + data.correctAnswer + ")";
+      // MC mode sends a pointsAwarded map (no single "winner"); typing mode may send winner.
+      var awarded = data.pointsAwarded || {};
+      var winners = Object.keys(awarded);
+      var myPts = awarded[username];
+      if (myPts !== undefined && myPts !== null) {
+        elRevealBanner.textContent = "Richtig! +" + myPts + " Punkte";
+      } else if (data.winner === username) {
+        elRevealBanner.textContent = "Richtig! +" + (data.points || "") + " Punkte";
+      } else if (winners.length > 0) {
+        elRevealBanner.textContent = winners[0] + " hat es gewusst! (" + data.correctAnswer + ")";
+      } else if (data.winner) {
+        elRevealBanner.textContent = data.winner + " hat es gewusst! (" + data.correctAnswer + ")";
       } else {
         elRevealBanner.classList.add("nobody");
         elRevealBanner.textContent = "Niemand wusste es. Richtig: " + data.correctAnswer;
