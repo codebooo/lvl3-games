@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finanzamt - Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=5">
+  <link rel="stylesheet" href="/css/games.css?v=3">
+  <script src="/js/theme.js?v=4"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="flex items-center gap-4">
+      <a href="/dashboard.html" class="btn btn-secondary btn-sm">&#8592; Zurück</a>
+      <span style="font-weight:700;font-size:18px">Finanzamt</span>
+    </div>
+    <div class="logo-text" style="font-size:24px">LVL³</div>
+  </div>
+
+  <!-- Main -->
+  <div class="benzin-layout" style="padding:40px 20px">
+
+    <!-- Title Card -->
+    <div class="card" style="margin-bottom:20px;text-align:center">
+      <h1 style="font-size:26px;margin-bottom:6px">Finanzamt</h1>
+      <p style="color:var(--text-dim);font-size:15px">Fick den Kapitalismus</p>
+    </div>
+
+    <!-- Input Card -->
+    <div class="card" style="margin-bottom:20px;text-align:left">
+      <h2 style="font-size:16px;margin-bottom:20px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Zahlung eintragen</h2>
+
+      <div class="form-group" style="margin-bottom:0">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:15px;line-height:2">
+          <span>Ich habe am</span>
+          <input
+            id="fa-date"
+            type="date"
+            class="input-field"
+            style="width:auto;flex:0 0 auto"
+          >
+          <span>insgesamt</span>
+          <input
+            id="fa-amount"
+            type="number"
+            class="input-field"
+            min="0.01"
+            step="0.01"
+            placeholder="0,00"
+            style="width:110px;flex:0 0 auto"
+          >
+          <span>€ für</span>
+          <div style="position:relative;flex:0 0 auto">
+            <select id="fa-person" class="select-field" style="padding-right:32px">
+              <option value="">— Person —</option>
+            </select>
+            <div style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-dim)">&#9660;</div>
+          </div>
+          <span>gezahlt.</span>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <button id="fa-submit" class="btn btn-primary" style="justify-content:center;font-size:15px;padding:12px 28px">
+          Eintragen
+        </button>
+      </div>
+    </div>
+
+    <!-- Balances Card -->
+    <div class="card" style="margin-bottom:20px;text-align:left">
+      <h2 style="font-size:16px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Wer schuldet wem?</h2>
+      <div id="fa-balances">
+        <div style="color:var(--text-dim);font-size:14px">Wird geladen...</div>
+      </div>
+    </div>
+
+    <!-- History Card -->
+    <div class="card" style="margin-bottom:20px;text-align:left">
+      <h2 style="font-size:16px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Verlauf</h2>
+      <div id="fa-history">
+        <div style="color:var(--text-dim);font-size:14px">Wird geladen...</div>
+      </div>
+    </div>
+
+    <div style="height:40px"></div>
+
+  </div><!-- /.benzin-layout -->
+
+  <script src="/js/socket-utils.js?v=3"></script>
+  <script src="/js/games/finanzamt.js?v=1"></script>
+  <script src="/js/bug-report.js?v=1"></script>
+</body>
+</html>

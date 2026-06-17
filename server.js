@@ -417,6 +417,220 @@ app.get("/api/bug-reports", (req, res) => {
   return res.json({ reports: reports.slice().reverse() });
 });
 
+// ─── Members ──────────────────────────────────────────────────────────────────
+app.get("/api/members", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+  const users = loadUsers();
+  return res.json({ members: users.map(u => u.username) });
+});
+
+// ─── Finanzamt ────────────────────────────────────────────────────────────────
+const FINANZAMT_FILE = path.join(__dirname, "data", "finanzamt.json");
+
+function loadFinanzamt() {
+  try {
+    const raw    = fs.readFileSync(FINANZAMT_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    throw new Error("Unexpected shape");
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveFinanzamt(records) {
+  const dir = path.dirname(FINANZAMT_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const tmp = FINANZAMT_FILE + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(records, null, 2), "utf8");
+  fs.renameSync(tmp, FINANZAMT_FILE);
+}
+
+app.post("/api/finanzamt", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+
+  const amount = Number(req.body.amount);
+  if (!isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ error: "Betrag muss größer als 0 sein." });
+  }
+
+  const users   = loadUsers();
+  const members = users.map(u => u.username.toLowerCase());
+  const person  = String(req.body.person || "").trim();
+  if (!members.includes(person.toLowerCase()) || person.toLowerCase() === req.session.username.toLowerCase()) {
+    return res.status(400).json({ error: "Ungültige Person." });
+  }
+  // Preserve original casing from users list
+  const personCanonical = users.find(u => u.username.toLowerCase() === person.toLowerCase()).username;
+
+  const date = String(req.body.date || "").trim() || new Date().toISOString().slice(0, 10);
+  const id   = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  const records = loadFinanzamt();
+  records.push({ id, payer: req.session.username, person: personCanonical, amount, date, created: new Date().toISOString() });
+  saveFinanzamt(records);
+
+  return res.json({ success: true });
+});
+
+app.get("/api/finanzamt", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+
+  const records = loadFinanzamt();
+
+  // Build pairwise owes map: owes[person][payer] += amount
+  const owes = {};
+  for (const r of records) {
+    if (!owes[r.person])        owes[r.person]        = {};
+    if (!owes[r.person][r.payer]) owes[r.person][r.payer] = 0;
+    owes[r.person][r.payer] += r.amount;
+  }
+
+  // Collect all unique participants
+  const people = new Set();
+  for (const r of records) { people.add(r.payer); people.add(r.person); }
+  const list = Array.from(people);
+
+  const balances = [];
+  const seen     = new Set();
+  for (let i = 0; i < list.length; i++) {
+    for (let j = i + 1; j < list.length; j++) {
+      const a   = list[i];
+      const b   = list[j];
+      const key = a + "|" + b;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const net = ((owes[a] && owes[a][b]) || 0) - ((owes[b] && owes[b][a]) || 0);
+      if (net > 0)       balances.push({ from: a, to: b, amount: Math.round(net * 100) / 100 });
+      else if (net < 0)  balances.push({ from: b, to: a, amount: Math.round(-net * 100) / 100 });
+    }
+  }
+
+  const payments = records
+    .slice()
+    .sort((a, b) => (b.created || b.date) > (a.created || a.date) ? 1 : -1)
+    .map(({ id, payer, person, amount, date }) => ({ id, payer, person, amount, date }));
+
+  return res.json({ payments, balances });
+});
+
+app.delete("/api/finanzamt/:id", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+
+  const records = loadFinanzamt();
+  const idx     = records.findIndex(r => r.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: "Eintrag nicht gefunden." });
+
+  const record = records[idx];
+  if (record.payer !== req.session.username && req.session.username.toLowerCase() !== "bosse") {
+    return res.status(403).json({ error: "Keine Berechtigung." });
+  }
+
+  records.splice(idx, 1);
+  saveFinanzamt(records);
+  return res.json({ success: true });
+});
+
+// ─── Spiele-Liste (Playlist) ──────────────────────────────────────────────────
+const PLAYLIST_FILE = path.join(__dirname, "data", "playlist.json");
+
+const PLAYLIST_CATEGORIES = ["pc", "web", "brettspiel"];
+
+function loadPlaylist() {
+  try {
+    const raw    = fs.readFileSync(PLAYLIST_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    throw new Error("Unexpected shape");
+  } catch (e) {
+    return [];
+  }
+}
+
+function savePlaylist(items) {
+  const dir = path.dirname(PLAYLIST_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const tmp = PLAYLIST_FILE + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(items, null, 2), "utf8");
+  fs.renameSync(tmp, PLAYLIST_FILE);
+}
+
+app.get("/api/playlist", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+  const items = loadPlaylist();
+  return res.json({ items: items.slice().reverse() });
+});
+
+app.post("/api/playlist", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+
+  const name = String(req.body.name || "").trim();
+  if (!name) {
+    return res.status(400).json({ error: "Name erforderlich." });
+  }
+
+  const category = String(req.body.category || "").trim();
+  if (!PLAYLIST_CATEGORIES.includes(category)) {
+    return res.status(400).json({ error: "Ungültige Kategorie." });
+  }
+
+  const playtime   = String(req.body.playtime   || "").slice(0, 40);
+  const minPlayers = String(req.body.minPlayers || "").slice(0, 20);
+  const notes      = String(req.body.notes      || "").slice(0, 1000);
+  const steamUrl   = String(req.body.steamUrl   || "").slice(0, 400);
+
+  const id   = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const date = new Date().toISOString();
+  const item = {
+    id,
+    name:       name.slice(0, 120),
+    category,
+    playtime,
+    minPlayers,
+    notes,
+    steamUrl,
+    addedBy:    req.session.username,
+    date
+  };
+
+  const items = loadPlaylist();
+  items.push(item);
+  savePlaylist(items);
+
+  return res.json({ success: true, item });
+});
+
+app.delete("/api/playlist/:id", (req, res) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: "Nicht angemeldet." });
+  }
+
+  const items = loadPlaylist();
+  const idx   = items.findIndex(i => i.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: "Eintrag nicht gefunden." });
+
+  const item = items[idx];
+  if (item.addedBy !== req.session.username && req.session.username.toLowerCase() !== "bosse") {
+    return res.status(403).json({ error: "Keine Berechtigung." });
+  }
+
+  items.splice(idx, 1);
+  savePlaylist(items);
+  return res.json({ success: true });
+});
+
 // ─── Room Management ──────────────────────────────────────────────────────────
 const rooms = new Map();
 

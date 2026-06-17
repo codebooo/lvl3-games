@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spiele-Liste - Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=5">
+  <link rel="stylesheet" href="/css/games.css?v=3">
+  <script src="/js/theme.js?v=4"></script>
+  <style>
+    .spiele-layout {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* ── Filter tabs ─────────────────────────────────────── */
+    .filter-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      border: 2px solid var(--border-thick);
+    }
+    .filter-tab {
+      flex: 1;
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      border-right: 2px solid var(--border-thick);
+      color: var(--text-dim);
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: background 0.1s ease-out, color 0.1s ease-out;
+    }
+    .filter-tab:last-child { border-right: none; }
+    .filter-tab:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .filter-tab.active { background: var(--accent); color: var(--text-on-accent); }
+
+    /* ── Segmented category buttons ──────────────────────── */
+    .seg-group {
+      display: flex;
+      gap: 0;
+      border: 2px solid var(--border-thick);
+    }
+    .seg-btn {
+      flex: 1;
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      border-right: 2px solid var(--border-thick);
+      color: var(--text-dim);
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: background 0.1s ease-out, color 0.1s ease-out;
+    }
+    .seg-btn:last-child { border-right: none; }
+    .seg-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .seg-btn.active { background: var(--accent3); color: #000; }
+
+    /* ── Entry item ──────────────────────────────────────── */
+    .spiele-entry {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .spiele-entry:last-child { border-bottom: none; }
+    .spiele-entry-body { flex: 1; min-width: 0; }
+    .spiele-entry-name {
+      font-weight: 700;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+    .spiele-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .spiele-notes {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+    .spiele-entry-actions { flex-shrink: 0; }
+
+    /* ── Badge overrides for categories ─────────────────── */
+    .badge-pc         { color: var(--accent3);  border-color: var(--accent3); }
+    .badge-web        { color: var(--accent2);  border-color: var(--accent2); }
+    .badge-brettspiel { color: var(--green);    border-color: var(--green); }
+
+    /* ── Steam link ──────────────────────────────────────── */
+    .steam-link {
+      color: var(--accent3);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--accent3);
+      transition: opacity 0.1s;
+    }
+    .steam-link:hover { opacity: 0.7; }
+
+    /* ── Result banner ───────────────────────────────────── */
+    .random-banner {
+      display: none;
+      margin-bottom: 20px;
+      padding: 18px 24px;
+      border: 2px solid var(--gold);
+      background: rgba(255, 215, 0, 0.06);
+    }
+    .random-banner.visible { display: block; }
+    .random-banner-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .random-banner-name {
+      font-size: 22px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      color: var(--gold);
+    }
+
+    /* ── Highlight during random spin ───────────────────── */
+    .spiele-entry.random-highlight .spiele-entry-name {
+      color: var(--gold);
+    }
+    .spiele-entry.random-highlight {
+      border-left: 3px solid var(--gold);
+      padding-left: 13px;
+    }
+    .spiele-entry.random-winner {
+      background: rgba(255,215,0,0.05);
+      border-left: 3px solid var(--gold);
+      padding-left: 13px;
+    }
+    .spiele-entry.random-winner .spiele-entry-name {
+      color: var(--gold);
+    }
+
+    /* ── Empty state ─────────────────────────────────────── */
+    .empty-state {
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    .empty-state strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    /* ── Meta separator dot ──────────────────────────────── */
+    .meta-dot { color: var(--border-thick); }
+
+    @media (max-width: 480px) {
+      .filter-tabs, .seg-group { flex-wrap: wrap; }
+      .filter-tab, .seg-btn { border-right: none; border-bottom: 2px solid var(--border-thick); }
+      .filter-tab:last-child, .seg-btn:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="flex items-center gap-4">
+      <a href="/dashboard.html" class="btn btn-secondary btn-sm">&#8592; Zurück</a>
+      <span style="font-weight:700;font-size:18px">Spiele-Liste</span>
+    </div>
+    <div class="logo-text" style="font-size:24px">LVL³</div>
+  </div>
+
+  <!-- Main -->
+  <div class="spiele-layout">
+
+    <!-- Title Card -->
+    <div class="card anim-in" style="margin-bottom:20px;text-align:center">
+      <h1 style="font-size:26px;margin-bottom:6px">Spiele-Liste</h1>
+      <p style="color:var(--text-dim);font-size:15px">Was zocken wir als nächstes?</p>
+    </div>
+
+    <!-- Add Form Card -->
+    <div class="card anim-in anim-in-1" style="margin-bottom:20px">
+      <h2 style="font-size:13px;margin-bottom:20px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">
+        Eintrag hinzufügen
+      </h2>
+
+      <!-- Spiel name -->
+      <div class="form-group">
+        <label class="label" for="sl-name">Spiel</label>
+        <input id="sl-name" type="text" class="input-field" placeholder="z.B. Elden Ring" autocomplete="off">
+      </div>
+
+      <!-- Kategorie segmented -->
+      <div class="form-group">
+        <label class="label">Kategorie</label>
+        <div class="seg-group" id="sl-cat-group" role="group" aria-label="Kategorie wählen">
+          <button type="button" class="seg-btn active" data-value="pc"          id="sl-cat-pc">PC (Steam)</button>
+          <button type="button" class="seg-btn"        data-value="web"         id="sl-cat-web">Web</button>
+          <button type="button" class="seg-btn"        data-value="brettspiel"  id="sl-cat-brett">Brettspiel</button>
+        </div>
+      </div>
+
+      <!-- Steam link — visible only for pc -->
+      <div class="form-group" id="sl-steam-group" style="">
+        <label class="label" for="sl-steam">Steam-Link <span style="font-weight:400;opacity:0.5">optional</span></label>
+        <input id="sl-steam" type="text" class="input-field" placeholder="https://store.steampowered.com/app/...">
+      </div>
+
+      <!-- Spielzeit -->
+      <div class="form-group">
+        <label class="label" for="sl-playtime">Spielzeit</label>
+        <input id="sl-playtime" type="text" class="input-field" placeholder="z.B. 30–60 min">
+      </div>
+
+      <!-- Min. Spieler -->
+      <div class="form-group">
+        <label class="label" for="sl-minplayers">Min. Spieler</label>
+        <input id="sl-minplayers" type="number" class="input-field" min="1" max="99" placeholder="z.B. 2">
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group" style="margin-bottom:0">
+        <label class="label" for="sl-notes">Notizen</label>
+        <textarea id="sl-notes" class="input-field" rows="3" placeholder="Kurze Beschreibung, Link, Hinweise…" style="resize:vertical"></textarea>
+      </div>
+
+      <div style="margin-top:18px">
+        <button id="sl-add-btn" class="btn btn-primary w-full" style="justify-content:center;font-size:14px;padding:14px">
+          Hinzufügen
+        </button>
+      </div>
+    </div>
+
+    <!-- Random banner -->
+    <div class="random-banner" id="sl-random-banner" role="status" aria-live="polite">
+      <div class="random-banner-label">Heute zocken wir</div>
+      <div class="random-banner-name" id="sl-random-name"></div>
+    </div>
+
+    <!-- List controls -->
+    <div class="flex items-center justify-between" style="margin-bottom:12px;gap:12px;flex-wrap:wrap">
+      <!-- Filter tabs -->
+      <div class="filter-tabs" id="sl-filter-tabs" role="tablist" style="flex:1;min-width:200px">
+        <button type="button" class="filter-tab active" data-filter="alle"       role="tab" aria-selected="true">Alle</button>
+        <button type="button" class="filter-tab"        data-filter="pc"         role="tab">PC</button>
+        <button type="button" class="filter-tab"        data-filter="web"        role="tab">Web</button>
+        <button type="button" class="filter-tab"        data-filter="brettspiel" role="tab">Brett</button>
+      </div>
+      <!-- Random button -->
+      <button id="sl-random-btn" class="btn btn-secondary btn-sm" style="white-space:nowrap">
+        Zufällig wählen
+      </button>
+    </div>
+
+    <!-- List Card -->
+    <div class="card anim-in anim-in-2" id="sl-list-card">
+      <div id="sl-list-inner">
+        <div class="empty-state">
+          <strong>Wird geladen…</strong>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:40px"></div>
+
+  </div><!-- /.spiele-layout -->
+
+  <script src="/js/socket-utils.js?v=3"></script>
+  <script src="/js/games/spiele-liste.js?v=1"></script>
+</body>
+</html>
