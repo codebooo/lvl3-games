@@ -1,572 +1,864 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lvl 3 Games - Dashboard</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LVL³ — Archiv</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=5">
-  <script src="/js/theme.js?v=4"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#000;overflow:hidden}
+    body{font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;cursor:none}
+    canvas{display:block}
+    #lv-scroll::-webkit-scrollbar{width:0}
+    @keyframes lvspin{to{transform:rotate(360deg)}}
+    @media(hover:none){body{cursor:auto}}
+  </style>
 </head>
 <body>
+<div id="app" style="position:fixed;inset:0;background:#000;color:#fff;overflow:hidden;user-select:none">
 
-  <!-- Header -->
-  <div class="page-header" style="flex-wrap:wrap;gap:8px;height:auto;min-height:56px">
-    <div class="logo-text" style="font-size:28px">LVL<span>³</span></div>
-    <div class="flex items-center gap-2" style="flex-wrap:wrap">
-      <div class="flex items-center gap-2">
-        <div id="user-avatar" class="player-avatar" style="width:32px;height:32px;font-size:13px"></div>
-        <span id="user-name" style="font-weight:600"></span>
+  <div id="gl-mount" style="position:absolute;inset:0;z-index:1"></div>
+
+  <!-- vignette — strong radial darkening around edges -->
+  <div style="position:absolute;inset:0;z-index:6;pointer-events:none;background:radial-gradient(110% 110% at 50% 50%, transparent 22%, rgba(0,0,0,.52) 68%, rgba(0,0,0,.96) 100%)"></div>
+
+  <!-- loader -->
+  <div id="loader" style="position:absolute;inset:0;z-index:30;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:22px">
+    <div style="width:26px;height:26px;border:2px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:lvspin .8s linear infinite"></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.32em;color:rgba(255,255,255,.5)">LADE ARCHIV</div>
+  </div>
+
+  <!-- top bar -->
+  <header style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:flex-start;justify-content:space-between;padding:26px 30px;pointer-events:none">
+    <div style="display:flex;align-items:center;gap:30px">
+      <div id="brand" style="pointer-events:auto;cursor:pointer;font-weight:700;font-size:23px;letter-spacing:.02em;line-height:1">LVL<span style="color:#ff2244">³</span></div>
+      <button id="sound-btn" style="pointer-events:auto;background:none;border:none;color:rgba(255,255,255,.62);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;cursor:pointer;display:flex;align-items:center;gap:9px;padding:6px 0">
+        <span id="sound-eq" style="display:inline-flex;align-items:flex-end;gap:2px;height:12px">
+          <i style="width:2px;height:4px;background:currentColor;display:block;transition:height .3s"></i>
+          <i style="width:2px;height:9px;background:currentColor;display:block;transition:height .3s"></i>
+          <i style="width:2px;height:6px;background:currentColor;display:block;transition:height .3s"></i>
+        </span>
+        <span id="sound-label">SOUND [AUS]</span>
+      </button>
+    </div>
+    <div style="max-width:340px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;letter-spacing:.04em;color:rgba(255,255,255,.55);text-transform:uppercase;text-align:center">LVL³ — ein privates Party-Spiele-Archiv für Marlin, Oskar, David &amp; Bosse.</div>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div id="counter" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55)">09 / 09</div>
+      <button id="settings-btn" title="Akzentfarbe" style="pointer-events:auto;background:none;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:rgba(255,255,255,.62);cursor:pointer;padding:7px 9px;display:flex;align-items:center;justify-content:center;transition:border-color .25s,color .25s">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button id="logout-btn" style="pointer-events:auto;background:none;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:rgba(255,255,255,.62);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;cursor:pointer;padding:7px 15px;transition:border-color .25s,color .25s">LOGOUT</button>
+    </div>
+  </header>
+
+  <!-- bottom bar -->
+  <footer style="position:absolute;bottom:0;left:0;right:0;z-index:10;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:26px 30px;pointer-events:none">
+    <div id="view-toggle" style="justify-self:start;pointer-events:auto;display:flex;align-items:center;gap:2px;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px">
+      <button data-view="sphere" class="vt-btn" style="width:34px;height:30px;border-radius:999px;border:none;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .25s,color .25s">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+      <button data-view="list" class="vt-btn" style="width:34px;height:30px;border-radius:999px;border:none;background:transparent;color:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .25s,color .25s">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="chips" style="justify-self:center;pointer-events:auto;display:flex;align-items:center;gap:5px;background:rgba(14,14,14,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:5px"></div>
+    <div style="justify-self:end;display:flex;align-items:center;gap:14px">
+      <div id="drag-hint" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.4);display:flex;align-items:center;gap:10px;transition:opacity .4s">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+        ZIEHEN ZUM ERKUNDEN
       </div>
-      <button id="btn-suggest" class="btn btn-secondary btn-sm"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path></svg>Spiel vorschlagen</button>
-      <button id="btn-settings" class="icon-btn-bare" aria-label="Einstellungen" title="Einstellungen"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.04 8.48a.493.493 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg></button>
-      <button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>
+      <button id="lb-btn" style="pointer-events:auto;background:none;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:rgba(255,255,255,.62);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;cursor:pointer;padding:7px 15px;transition:border-color .25s,color .25s">LEADERBOARD</button>
+    </div>
+  </footer>
+
+  <!-- detail panel -->
+  <div id="detail" style="position:absolute;inset:0;z-index:20;display:flex;opacity:0;pointer-events:none;background:rgba(0,0,0,.82);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)"></div>
+
+  <!-- list view -->
+  <div id="listview" style="position:absolute;inset:0;z-index:15;opacity:0;pointer-events:none;visibility:hidden;background:#000">
+    <div id="lv-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:120px 30px 110px">
+      <div id="lv-rows" style="max-width:1180px;margin:0 auto"></div>
+    </div>
+    <!-- list-view nav bar: back to sphere + filter chips + leaderboard
+         (the global footer is hidden behind this overlay, so we mirror it here) -->
+    <div id="lv-nav" style="position:absolute;bottom:0;left:0;right:0;z-index:16;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:22px 30px;pointer-events:none;background:linear-gradient(0deg,rgba(0,0,0,.92),rgba(0,0,0,0))">
+      <button id="lv-back" style="justify-self:start;pointer-events:auto;background:rgba(14,14,14,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);border-radius:999px;color:rgba(255,255,255,.78);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;cursor:pointer;padding:9px 17px;display:flex;align-items:center;gap:9px;transition:border-color .25s,color .25s">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        SPHÄRE
+      </button>
+      <div id="lv-chips" style="justify-self:center;pointer-events:auto;display:flex;align-items:center;gap:5px;background:rgba(14,14,14,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:5px"></div>
+      <button id="lv-lb" style="justify-self:end;pointer-events:auto;background:rgba(14,14,14,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);border-radius:999px;color:rgba(255,255,255,.78);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;cursor:pointer;padding:9px 17px;transition:border-color .25s,color .25s">LEADERBOARD</button>
     </div>
   </div>
 
-  <!-- Main Content -->
-  <div class="container" style="padding-top:40px;padding-bottom:60px">
-
-    <div style="text-align:center;margin-bottom:48px">
-      <h1 style="font-size:36px;margin-bottom:8px">Wähle ein Spiel</h1>
-      <p style="color:var(--text-dim);font-size:16px">Worauf hast du heute Bock?</p>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px">
-
-      <!-- Game 1: Logo Guesser -->
-      <a href="/games/logo-guesser.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Logo Guesser</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Erkenne Marken an ihrem Logo. Wer tippt es zuerst?</p>
-          </div>
+  <!-- leaderboard overlay -->
+  <div id="lb-overlay" style="position:absolute;inset:0;z-index:25;opacity:0;pointer-events:none;visibility:hidden;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)">
+    <div id="lb-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:90px 30px 80px">
+      <div style="max-width:760px;margin:0 auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:18px;margin-bottom:10px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;color:rgba(255,255,255,.85)">LEADERBOARD</div>
+          <button id="lb-close" style="background:none;border:none;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;cursor:pointer;display:flex;align-items:center;gap:8px">ESC · SCHLIESSEN
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-easy">Easy</span>
-          <span class="badge badge-normal">Normal</span>
-          <span class="badge badge-hard">Hard</span>
+        <div style="display:grid;grid-template-columns:50px 44px 1fr auto;gap:18px;align-items:center;padding:8px 4px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;color:rgba(255,255,255,.32)">
+          <div>RANG</div><div></div><div>SPIELER</div><div style="text-align:right">SIEGE · PUNKTE</div>
         </div>
-      </a>
-
-      <!-- Game 2: Wissens-Quiz -->
-      <a href="/games/knowledge-quiz.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Wissens-Quiz</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Allgemeinwissen vom Feinsten. Multiple Choice oder freies Tippen.</p>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-easy">Easy</span>
-          <span class="badge badge-normal">Normal</span>
-          <span class="badge badge-hard">Hard</span>
-        </div>
-      </a>
-
-      <!-- Game 3: Flaggen-Quiz -->
-      <a href="/games/flag-quiz.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Flaggen-Quiz</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Länder, Bundesstaaten, Regionen — erkennst du sie alle?</p>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-easy">Easy</span>
-          <span class="badge badge-normal">Normal</span>
-          <span class="badge badge-hard">Hard</span>
-          <span class="badge badge-crazy">Bist du verrückt!?</span>
-        </div>
-      </a>
-
-      <!-- Game 4: Filme & Schauspieler -->
-      <a href="/games/movies-actors.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Filme &amp; Schauspieler</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Erkenne Filme, Serien und Stars. Kinofan oder totaler Noob?</p>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-easy">Easy</span>
-          <span class="badge badge-normal">Normal</span>
-          <span class="badge badge-hard">Hard</span>
-        </div>
-      </a>
-
-      <!-- Game 5: Benzinrechner -->
-      <a href="/games/benzinrechner.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Benzinrechner</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">2-Takt Mischungskalkulator für Mofas. Super E5 + 2-Takt Öl.</p>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-tool">Tool</span>
-        </div>
-      </a>
-
-      <!-- Game 6: Song Guesser -->
-      <a href="/games/song-guesser.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Song Guesser</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Rate den Song in 10 Sekunden! Musiknerds vs. Ahnungslose.</p>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-easy">Easy</span>
-          <span class="badge badge-normal">Normal</span>
-          <span class="badge badge-hard">Hard</span>
-        </div>
-      </a>
-
-      <!-- Game 7: Galgenraten -->
-      <a href="/games/galgenraten.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Galgenraten</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Errate das Wort, Buchstabe für Buchstabe. Solo oder Team gegen Team.</p>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-easy">Solo</span>
-          <span class="badge badge-normal">1v1</span>
-          <span class="badge badge-hard">2v2</span>
-        </div>
-      </a>
-
-      <!-- Tool: Finanzamt -->
-      <a href="/games/finanzamt.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Finanzamt</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Fick den Kapitalismus — wer hat wann für wen gezahlt, und wer schuldet wem was.</p>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-tool">Tool</span>
-        </div>
-      </a>
-
-      <!-- Tool: Spiele-Liste -->
-      <a href="/games/spiele-liste.html" class="card card-hover">
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-          <div>
-            <h3 style="font-size:20px;margin-bottom:4px">Spiele-Liste</h3>
-            <p style="color:var(--text-dim);font-size:14px;line-height:1.5">Sammelt Spiele zum Zocken — PC, Web oder Brettspiel. Lasst den Zufall entscheiden.</p>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="badge badge-tool">Tool</span>
-        </div>
-      </a>
-
-    </div>
-
-    <!-- Leaderboard -->
-    <div style="margin-top:60px">
-      <h2 style="font-size:28px;margin-bottom:24px">Leaderboard</h2>
-
-      <!-- Tab buttons -->
-      <div id="lb-tabs" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
-        <button class="btn btn-secondary btn-sm lb-tab lb-tab-active" data-key="overall">Gesamt</button>
-        <button class="btn btn-secondary btn-sm lb-tab" data-key="logo-guesser">Logo Guesser</button>
-        <button class="btn btn-secondary btn-sm lb-tab" data-key="knowledge-quiz">Wissens-Quiz</button>
-        <button class="btn btn-secondary btn-sm lb-tab" data-key="flag-quiz">Flaggen-Quiz</button>
-        <button class="btn btn-secondary btn-sm lb-tab" data-key="movies-actors">Filme &amp; Schauspieler</button>
-        <button class="btn btn-secondary btn-sm lb-tab" data-key="song-guesser">Song Guesser</button>
-        <button class="btn btn-secondary btn-sm lb-tab" data-key="galgenraten">Galgenraten</button>
-      </div>
-
-      <!-- Table card -->
-      <div class="card" id="lb-card">
-        <p style="color:var(--text-dim);font-size:14px">Leaderboard wird geladen…</p>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Settings Modal -->
-  <div id="settings-overlay" class="modal-overlay hidden">
-    <div class="modal">
-      <h2>Einstellungen</h2>
-
-      <!-- Appearance -->
-      <div class="settings-section">
-        <h3>Darstellung</h3>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">Theme</div>
-            <div class="settings-row-hint">Heller oder dunkler Modus</div>
-          </div>
-          <button id="theme-toggle" class="icon-btn" aria-label="Theme wechseln"></button>
-        </div>
-      </div>
-
-      <!-- Profilbild -->
-      <div class="settings-section">
-        <h3>Profilbild</h3>
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div id="avatar-preview-wrap" style="display:none">
-            <img id="avatar-preview" src="" alt="Profilbild Vorschau"
-              style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--border-thick);display:block">
-          </div>
-          <div style="flex:1;min-width:0">
-            <label class="label" for="avatar-file-input" style="margin-bottom:8px">Bild auswählen (max. 10 MB)</label>
-            <input id="avatar-file-input" type="file" accept="image/*"
-              style="display:block;width:100%;font-size:13px;color:var(--text-dim);cursor:pointer">
-            <div id="avatar-upload-error" style="color:var(--red);font-size:13px;min-height:18px;margin-top:6px"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Account -->
-      <div class="settings-section">
-        <h3>Konto</h3>
-        <form id="settings-pw-form">
-          <div class="form-group">
-            <label class="label" for="set-new-pw">Neues Passwort</label>
-            <input id="set-new-pw" type="password" class="input-field" placeholder="Mindestens 6 Zeichen" autocomplete="new-password">
-          </div>
-          <div class="form-group">
-            <label class="label" for="set-confirm-pw">Passwort bestätigen</label>
-            <input id="set-confirm-pw" type="password" class="input-field" placeholder="Nochmal eingeben" autocomplete="new-password">
-          </div>
-          <div id="set-pw-error" style="color:var(--red);font-size:13px;min-height:18px;margin-bottom:8px"></div>
-          <button type="submit" class="btn btn-success btn-sm">Passwort ändern</button>
-        </form>
-      </div>
-
-      <!-- Vorschläge (admin only) -->
-      <div id="vorschlaege-section" style="display:none">
-        <div class="settings-section">
-          <h3>Vorschläge</h3>
-          <div id="vorschlaege-list" style="color:var(--text-dim);font-size:14px">Wird geladen…</div>
-        </div>
-      </div>
-
-      <div style="display:flex;justify-content:flex-end;margin-top:24px">
-        <button id="settings-close" class="btn btn-secondary btn-sm">Schließen</button>
+        <div id="lb-rows"></div>
       </div>
     </div>
   </div>
 
-  <!-- Spiel-vorschlagen Modal -->
-  <div id="suggest-overlay" class="modal-overlay hidden">
-    <div class="modal">
-      <h2>Spiel vorschlagen</h2>
-      <p>Welches Spiel oder Tool sollen wir bauen?</p>
-      <div class="form-group">
-        <textarea id="suggest-text" class="input-field" maxlength="500" rows="4" placeholder="Deine Idee…" style="resize:vertical;font-family:inherit"></textarea>
-      </div>
-      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
-        <button id="suggest-cancel" class="btn btn-secondary btn-sm">Abbrechen</button>
-        <button id="suggest-submit" class="btn btn-primary btn-sm">Senden</button>
+  <!-- settings overlay: accent-palette picker (phantom style, like leaderboard) -->
+  <div id="settings-overlay" style="position:absolute;inset:0;z-index:26;opacity:0;pointer-events:none;visibility:hidden;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)">
+    <div style="position:absolute;inset:0;overflow-y:auto;padding:90px 30px 80px">
+      <div style="max-width:560px;margin:0 auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:18px;margin-bottom:26px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;color:rgba(255,255,255,.85)">EINSTELLUNGEN</div>
+          <button id="settings-close" style="background:none;border:none;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;cursor:pointer;display:flex;align-items:center;gap:8px">ESC · SCHLIESSEN
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px">Akzentfarbe</div>
+        <div id="accent-swatches" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
+
+        <!-- Profilbild -->
+        <div style="border-top:1px solid rgba(255,255,255,.1);margin-top:34px;padding-top:26px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;color:rgba(255,255,255,.85);margin-bottom:18px">PROFILBILD</div>
+          <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+            <div id="avatar-preview-wrap" style="display:none">
+              <img id="avatar-preview" src="" alt="Profilbild Vorschau" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.2);display:block">
+            </div>
+            <div style="flex:1;min-width:180px">
+              <label for="avatar-file-input" style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:10px">Bild auswählen (max. 10 MB)</label>
+              <input id="avatar-file-input" type="file" accept="image/*" style="display:block;width:100%;font-size:13px;color:rgba(255,255,255,.55);cursor:pointer">
+              <div id="avatar-upload-error" style="color:var(--acc,#ff2244);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;min-height:18px;margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Konto -->
+        <div style="border-top:1px solid rgba(255,255,255,.1);margin-top:30px;padding-top:26px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;color:rgba(255,255,255,.85);margin-bottom:18px">KONTO</div>
+          <form id="settings-pw-form">
+            <label for="set-new-pw" style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:8px">Neues Passwort</label>
+            <input id="set-new-pw" type="password" autocomplete="new-password" placeholder="Mindestens 6 Zeichen"
+              style="width:100%;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.18);color:#fff;font-family:'Space Grotesk',sans-serif;font-size:16px;padding:10px 2px;border-radius:0;outline:none;margin-bottom:18px">
+            <label for="set-confirm-pw" style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:8px">Passwort bestätigen</label>
+            <input id="set-confirm-pw" type="password" autocomplete="new-password" placeholder="Nochmal eingeben"
+              style="width:100%;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.18);color:#fff;font-family:'Space Grotesk',sans-serif;font-size:16px;padding:10px 2px;border-radius:0;outline:none;margin-bottom:16px">
+            <div id="set-pw-error" style="color:var(--acc,#ff2244);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;min-height:18px;margin-bottom:14px"></div>
+            <button type="submit" style="background:#fff;color:#000;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;border:1px solid #fff;border-radius:999px;padding:12px 26px;cursor:pointer;transition:transform .2s">Passwort ändern</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/socket-utils.js?v=4"></script>
-  <script>
-    /* ── Eager leaderboard fetch — starts immediately, parallel to auth ── */
-    var _lbData = null;
-    var lbPromise = fetch("/api/leaderboard")
-      .then(function (r) { return r.json(); })
-      .catch(function () { return null; });
+  <!-- custom cursor dot -->
+  <div id="cursor" style="position:fixed;top:0;left:0;z-index:50;pointer-events:none;width:9px;height:9px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference;transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)"></div>
+  <div id="cursor-ring" style="position:fixed;top:0;left:0;z-index:49;pointer-events:none;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.38);transform:translate(-50%,-50%) scale(.4);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s"></div>
+  <div id="cursor-label" style="position:fixed;top:0;left:0;z-index:50;pointer-events:none;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:#fff;transform:translate(-50%,28px);opacity:0;transition:opacity .25s;mix-blend-mode:difference"></div>
+</div>
 
-    /* ── Auth ── */
-    window.lvl3.checkAuth(function (d) {
-      var av = document.getElementById("user-avatar");
-      var nm = document.getElementById("user-name");
-      if (av) {
-        if (d.avatar) {
-          av.style.backgroundImage = "url('" + d.avatar + "')";
-          av.style.backgroundSize = "cover";
-          av.style.backgroundPosition = "center";
-          av.textContent = "";
-        } else {
-          av.style.background = window.lvl3.avatarColor(d.username);
-          av.textContent = window.lvl3.avatarInitial(d.username);
-        }
-      }
-      if (nm) nm.textContent = d.username;
+<!-- Auth gate: redirects to / if not logged in (or password not yet changed). -->
+<script src="/js/socket-utils.js?v=4"></script>
+<script>
+(function () {
+  "use strict";
 
-      /* Consume the already-in-flight leaderboard promise */
-      lbPromise.then(function (data) {
-        if (!data) {
-          document.getElementById("lb-card").innerHTML =
-            '<p style="color:var(--text-dim);font-size:14px">Leaderboard konnte nicht geladen werden.</p>';
-          return;
-        }
-        _lbData = data;
-        renderLeaderboard("overall");
-      });
+  // ── bfcache fix: returning from a game via the browser Back button can
+  //    restore this page from the back/forward cache WITHOUT re-running the
+  //    WebGL init, leaving the sphere gallery a black void (chrome shows,
+  //    centre is empty). Force a full reload on a persisted restore so the
+  //    Three.js scene re-initialises cleanly. ──
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) window.location.reload();
+  });
 
-      /* Vorschläge — admin only */
-      if (d.username.toLowerCase() === "bosse") {
-        var vorschlaege = document.getElementById("vorschlaege-section");
-        if (vorschlaege) vorschlaege.style.display = "block";
-        fetch("/api/requests")
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            var list = document.getElementById("vorschlaege-list");
-            if (!list) return;
-            if (!data.requests || data.requests.length === 0) {
-              list.innerHTML = '<span style="color:var(--text-dim)">Noch keine Vorschläge.</span>';
-              return;
-            }
-            var html = '<div style="max-height:280px;overflow:auto">';
-            for (var i = 0; i < data.requests.length; i++) {
-              var item = data.requests[i];
-              var d2 = item.date ? new Date(item.date) : null;
-              var dateStr = d2 && !isNaN(d2)
-                ? d2.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })
-                : "";
-              html += '<div style="padding:10px 0;border-bottom:1px solid var(--border-thick)">'
-                + '<div style="margin-bottom:4px">' + window.lvl3.escapeHtml(item.text) + '</div>'
-                + '<div style="color:var(--text-dim);font-size:12px">'
-                + window.lvl3.escapeHtml(item.username || "")
-                + (dateStr ? ' &middot; ' + dateStr : '')
-                + '</div>'
-                + '</div>';
-            }
-            html += '</div>';
-            list.innerHTML = html;
-          })
-          .catch(function () {
-            var list = document.getElementById("vorschlaege-list");
-            if (list) list.innerHTML = '<span style="color:var(--text-dim)">Fehler beim Laden der Vorschläge.</span>';
-          });
-      }
+  // ── Config (was DCLogic props) ──
+  const accent = '#ff2244';
+  const autoRotate = true;
+
+  // ── Accent palette (addition 2). The picker writes localStorage 'lvl3-accent'
+  //    (hex) and sets the CSS vars --acc/--accent; theme.js applies the same key
+  //    site-wide on every page. ──
+  const ACCENTS = [
+    {name:'RED',    hex:'#ff2244'},
+    {name:'GREEN',  hex:'#4ade80'},
+    {name:'BLUE',   hex:'#3b82f6'},
+    {name:'YELLOW', hex:'#ffd34e'},
+    {name:'PURPLE', hex:'#b98bff'},
+    {name:'GREY',   hex:'#9ca3af'},
+  ];
+  const ACCENT_DEFAULT = '#ff2244';
+  function getAccent(){
+    try{ return localStorage.getItem('lvl3-accent') || ACCENT_DEFAULT; }
+    catch(e){ return ACCENT_DEFAULT; }
+  }
+  function applyAccent(hex){
+    document.documentElement.style.setProperty('--acc', hex);
+    document.documentElement.style.setProperty('--accent', hex);
+  }
+  function setAccent(hex){
+    try{ localStorage.setItem('lvl3-accent', hex); }catch(e){}
+    applyAccent(hex);
+    renderAccentSwatches();
+  }
+  // apply the saved accent immediately on load
+  applyAccent(getAccent());
+
+  const GAMES = [
+    {id:'logo-guesser',   title:'Logo Guesser',         client:'LVL³',type:'QUIZ',       types:['QUIZ','MULTIPLAYER'],tags:['Easy','Normal','Hard'],          hue:352,route:'/games/logo-guesser.html',  desc:'Erkenne Marken an ihrem Logo. Wer tippt es zuerst?',                  variant:0},
+    {id:'knowledge-quiz', title:'Wissens-Quiz',         client:'LVL³',type:'QUIZ',       types:['QUIZ','MULTIPLAYER'],tags:['Easy','Normal','Hard'],          hue:212,route:'/games/knowledge-quiz.html',desc:'Allgemeinwissen vom Feinsten. Multiple Choice oder freies Tippen.',    variant:1},
+    {id:'flag-quiz',      title:'Flaggen-Quiz',         client:'LVL³',type:'QUIZ',       types:['QUIZ','MULTIPLAYER'],tags:['Easy','Normal','Hard','Krass'],  hue:150,route:'/games/flag-quiz.html',     desc:'Länder, Bundesstaaten, Regionen — erkennst du sie alle?',             variant:2},
+    {id:'movies-actors',  title:'Filme & Schauspieler', client:'LVL³',type:'QUIZ',       types:['QUIZ','MULTIPLAYER'],tags:['Easy','Normal','Hard'],          hue:28, route:'/games/movies-actors.html', desc:'Erkenne Filme, Serien und Stars. Kinofan oder totaler Noob?',         variant:3},
+    {id:'benzinrechner',  title:'Benzinrechner',        client:'LVL³',type:'TOOL',       types:['TOOL'],              tags:['Tool'],                          hue:46, route:'/games/benzinrechner.html', desc:'2-Takt Mischungskalkulator für Mofas. Super E5 + 2-Takt Öl.',        variant:4},
+    {id:'song-guesser',   title:'Song Guesser',         client:'LVL³',type:'QUIZ',       types:['QUIZ','MULTIPLAYER'],tags:['Easy','Normal','Hard'],          hue:280,route:'/games/song-guesser.html',  desc:'Rate den Song in 10 Sekunden! Musiknerds vs. Ahnungslose.',           variant:5},
+    {id:'galgenraten',    title:'Galgenraten',          client:'LVL³',type:'MULTIPLAYER',types:['MULTIPLAYER'],       tags:['Solo','1v1','2v2'],              hue:190,route:'/games/galgenraten.html',   desc:'Errate das Wort, Buchstabe für Buchstabe. Solo oder Team.',           variant:6},
+    {id:'finanzamt',      title:'Finanzamt',            client:'LVL³',type:'TOOL',       types:['TOOL'],              tags:['Tool'],                          hue:96, route:'/games/finanzamt.html',     desc:'Wer hat wann für wen gezahlt — und wer schuldet wem was.',            variant:7},
+    {id:'spiele-liste',   title:'Spiele-Liste',         client:'LVL³',type:'TOOL',       types:['TOOL'],              tags:['Tool'],                          hue:322,route:'/games/spiele-liste.html',  desc:'Sammelt Spiele zum Zocken — PC, Web oder Brettspiel.',               variant:8},
+  ];
+
+  // ── Module-scope state (was this._xxx / this.three) ──
+  let three = null;           // was this.three
+  let activeCat = 'ALLE';     // was this._activeCat
+  let sound = null;           // was this._sound
+  let setCursorStateRef = null; // was this._setCursorState
+  let detailOpen = false;     // was this._detailOpen
+  let detailG = null;         // was this._detailG
+  let posterRaf = 0;          // was this._posterRaf
+  let raf = 0;                // was this._raf
+  let lenis = null;           // was this._lenis
+  let onKey = null;           // was this._onKey
+  let lbOpen = false;         // leaderboard overlay open state
+  let settingsOpen = false;   // accent-palette settings overlay open state
+
+  // ── Logout (preserved from old dashboard) ──
+  function logout() {
+    fetch("/api/logout").then(function () {
+      localStorage.clear();
+      window.location.href = "/";
+    }).catch(function () {
+      localStorage.clear();
+      window.location.href = "/";
     });
+  }
+  const logoutBtn = document.getElementById('logout-btn');
+  logoutBtn.addEventListener('click', logout);
+  logoutBtn.addEventListener('mouseenter', function () {
+    logoutBtn.style.borderColor = 'rgba(255,255,255,.45)';
+    logoutBtn.style.color = '#fff';
+  });
+  logoutBtn.addEventListener('mouseleave', function () {
+    logoutBtn.style.borderColor = 'rgba(255,255,255,.16)';
+    logoutBtn.style.color = 'rgba(255,255,255,.62)';
+  });
 
-    function logout() {
-      fetch("/api/logout").then(function () {
-        localStorage.clear();
-        window.location.href = "/";
-      });
+  // ── Leaderboard button ──
+  const lbBtn = document.getElementById('lb-btn');
+  lbBtn.addEventListener('click', openLeaderboard);
+  lbBtn.addEventListener('mouseenter', function () {
+    lbBtn.style.borderColor = 'rgba(255,255,255,.45)';
+    lbBtn.style.color = '#fff';
+  });
+  lbBtn.addEventListener('mouseleave', function () {
+    lbBtn.style.borderColor = 'rgba(255,255,255,.16)';
+    lbBtn.style.color = 'rgba(255,255,255,.62)';
+  });
+
+  // ── Rounded rect helper (was this.rr) ──
+  function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+
+  // ── Card label texture (was this.makeLabel) ──
+  function makeLabel(g){
+    const W=1024,H=1024;
+    const c=document.createElement('canvas'); c.width=W; c.height=H;
+    const x=c.getContext('2d'); x.clearRect(0,0,W,H);
+    const pad=52, maxTW=W-pad*2;
+    // bottom scrim — keeps overlaid text legible over the cloud
+    let gb=x.createLinearGradient(0,H*0.40,0,H);
+    gb.addColorStop(0,'rgba(0,0,0,0)'); gb.addColorStop(1,'rgba(0,0,0,0.74)');
+    x.fillStyle=gb; x.fillRect(0,0,W,H);
+    let gt=x.createLinearGradient(0,0,0,H*0.24);
+    gt.addColorStop(0,'rgba(0,0,0,0.46)'); gt.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=gt; x.fillRect(0,0,W,H);
+    // hairline frame
+    x.strokeStyle='rgba(255,255,255,0.18)'; x.lineWidth=1.5; x.strokeRect(.75,.75,W-1.5,H-1.5);
+    // top meta
+    x.textBaseline='alphabetic'; x.font='500 23px "JetBrains Mono",monospace';
+    x.fillStyle='rgba(255,255,255,0.9)'; x.textAlign='left'; x.fillText('LVL³',pad,56);
+    x.fillStyle='rgba(255,255,255,0.62)'; x.textAlign='right'; x.fillText(g.type,W-pad,56);
+    // tag pills along the bottom
+    x.textAlign='left'; x.font='500 19px "JetBrains Mono",monospace';
+    const bpH=38, bpY=H-pad-bpH; let bx=pad;
+    for(const tag of g.tags){
+      const tw=x.measureText(tag.toUpperCase()).width, pw=tw+30;
+      x.fillStyle='rgba(255,255,255,0.1)'; rr(x,bx,bpY,pw,bpH,19); x.fill();
+      x.strokeStyle='rgba(255,255,255,0.22)'; x.lineWidth=1; rr(x,bx,bpY,pw,bpH,19); x.stroke();
+      x.fillStyle='rgba(255,255,255,0.82)'; x.fillText(tag.toUpperCase(),bx+15,bpY+25);
+      bx+=pw+8;
     }
+    // index marker at bottom-right
+    x.textAlign='right'; x.fillStyle='rgba(255,255,255,0.45)';
+    x.font='500 19px "JetBrains Mono",monospace';
+    x.fillText('▶ '+String(GAMES.findIndex(gg=>gg.id===g.id)+1).padStart(2,'0'),W-pad,bpY+25);
+    // title — bottom-left, wraps to ≤2 lines, sits above the pills
+    const titleStr=(g.id==='movies-actors'?'Filme & Schauspieler':g.title).toUpperCase();
+    let fs=84;
+    const wrap=()=>{x.font=`700 ${fs}px "Space Grotesk",sans-serif`;const ws=titleStr.split(' ');const ln=[];let cur='';for(const w of ws){const tt=cur?cur+' '+w:w;if(x.measureText(tt).width>maxTW&&cur){ln.push(cur);cur=w;}else cur=tt;}if(cur)ln.push(cur);return ln;};
+    let lines=wrap();
+    while(fs>34&&(lines.length>2||lines.some(l=>x.measureText(l).width>maxTW))){fs-=4;lines=wrap();}
+    const vl=lines.slice(0,2); const lh=fs*1.04;
+    x.font=`700 ${fs}px "Space Grotesk",sans-serif`; x.textAlign='left'; x.fillStyle='#fff';
+    let ty=bpY-30-(vl.length-1)*lh;
+    for(const ln of vl){x.fillText(ln,pad,ty);ty+=lh;}
+    const tex=new THREE.CanvasTexture(c);
+    tex.anisotropy=8; tex.minFilter=THREE.LinearFilter; tex.needsUpdate=true;
+    return tex;
+  }
 
-    /* ── Leaderboard ── */
-    function renderLeaderboard(key) {
-      var card = document.getElementById("lb-card");
-      if (!_lbData) return;
+  // ── Main Three.js scene init (was this.init) ──
+  function init(){
+    const THREE=window.THREE,gsap=window.gsap;
+    const mount=document.getElementById('gl-mount');
+    const renderer=new THREE.WebGLRenderer({antialias:true});
+    renderer.setClearColor(0x000000,1);
+    const BASE_DPR=Math.min(window.devicePixelRatio,2);
+    renderer.setPixelRatio(BASE_DPR);
+    // Halve render DPI while dragging the gallery, restore on release (perf during motion).
+    const setDragDPR=(isDrag)=>{const r=isDrag?BASE_DPR/2:BASE_DPR;if(Math.abs(renderer.getPixelRatio()-r)>1e-3){renderer.setPixelRatio(r);renderer.setSize(mount.clientWidth,mount.clientHeight);}};
+    renderer.setSize(mount.clientWidth,mount.clientHeight);
+    mount.appendChild(renderer.domElement);
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(60,mount.clientWidth/mount.clientHeight,0.1,100);
+    camera.position.set(0,0,0); camera.rotation.order='YXZ';
 
-      var rows;
-      if (key === "overall") {
-        rows = _lbData.overall || [];
-      } else {
-        rows = (_lbData.perGame && _lbData.perGame[key]) ? _lbData.perGame[key] : [];
-      }
+    const RADIUS=10,COLS=12,ROWS=6;
+    const lonSpan=Math.PI*2/COLS,latStep=0.52;
+    const geo=new THREE.PlaneGeometry(1,1,16,16);
+    const labels=GAMES.map(g=>makeLabel(g));
 
-      if (!rows.length) {
-        card.innerHTML = '<p style="color:var(--text-dim);font-size:14px">Noch keine Spiele gespielt.</p>';
-        return;
-      }
+    const vert=`varying vec2 vUv;uniform float uLon,uLat,uLonSpan,uLatSpan,uRadius;void main(){vUv=uv;float lon=uLon+(uv.x-.5)*uLonSpan;float lat=uLat+(uv.y-.5)*uLatSpan;float cl=cos(lat);vec3 p=uRadius*vec3(cl*sin(lon),sin(lat),-cl*cos(lon));gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`;
 
-      var html = '<div style="overflow-x:auto">'
-        + '<table style="width:100%;border-collapse:collapse;font-size:14px">'
-        + '<thead><tr style="border-bottom:2px solid var(--border-thick);text-align:left">'
-        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;white-space:nowrap">Platz</th>'
-        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600">Spieler</th>'
-        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;text-align:right;white-space:nowrap">Siege</th>'
-        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;text-align:right;white-space:nowrap">Punkte</th>'
-        + '<th style="padding:8px 12px;color:var(--text-dim);font-weight:600;text-align:right;white-space:nowrap">Spiele</th>'
-        + '</tr></thead><tbody>';
+    const frag=`precision highp float;
+varying vec2 vUv;
+uniform float uTime,uHue,uDim,uHover,uSeed,uVariant;
+uniform sampler2D uLabel;
+uniform vec4 uPoster;
+vec3 hsl2rgb(vec3 c){vec3 rgb=clamp(abs(mod(c.x*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);return c.z+c.y*(rgb-.5)*(1.-abs(2.*c.z-1.));}
+float h21(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.31);return fract(p.x*p.y);}
+float h11(float p){return fract(sin(p*127.1)*43758.5453);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1.,0.)),u.x),mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),u.x),u.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.;a*=.5;}return v;}
+void main(){
+  float h=uHue/360.;
+  vec3 dark=hsl2rgb(vec3(h,.72,.09)),mid=hsl2rgb(vec3(fract(h+.04),.82,.40)),hi=hsl2rgb(vec3(fract(h-.05),.90,.66));
+  vec3 col=vec3(.016);
+  vec2 pm=(vUv-uPoster.xy)/uPoster.zw;
+  if(abs(pm.x)<1.&&abs(pm.y)<1.){
+    // soft nebula cloud — same look on every card, but rotated + offset by uSeed
+    // so the cloud STRUCTURE differs per card (not just the colour)
+    float t=uTime*.035, s=uSeed;
+    float a=s*6.2831;
+    mat2 rot=mat2(cos(a),-sin(a),sin(a),cos(a));
+    vec2 q=rot*pm*1.25 + vec2(s*5.7, s*3.3);
+    vec2 warp=vec2(fbm(q+vec2(t,1.7)), fbm(q+vec2(-2.3,t)));
+    float n=fbm(q + warp*1.8 + vec2(-t*.4, t*.25));
+    float n2=fbm(q*1.7 - warp*1.1 + vec2(t*.2, -t*.15+s));
+    vec3 pcol=mix(dark,mid,smoothstep(.26,.80,n));
+    pcol=mix(pcol,hi,smoothstep(.60,1.0,n2)*.85);
+    pcol+=hi*.05*smoothstep(.55,1.,n);
+    // fine cloud grain — baked in, so it drifts WITH the card.
+    // Two octaves: a fine per-texel grain plus a coarser drifting speckle,
+    // amplitude raised so the colored clouds read as visibly grainy.
+    float gPhase=floor(uTime*20.)*.07;
+    float grain=h21(vUv*640.+vec2(s*13.,gPhase))*.16-.08;
+    grain+=(h21(vUv*220.+vec2(gPhase*1.3,s*7.))-.5)*.08;
+    // bias grain toward the lit cloud so dark gaps stay clean
+    pcol+=grain*smoothstep(.04,.22,length(pcol));
+    pcol*=mix(.5,1.04,smoothstep(1.45,.12,length(pm)));
+    col=pcol;
+  }
+  vec4 lab=texture2D(uLabel,vUv);
+  col=mix(col,lab.rgb,lab.a);
+  col+=uHover*.05;
+  col*=uDim;
+  gl_FragColor=vec4(col,1.);
+}`;
 
-      for (var i = 0; i < rows.length; i++) {
-        var r = rows[i];
-        var rank = i + 1;
-        var isFirst = rank === 1;
-        var rowStyle = isFirst
-          ? 'border-bottom:1px solid var(--border-thick);background:rgba(255,215,0,0.07)'
-          : 'border-bottom:1px solid var(--border-thick)';
-        var rankStyle = isFirst
-          ? 'padding:10px 12px;font-weight:700;color:var(--gold)'
-          : 'padding:10px 12px;color:var(--text-dim)';
+    // Infinite recycling grid: the camera never moves — a continuous
+    // scroll offset slides an endless grid of cells through the fixed
+    // spherical lens. A finite pool of COLS×ROWS meshes is recycled:
+    // a cell that scrolls off one edge is repositioned (while hidden
+    // behind the viewer) to the opposite edge and reassigned a game,
+    // so you can drag forever in any direction.
+    const frac=(x)=>x-Math.floor(x);
+    const cellGame=(c,r)=>Math.floor(frac(Math.sin(c*127.1+r*311.7)*43758.5453)*GAMES.length);
+    const cellSeed=(c,r)=>frac(Math.sin(c*269.5+r*183.3)*43758.5453)*100;
 
-        var dotStyle = 'display:inline-flex;align-items:center;justify-content:center;'
-          + 'width:26px;height:26px;border-radius:50%;font-size:11px;font-weight:700;'
-          + 'color:#fff;background:' + window.lvl3.avatarColor(r.username) + ';'
-          + 'flex-shrink:0;margin-right:8px';
-
-        html += '<tr style="' + rowStyle + '">'
-          + '<td style="' + rankStyle + '">' + (isFirst
-              ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>'
-              : rank) + '</td>'
-          + '<td style="padding:10px 12px">'
-          +   '<div style="display:flex;align-items:center">'
-          +     '<span style="' + dotStyle + '">' + window.lvl3.avatarInitial(r.username) + '</span>'
-          +     '<span style="font-weight:600">' + window.lvl3.escapeHtml(r.username) + '</span>'
-          +   '</div>'
-          + '</td>'
-          + '<td style="padding:10px 12px;text-align:right;font-weight:600">' + (r.wins || 0) + '</td>'
-          + '<td style="padding:10px 12px;text-align:right;font-weight:600">' + (r.points || 0) + '</td>'
-          + '<td style="padding:10px 12px;text-align:right;color:var(--text-dim)">' + (r.gamesPlayed || 0) + '</td>'
-          + '</tr>';
-      }
-
-      html += '</tbody></table></div>';
-      card.innerHTML = html;
-    }
-
-    /* Tab clicks */
-    var tabs = document.querySelectorAll(".lb-tab");
-    for (var t = 0; t < tabs.length; t++) {
-      tabs[t].addEventListener("click", function () {
-        for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove("lb-tab-active");
-        this.classList.add("lb-tab-active");
-        renderLeaderboard(this.getAttribute("data-key"));
-      });
-    }
-
-    /* ── Spiel vorschlagen ── */
-    document.getElementById("btn-suggest").addEventListener("click", function () {
-      document.getElementById("suggest-overlay").classList.remove("hidden");
-    });
-
-    document.getElementById("suggest-cancel").addEventListener("click", function () {
-      document.getElementById("suggest-overlay").classList.add("hidden");
-    });
-
-    document.getElementById("suggest-overlay").addEventListener("click", function (e) {
-      if (e.target === this) this.classList.add("hidden");
-    });
-
-    document.getElementById("suggest-submit").addEventListener("click", function () {
-      var text = document.getElementById("suggest-text").value.trim();
-      if (!text) return;
-      var btn = this;
-      btn.disabled = true;
-      btn.textContent = "Senden…";
-      fetch("/api/request-game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: text })
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          btn.disabled = false;
-          btn.textContent = "Senden";
-          if (data.success) {
-            document.getElementById("suggest-overlay").classList.add("hidden");
-            document.getElementById("suggest-text").value = "";
-            window.lvl3.showToast("Danke! Vorschlag gespeichert.", "success");
-          } else {
-            window.lvl3.showToast(data.error || "Fehler beim Senden.", "error");
+    const tiles=[];
+    for(let i=0;i<ROWS;i++){
+      for(let j=0;j<COLS;j++){
+        const mat=new THREE.ShaderMaterial({
+          vertexShader:vert,fragmentShader:frag,
+          uniforms:{
+            uTime:{value:0},uHue:{value:GAMES[0].hue},uDim:{value:1},uHover:{value:0},
+            uSeed:{value:0},uVariant:{value:0},uLabel:{value:labels[0]},
+            uLon:{value:0},uLat:{value:0},
+            uLonSpan:{value:lonSpan*.965},uLatSpan:{value:latStep*.97},
+            uRadius:{value:RADIUS},
+            uPoster:{value:new THREE.Vector4(0.5,0.5,0.5,0.5)}
           }
-        })
-        .catch(function () {
-          btn.disabled = false;
-          btn.textContent = "Senden";
-          window.lvl3.showToast("Fehler beim Senden.", "error");
         });
-    });
+        const mesh=new THREE.Mesh(geo,mat); mesh.frustumCulled=false; scene.add(mesh);
+        tiles.push({mesh,mat,i,j,gridCol:null,gridRow:null,gi:0,g:GAMES[0],curLon:0,curLat:0});
+      }
+    }
 
-    /* ── Settings menu ── */
-    var settingsOverlay = document.getElementById("settings-overlay");
+    const assignTile=(t,gc,gr)=>{
+      const gi=cellGame(gc,gr),g=GAMES[gi],u=t.mat.uniforms;
+      t.gridCol=gc;t.gridRow=gr;t.gi=gi;t.g=g;
+      u.uHue.value=g.hue;u.uVariant.value=g.variant;u.uLabel.value=labels[gi];u.uSeed.value=cellSeed(gc,gr);
+      const cat=activeCat||'ALLE';
+      u.uDim.value=(cat==='ALLE'||g.types.includes(cat))?1:0.1;
+    };
+    const updateTiles=(sLon,sLat)=>{
+      const cc=sLon/lonSpan, cr=sLat/latStep;
+      for(const t of tiles){
+        const gc=t.j+Math.round((cc-t.j)/COLS)*COLS;
+        const gr=t.i+Math.round((cr-t.i)/ROWS)*ROWS;
+        if(gc!==t.gridCol||gr!==t.gridRow)assignTile(t,gc,gr);
+        const relLon=gc*lonSpan-sLon, relLat=gr*latStep-sLat;
+        t.curLon=relLon;t.curLat=relLat;
+        t.mat.uniforms.uLon.value=relLon;t.mat.uniforms.uLat.value=relLat;
+      }
+    };
 
-    function closeSettings() { settingsOverlay.classList.add("hidden"); }
+    let sLon=0,sLat=0,tLon=0,tLat=0,vLon=0,vLat=0;
+    let dragging=false,moved=0,lastX=0,lastY=0,idle=0,sceneDetailOpen=false,listOpen=false;
+    const SENS=0.0012;
+    updateTiles(0,0);
 
-    document.getElementById("btn-settings").addEventListener("click", function () {
-      settingsOverlay.classList.remove("hidden");
-    });
-    document.getElementById("settings-close").addEventListener("click", closeSettings);
-    settingsOverlay.addEventListener("click", function (e) {
-      if (e.target === this) closeSettings();
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !settingsOverlay.classList.contains("hidden")) closeSettings();
-    });
+    const setZoom=(isDrag)=>{setDragDPR(isDrag);gsap.killTweensOf(camera);gsap.to(camera,{fov:isDrag?70:60,duration:isDrag?.35:1.0,ease:isDrag?'power2.out':'power3.inOut',onUpdate:()=>camera.updateProjectionMatrix()});};
 
-    /* Change password (endpoint only needs the new password) */
-    document.getElementById("settings-pw-form").addEventListener("submit", function (e) {
+    const dom=renderer.domElement;
+    const onDown=(e)=>{if(sceneDetailOpen||listOpen)return;dragging=true;moved=0;idle=0;const p=e.touches?e.touches[0]:e;lastX=p.clientX;lastY=p.clientY;vLon=0;vLat=0;setZoom(true);setCursorState('grab');};
+    const onMove=(e)=>{const p=e.touches?e.touches[0]:e;cursorXY(p.clientX,p.clientY);if(!dragging){if(!sceneDetailOpen&&!listOpen)hoverTest(p.clientX,p.clientY);return;}const dx=p.clientX-lastX,dy=p.clientY-lastY;moved+=Math.abs(dx)+Math.abs(dy);tLon-=dx*SENS;tLat+=dy*SENS;vLon=-dx*SENS*.85;vLat=dy*SENS*.85;lastX=p.clientX;lastY=p.clientY;idle=0;};
+    const onUp=(e)=>{if(!dragging)return;dragging=false;setZoom(false);setCursorState('idle');const p=(e.changedTouches&&e.changedTouches[0])||e;if(moved<8){const hit=pickTile(p.clientX,p.clientY);if(hit)openDetail(hit.g,hit);}};
+    dom.addEventListener('mousedown',onDown);window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);
+    dom.addEventListener('touchstart',onDown,{passive:true});window.addEventListener('touchmove',onMove,{passive:true});window.addEventListener('touchend',onUp);
+
+    const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
+    const angDiff=(a,b)=>{let d=a-b;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;return d;};
+    const pickTile=(cx,cy)=>{const r=dom.getBoundingClientRect();ndc.x=((cx-r.left)/r.width)*2-1;ndc.y=-((cy-r.top)/r.height)*2+1;ray.setFromCamera(ndc,camera);const d=ray.ray.direction.clone().normalize();if(-d.z<=0)return null;const lat=Math.asin(Math.max(-1,Math.min(1,d.y)));const lon=Math.atan2(d.x,-d.z);let best=null,bestScore=1e9;for(const t of tiles){const dlat=Math.abs(lat-t.curLat),dlon=Math.abs(angDiff(lon,t.curLon))*Math.cos(t.curLat);if(dlat<latStep*.5&&dlon<lonSpan*.5){const s=dlat+dlon;if(s<bestScore){bestScore=s;best=t;}}}return best;};
+
+    let hovered=null;
+    const hoverTest=(cx,cy)=>{const t=pickTile(cx,cy);if(t!==hovered){if(hovered)gsap.to(hovered.mat.uniforms.uHover,{value:0,duration:.4});hovered=t;if(t)gsap.to(t.mat.uniforms.uHover,{value:1,duration:.4});}setCursorState(t?'view':'idle');};
+
+    const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring'),clab=document.getElementById('cursor-label');
+    const cursorXY=(cx,cy)=>{cur.style.left=cx+'px';cur.style.top=cy+'px';clab.style.left=cx+'px';clab.style.top=cy+'px';};
+    const setCursorState=(state)=>{if(state==='view'){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(1)';cur.style.width='6px';cur.style.height='6px';clab.style.opacity='1';clab.textContent='ÖFFNEN';}else if(state==='grab'){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(.72)';cur.style.width='5px';cur.style.height='5px';clab.style.opacity='1';clab.textContent='ZIEHEN';}else{ring.style.opacity='0';ring.style.transform='translate(-50%,-50%) scale(.4)';cur.style.width='9px';cur.style.height='9px';clab.style.opacity='0';}};
+    setCursorStateRef=setCursorState;
+
+    const clock=new THREE.Clock();
+    const renderLoop=()=>{
+      raf=requestAnimationFrame(renderLoop);
+      const dt=clock.getDelta(),tt=clock.elapsedTime;
+      if(!dragging&&!sceneDetailOpen){
+        tLon+=vLon;tLat+=vLat;
+        vLon*=.94;vLat*=.92;
+        if(Math.abs(vLon)<1e-5)vLon=0;if(Math.abs(vLat)<1e-5)vLat=0;
+        idle+=dt;
+        if(autoRotate&&idle>3&&!vLon&&!listOpen)tLon-=6e-4;
+      }
+      const pLon=sLon;
+      sLon+=(tLon-sLon)*.085;sLat+=(tLat-sLat)*.085;
+      updateTiles(sLon,sLat);
+      for(const t of tiles)t.mat.uniforms.uTime.value=tt+t.curLon;
+      if(sound)sound.setIntensity(Math.min(1,Math.abs(sLon-pLon)*120));
+      renderer.render(scene,camera);
+    };
+    renderLoop();
+
+    window.addEventListener('resize',()=>{const w=mount.clientWidth,h=mount.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);});
+
+    three={THREE,gsap,camera,tiles,RADIUS,setYawPitch:(y,p)=>{tLon=y;tLat=p;vLon=0;vLat=0;},focusTile:(t)=>{tLon=t.gridCol*lonSpan;tLat=t.gridRow*latStep;vLon=0;vLat=0;},setDetail:(v)=>{sceneDetailOpen=v;},setList:(v)=>{listOpen=v;if(hovered){gsap.to(hovered.mat.uniforms.uHover,{value:0,duration:.3});hovered=null;}}};
+
+    buildChips();buildList();wireChrome();
+
+    gsap.to('#loader',{opacity:0,duration:.6,delay:.15,onComplete:()=>{const l=document.getElementById('loader');if(l)l.style.display='none';}});
+    gsap.from('header > div, footer > *',{y:-12,opacity:0,duration:.8,stagger:.06,delay:.3,ease:'power3.out'});
+    setTimeout(()=>{const l=document.getElementById('loader');if(l){l.style.transition='opacity .5s';l.style.opacity='0';setTimeout(()=>{if(l)l.style.display='none';},520);}},1100);
+  }
+
+  // ── Filter chips (was this.buildChips) ──
+  // Builds the sphere-view chip row (#chips) and the mirrored list-view
+  // chip row (#lv-chips); both drive the same setFilter().
+  function buildChips(){
+    const cats=['ALLE','MULTIPLAYER','QUIZ','TOOL'];
+    activeCat='ALLE';
+    ['chips','lv-chips'].forEach(id=>{
+      const box=document.getElementById(id); if(!box)return; box.innerHTML='';
+      cats.forEach(cat=>{
+        const b=document.createElement('button');
+        b.textContent=cat;b.dataset.cat=cat;
+        b.style.cssText='border:none;background:transparent;color:rgba(255,255,255,.6);font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.16em;padding:8px 15px;border-radius:999px;cursor:pointer;transition:background .25s,color .25s;white-space:nowrap';
+        if(cat==='ALLE'){b.style.background='#fff';b.style.color='#000';}
+        b.addEventListener('click',()=>setFilter(cat));
+        box.appendChild(b);
+      });
+    });
+  }
+
+  // ── Apply category filter (was this.setFilter) ──
+  function setFilter(cat){
+    activeCat=cat;
+    const gsap=window.gsap;
+    document.querySelectorAll('#chips button, #lv-chips button').forEach(b=>{const on=b.dataset.cat===cat;b.style.background=on?'#fff':'transparent';b.style.color=on?'#000':'rgba(255,255,255,.6)';});
+    for(const t of(three?three.tiles:[])){const match=cat==='ALLE'||t.g.types.includes(cat);gsap.to(t.mat.uniforms.uDim,{value:match?1:0.1,duration:.55,ease:'power2.out'});}
+    const shown=GAMES.filter(g=>cat==='ALLE'||g.types.includes(cat)).length;
+    document.getElementById('counter').textContent=String(shown).padStart(2,'0')+' / 09';
+    document.querySelectorAll('#lv-rows [data-row]').forEach(r=>{r.style.display=cat==='ALLE'||(r.dataset.types||'').split(',').includes(cat)?'':'none';});
+  }
+
+  // ── Detail panel open (was this.openDetail) ──
+  function openDetail(g,tile){
+    if(detailOpen&&detailG===g)return;
+    detailOpen=true;detailG=g;
+    const gsap=window.gsap;
+    if(three){three.setDetail(true);if(tile)three.focusTile(tile);}
+    const titleDisplay=g.id==='movies-actors'?'Filme & Schauspieler':g.title;
+    const hsl=(l,s)=>`hsl(${g.hue} ${s}% ${l}%)`;
+    const tags=g.tags.map(t=>`<span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 15px">${t.toUpperCase()}</span>`).join('');
+    const el=document.getElementById('detail');
+    el.innerHTML=`<div style="position:absolute;inset:0" data-close></div><div style="position:relative;margin:auto;width:min(1100px,90vw);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;padding:48px"><div><canvas id="detail-poster" width="900" height="900" style="width:100%;aspect-ratio:1;display:block;border:1px solid rgba(255,255,255,.1)"></canvas><div style="display:flex;justify-content:space-between;margin-top:14px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.8)">${g.client}</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45)">${g.type}</span></div></div><div data-content><div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;color:${hsl(62,90)};margin-bottom:20px">${g.types.join(' · ')}</div><h1 style="font-size:clamp(34px,4.8vw,68px);font-weight:700;line-height:.96;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:22px">${titleDisplay}</h1><p style="font-size:16px;line-height:1.65;color:rgba(255,255,255,.58);max-width:420px;margin-bottom:28px">${g.desc}</p><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:38px">${tags}</div><div style="display:flex;align-items:center;gap:20px"><a href="${g.route}" data-play style="display:inline-flex;align-items:center;gap:11px;background:#fff;color:#000;font-weight:600;font-size:14px;letter-spacing:.05em;text-transform:uppercase;padding:16px 32px;border-radius:999px;text-decoration:none;transition:transform .3s,background .3s">SPIELEN <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a><button data-close style="background:none;border:none;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;cursor:pointer">ESC · SCHLIESSEN</button></div></div><button data-close style="position:absolute;top:-6px;right:-6px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+    el.style.pointerEvents='auto';
+    el.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closeDetail()));
+    const play=el.querySelector('[data-play]');
+    play.addEventListener('mouseenter',()=>{play.style.transform='scale(1.04)';play.style.background=hsl(64,92);});
+    play.addEventListener('mouseleave',()=>{play.style.transform='scale(1)';play.style.background='#fff';});
+    startDetailPoster(g.hue);
+    gsap.set(el,{opacity:0});gsap.to(el,{opacity:1,duration:.5,ease:'power2.out'});
+    gsap.from(el.querySelector('[data-content]').children,{y:28,opacity:0,duration:.7,stagger:.07,delay:.1,ease:'power3.out'});
+    gsap.from('#detail-poster',{scale:.9,opacity:0,duration:.75,ease:'power3.out'});
+    if(setCursorStateRef)setCursorStateRef('idle');
+  }
+
+  // ── Detail panel close (was this.closeDetail) ──
+  function closeDetail(){
+    const gsap=window.gsap,el=document.getElementById('detail');
+    detailOpen=false;detailG=null;
+    if(three)three.setDetail(false);
+    if(posterRaf)cancelAnimationFrame(posterRaf);
+    gsap.to(el,{opacity:0,duration:.4,ease:'power2.in',onComplete:()=>{el.style.pointerEvents='none';el.innerHTML='';}});
+  }
+
+  // ── Animated detail poster (was this.startDetailPoster) ──
+  function startDetailPoster(hue){
+    const cv=document.getElementById('detail-poster');if(!cv)return;
+    const x=cv.getContext('2d'),W=cv.width,H=cv.height;let t=0;
+    const draw=()=>{
+      posterRaf=requestAnimationFrame(draw);t+=.006;
+      const g1=x.createLinearGradient(0,0,W,H);
+      g1.addColorStop(0,`hsl(${hue} 70% 11%)`);
+      g1.addColorStop(.5,`hsl(${(hue+18)%360} 80% ${36+Math.sin(t)*6}%)`);
+      g1.addColorStop(1,`hsl(${(hue-12+360)%360} 85% 14%)`);
+      x.fillStyle=g1;x.fillRect(0,0,W,H);
+      for(let i=0;i<3;i++){
+        const cx=W*(.5+.32*Math.sin(t*.7+i*2.1)),cy=H*(.5+.32*Math.cos(t*.9+i*1.7));
+        const r=W*(.34+.08*Math.sin(t+i));
+        const rg=x.createRadialGradient(cx,cy,0,cx,cy,r);
+        rg.addColorStop(0,`hsla(${(hue+i*22)%360} 95% 65% / .4)`);rg.addColorStop(1,'hsla(0 0% 0% / 0)');
+        x.fillStyle=rg;x.fillRect(0,0,W,H);
+      }
+      x.globalAlpha=.04;
+      for(let i=0;i<260;i++){x.fillStyle=Math.random()>.5?'#fff':'#000';x.fillRect(Math.random()*W,Math.random()*H,2,2);}
+      x.globalAlpha=1;
+    };draw();
+  }
+
+  // ── List view rows (was this.buildList) ──
+  function buildList(){
+    const rows=document.getElementById('lv-rows');rows.innerHTML='';
+    const head=document.createElement('div');
+    head.style.cssText='display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:16px;margin-bottom:8px';
+    head.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.24em;color:rgba(255,255,255,.45)">INDEX — 09 SPIELE</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45)">LVL³</div>';
+    rows.appendChild(head);
+    GAMES.forEach((g,i)=>{
+      const r=document.createElement('div');
+      r.dataset.row='1';r.dataset.types=g.types.join(',');
+      r.style.cssText='display:grid;grid-template-columns:60px 1fr auto auto;align-items:center;gap:24px;padding:24px 8px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer;transition:padding-left .4s';
+      r.innerHTML=`<div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.35)">${String(i+1).padStart(2,'0')}</div><div style="display:flex;align-items:center;gap:18px"><span data-swatch style="width:32px;height:32px;border-radius:3px;flex:none;background:linear-gradient(135deg,hsl(${g.hue} 80% 45%),hsl(${(g.hue+30)%360} 70% 22%));transition:transform .4s"></span><span data-title style="font-size:clamp(24px,3.2vw,44px);font-weight:700;letter-spacing:-.02em;text-transform:uppercase;line-height:1;transition:color .3s">${g.id==='movies-actors'?'Filme & Schauspieler':g.title}</span></div><div style="display:flex;gap:7px">${g.tags.map(t=>`<span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:5px 11px">${t.toUpperCase()}</span>`).join('')}</div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.4);min-width:105px;text-align:right">${g.type}</div>`;
+      r.addEventListener('mouseenter',()=>{r.style.paddingLeft='20px';r.querySelector('[data-title]').style.color=`hsl(${g.hue} 85% 62%)`;r.querySelector('[data-swatch]').style.transform='scale(1.14) rotate(7deg)';});
+      r.addEventListener('mouseleave',()=>{r.style.paddingLeft='8px';r.querySelector('[data-title]').style.color='#fff';r.querySelector('[data-swatch]').style.transform='none';});
+      r.addEventListener('click',()=>openDetail(g,null));
+      rows.appendChild(r);
+    });
+  }
+
+  // ── Chrome wiring: view toggle, sound, brand, keyboard (was this.wireChrome) ──
+  function wireChrome(){
+    const gsap=window.gsap;
+    const setView=(view)=>{
+      const lv=document.getElementById('listview');
+      document.querySelectorAll('.vt-btn').forEach(b=>{const on=b.dataset.view===view;b.style.background=on?'#fff':'transparent';b.style.color=on?'#000':'rgba(255,255,255,.55)';});
+      if(view==='list'){
+        if(three)three.setList(true);
+        lv.style.visibility='visible';
+        lv.style.pointerEvents='auto';
+        gsap.to(lv,{opacity:1,duration:.5,ease:'power2.out'});
+        gsap.from('#lv-rows [data-row]',{y:20,opacity:0,duration:.6,stagger:.05,ease:'power3.out'});
+        document.getElementById('drag-hint').style.opacity='0';
+        if(window.Lenis&&!lenis){const sc=document.getElementById('lv-scroll');lenis=new window.Lenis({wrapper:sc,content:sc.firstElementChild,lerp:.09});const rafLoop=(t)=>{if(lenis){lenis.raf(t);requestAnimationFrame(rafLoop);}};requestAnimationFrame(rafLoop);}
+      }else{
+        if(three)three.setList(false);
+        gsap.to(lv,{opacity:0,duration:.4,ease:'power2.in',onComplete:()=>{lv.style.pointerEvents='none';lv.style.visibility='hidden';}});
+        document.getElementById('drag-hint').style.opacity='1';
+      }
+    };
+    document.querySelectorAll('.vt-btn').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+    // list-view nav: back to sphere + open leaderboard (footer is hidden under the list)
+    const lvBack=document.getElementById('lv-back'),lvLb=document.getElementById('lv-lb');
+    if(lvBack){
+      lvBack.addEventListener('click',()=>setView('sphere'));
+      lvBack.addEventListener('mouseenter',()=>{lvBack.style.borderColor='rgba(255,255,255,.45)';lvBack.style.color='#fff';});
+      lvBack.addEventListener('mouseleave',()=>{lvBack.style.borderColor='rgba(255,255,255,.16)';lvBack.style.color='rgba(255,255,255,.78)';});
+    }
+    if(lvLb){
+      lvLb.addEventListener('click',openLeaderboard);
+      lvLb.addEventListener('mouseenter',()=>{lvLb.style.borderColor='rgba(255,255,255,.45)';lvLb.style.color='#fff';});
+      lvLb.addEventListener('mouseleave',()=>{lvLb.style.borderColor='rgba(255,255,255,.16)';lvLb.style.color='rgba(255,255,255,.78)';});
+    }
+    document.getElementById('sound-btn').addEventListener('click',()=>toggleSound());
+    document.getElementById('brand').addEventListener('click',()=>{closeDetail();closeLeaderboard();closeSettings();setView('sphere');setFilter('ALLE');if(three)three.setYawPitch(0,0);});
+    const lbClose=document.getElementById('lb-close');
+    if(lbClose)lbClose.addEventListener('click',closeLeaderboard);
+    // settings (accent-palette) button + overlay close
+    const settingsBtn=document.getElementById('settings-btn');
+    if(settingsBtn){
+      settingsBtn.addEventListener('click',openSettings);
+      settingsBtn.addEventListener('mouseenter',()=>{settingsBtn.style.borderColor='rgba(255,255,255,.45)';settingsBtn.style.color='#fff';});
+      settingsBtn.addEventListener('mouseleave',()=>{settingsBtn.style.borderColor='rgba(255,255,255,.16)';settingsBtn.style.color='rgba(255,255,255,.62)';});
+    }
+    const settingsClose=document.getElementById('settings-close');
+    if(settingsClose)settingsClose.addEventListener('click',closeSettings);
+    const settingsOv=document.getElementById('settings-overlay');
+    if(settingsOv)settingsOv.addEventListener('click',(e)=>{if(e.target===settingsOv)closeSettings();});
+    onKey=(e)=>{if(e.key==='Escape'){if(settingsOpen)closeSettings();else if(lbOpen)closeLeaderboard();else if(detailOpen)closeDetail();else setView('sphere');}};
+    window.addEventListener('keydown',onKey);
+  }
+
+  // ── Ambient drone toggle (was this.toggleSound) ──
+  function toggleSound(){
+    const lbl=document.getElementById('sound-label'),eq=document.getElementById('sound-eq');
+    if(!sound){
+      try{
+        const AC=window.AudioContext||window.webkitAudioContext,ctx=new AC(),master=ctx.createGain();
+        master.gain.value=0;master.connect(ctx.destination);
+        const o1=ctx.createOscillator(),o2=ctx.createOscillator();
+        o1.type='sine';o1.frequency.value=55;o2.type='sine';o2.frequency.value=82.5;
+        const og=ctx.createGain();og.gain.value=.5;o1.connect(og);o2.connect(og);
+        const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=320;og.connect(lp);lp.connect(master);
+        o1.start();o2.start();
+        sound={ctx,master,on:true,base:.012,setIntensity:(v)=>{if(!sound||!sound.on)return;sound.master.gain.setTargetAtTime(sound.base+v*.05,sound.ctx.currentTime,.2);}};
+      }catch(e){return;}
+    }else{
+      sound.on=!sound.on;
+      if(!sound.on)sound.master.gain.setTargetAtTime(0,sound.ctx.currentTime,.15);
+    }
+    const on=sound&&sound.on;
+    lbl.textContent=on?'SOUND [AN]':'SOUND [AUS]';
+    eq.style.color=on?'#ff2244':'currentColor';
+    eq.querySelectorAll('i').forEach((b,i)=>{b.style.height=on?[9,5,11][i]+'px':[4,9,6][i]+'px';});
+  }
+
+  // ── Leaderboard overlay (was this.openLeaderboard / closeLeaderboard) ──
+  function lbInitial(name){
+    if(!name)return '?';
+    const n=String(name).trim();
+    return n.charAt(0).toUpperCase();
+  }
+  function lbAvatar(name,leader){
+    const initial=lbInitial(name);
+    const bg=leader?'#ff2244':'rgba(255,255,255,.08)';
+    const col=leader?'#fff':'rgba(255,255,255,.78)';
+    return `<div style="width:38px;height:38px;border:1px solid rgba(255,255,255,.14);background:${bg};color:${col};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500">${initial}</div>`;
+  }
+  function renderLeaderboardRows(rows){
+    const box=document.getElementById('lb-rows');
+    box.innerHTML='';
+    if(!rows||!rows.length){
+      box.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;letter-spacing:.12em;color:rgba(255,255,255,.4);padding:48px 4px;text-align:center">Noch keine Einträge.</div>';
+      return;
+    }
+    rows.forEach((r,i)=>{
+      const leader=i===0;
+      const rankColor=leader?'#ff2244':'rgba(255,255,255,.35)';
+      const nameColor=leader?'#fff':'rgba(255,255,255,.86)';
+      const row=document.createElement('div');
+      row.style.cssText='display:grid;grid-template-columns:50px 44px 1fr auto;gap:18px;align-items:center;padding:18px 4px;border-bottom:1px solid rgba(255,255,255,.1)';
+      row.innerHTML=`<div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:${rankColor}">${String(i+1).padStart(2,'0')}</div>${lbAvatar(r.username,leader)}<div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;letter-spacing:-.01em;color:${nameColor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(r.username)}</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;color:rgba(255,255,255,.5);text-align:right;white-space:nowrap">${r.wins} S · ${r.points} P</div>`;
+      box.appendChild(row);
+    });
+  }
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function openLeaderboard(){
+    if(lbOpen)return;
+    lbOpen=true;
+    const gsap=window.gsap;
+    const el=document.getElementById('lb-overlay');
+    const rowsEl=document.getElementById('lb-rows');
+    rowsEl.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;letter-spacing:.12em;color:rgba(255,255,255,.4);padding:48px 4px;text-align:center">Leaderboard wird geladen…</div>';
+    el.style.visibility='visible';
+    el.style.pointerEvents='auto';
+    if(setCursorStateRef)setCursorStateRef('idle');
+    fetch('/api/leaderboard',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('http');return r.json();}).then(data=>{
+      const list=(data&&Array.isArray(data.overall))?data.overall:[];
+      renderLeaderboardRows(list);
+    }).catch(()=>{
+      rowsEl.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;letter-spacing:.12em;color:rgba(255,255,255,.4);padding:48px 4px;text-align:center">Konnte Leaderboard nicht laden</div>';
+    });
+    gsap.set(el,{opacity:0});gsap.to(el,{opacity:1,duration:.5,ease:'power3.out'});
+    gsap.from('#lb-rows > *',{y:18,opacity:0,duration:.6,stagger:.05,delay:.12,ease:'power3.out'});
+  }
+  function closeLeaderboard(){
+    if(!lbOpen)return;
+    lbOpen=false;
+    const gsap=window.gsap,el=document.getElementById('lb-overlay');
+    gsap.to(el,{opacity:0,duration:.4,ease:'power2.in',onComplete:()=>{el.style.pointerEvents='none';el.style.visibility='hidden';}});
+  }
+
+  // ── Accent-palette swatches (addition 2) ──
+  function renderAccentSwatches(){
+    const box=document.getElementById('accent-swatches');
+    if(!box)return;
+    const cur=getAccent().toLowerCase();
+    box.innerHTML='';
+    ACCENTS.forEach(a=>{
+      const active=a.hex.toLowerCase()===cur;
+      const b=document.createElement('button');
+      b.dataset.hex=a.hex;
+      b.style.cssText='pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:11px;background:rgba(255,255,255,'+(active?'.07':'.02')+');border:1px solid '+(active?a.hex:'rgba(255,255,255,.12)')+';border-radius:14px;padding:18px 10px;cursor:pointer;transition:border-color .2s,background .2s';
+      b.innerHTML='<span style="width:46px;height:46px;border-radius:50%;background:'+a.hex+';box-shadow:0 0 0 '+(active?'3px rgba(255,255,255,.9)':'0 transparent')+', 0 6px 22px '+a.hex+'55"></span>'
+        +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;letter-spacing:.18em;color:'+(active?'#fff':'rgba(255,255,255,.55)')+'">'+a.name+'</span>'
+        +(active?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:8px;letter-spacing:.2em;color:'+a.hex+'">AKTIV</span>':'<span style="font-size:8px;letter-spacing:.2em;color:transparent">—</span>');
+      b.addEventListener('click',()=>setAccent(a.hex));
+      box.appendChild(b);
+    });
+  }
+  function openSettings(){
+    if(settingsOpen)return;
+    settingsOpen=true;
+    const gsap=window.gsap,el=document.getElementById('settings-overlay');
+    renderAccentSwatches();
+    el.style.visibility='visible';
+    el.style.pointerEvents='auto';
+    if(setCursorStateRef)setCursorStateRef('idle');
+    gsap.set(el,{opacity:0});gsap.to(el,{opacity:1,duration:.45,ease:'power3.out'});
+    gsap.from('#accent-swatches > *',{y:16,opacity:0,duration:.5,stagger:.04,delay:.1,ease:'power3.out'});
+  }
+  function closeSettings(){
+    if(!settingsOpen)return;
+    settingsOpen=false;
+    const gsap=window.gsap,el=document.getElementById('settings-overlay');
+    gsap.to(el,{opacity:0,duration:.4,ease:'power2.in',onComplete:()=>{el.style.pointerEvents='none';el.style.visibility='hidden';}});
+  }
+
+  // ── Account: change password (restored) ──
+  const pwForm=document.getElementById('settings-pw-form');
+  if(pwForm){
+    pwForm.addEventListener('submit',function(e){
       e.preventDefault();
-      var newPw = document.getElementById("set-new-pw").value;
-      var confirmPw = document.getElementById("set-confirm-pw").value;
-      var err = document.getElementById("set-pw-error");
-      err.textContent = "";
-
-      if (newPw.length < 6) {
-        err.textContent = "Das Passwort muss mindestens 6 Zeichen lang sein.";
-        return;
-      }
-      if (newPw !== confirmPw) {
-        err.textContent = "Die Passwörter stimmen nicht überein.";
-        return;
-      }
-
-      var btn = this.querySelector("button[type=submit]");
-      btn.disabled = true;
-      btn.textContent = "Speichern…";
-      fetch("/api/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newPassword: newPw })
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          btn.disabled = false;
-          btn.textContent = "Passwort ändern";
-          if (data.success) {
-            document.getElementById("set-new-pw").value = "";
-            document.getElementById("set-confirm-pw").value = "";
+      const newPw=document.getElementById('set-new-pw').value;
+      const confirmPw=document.getElementById('set-confirm-pw').value;
+      const err=document.getElementById('set-pw-error');
+      err.textContent='';
+      if(newPw.length<6){err.textContent='Das Passwort muss mindestens 6 Zeichen lang sein.';return;}
+      if(newPw!==confirmPw){err.textContent='Die Passwörter stimmen nicht überein.';return;}
+      const btn=this.querySelector('button[type=submit]');
+      btn.disabled=true;btn.textContent='Speichern…';
+      fetch('/api/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({newPassword:newPw})})
+        .then(r=>r.json()).then(data=>{
+          btn.disabled=false;btn.textContent='Passwort ändern';
+          if(data.success){
+            document.getElementById('set-new-pw').value='';
+            document.getElementById('set-confirm-pw').value='';
             closeSettings();
-            window.lvl3.showToast("Passwort geändert.", "success");
-          } else {
-            err.textContent = data.error || "Fehler beim Ändern des Passworts.";
-          }
-        })
-        .catch(function () {
-          btn.disabled = false;
-          btn.textContent = "Passwort ändern";
-          err.textContent = "Verbindungsfehler. Bitte erneut versuchen.";
-        });
+            if(window.lvl3&&window.lvl3.showToast)window.lvl3.showToast('Passwort geändert.','success');
+          }else{err.textContent=data.error||'Fehler beim Ändern des Passworts.';}
+        }).catch(()=>{btn.disabled=false;btn.textContent='Passwort ändern';err.textContent='Verbindungsfehler. Bitte erneut versuchen.';});
     });
+  }
 
-    /* Avatar Upload */
-    document.getElementById("avatar-file-input").addEventListener("change", function (e) {
-      var file = e.target.files && e.target.files[0];
-      if (!file) return;
-      var errEl = document.getElementById("avatar-upload-error");
-      errEl.textContent = "";
-      if (file.size > 10 * 1024 * 1024) { errEl.textContent = "Bild zu groß. Maximal 10 MB erlaubt."; e.target.value = ""; return; }
-      var reader = new FileReader();
-      reader.onload = function (ev) {
-        var img = new Image();
-        img.onload = function () {
-          var size = 256;
-          var canvas = document.createElement("canvas");
-          canvas.width = size; canvas.height = size;
-          var ctx = canvas.getContext("2d");
-          var scale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
-          var drawW = img.naturalWidth * scale, drawH = img.naturalHeight * scale;
-          ctx.drawImage(img, (size - drawW) / 2, (size - drawH) / 2, drawW, drawH);
-          var dataURL = canvas.toDataURL("image/jpeg", 0.85);
-          var pw = document.getElementById("avatar-preview-wrap");
-          document.getElementById("avatar-preview").src = dataURL;
-          pw.style.display = "block";
-          fetch("/api/avatar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ image: dataURL }) })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-              if (data.success) {
-                var av = document.getElementById("user-avatar");
-                if (av) { av.style.backgroundImage = "url('" + (data.avatar || dataURL) + "')"; av.style.backgroundSize = "cover"; av.style.backgroundPosition = "center"; av.textContent = ""; }
-                window.lvl3.showToast("Profilbild aktualisiert.", "success");
-              } else { errEl.textContent = data.error || "Fehler beim Hochladen."; }
-            })
-            .catch(function () { errEl.textContent = "Verbindungsfehler. Bitte erneut versuchen."; });
+  // ── Profilbild: avatar upload (restored) ──
+  const avatarInput=document.getElementById('avatar-file-input');
+  if(avatarInput){
+    avatarInput.addEventListener('change',function(e){
+      const file=e.target.files&&e.target.files[0];
+      if(!file)return;
+      const errEl=document.getElementById('avatar-upload-error');
+      errEl.textContent='';
+      if(file.size>10*1024*1024){errEl.textContent='Bild zu groß. Maximal 10 MB erlaubt.';e.target.value='';return;}
+      const reader=new FileReader();
+      reader.onload=function(ev){
+        const img=new Image();
+        img.onload=function(){
+          const size=256,canvas=document.createElement('canvas');
+          canvas.width=size;canvas.height=size;
+          const ctx=canvas.getContext('2d');
+          const scale=Math.max(size/img.naturalWidth,size/img.naturalHeight);
+          const drawW=img.naturalWidth*scale,drawH=img.naturalHeight*scale;
+          ctx.drawImage(img,(size-drawW)/2,(size-drawH)/2,drawW,drawH);
+          const dataURL=canvas.toDataURL('image/jpeg',0.85);
+          const pw=document.getElementById('avatar-preview-wrap');
+          document.getElementById('avatar-preview').src=dataURL;
+          pw.style.display='block';
+          fetch('/api/avatar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:dataURL})})
+            .then(r=>r.json()).then(data=>{
+              if(data.success){
+                const av=document.getElementById('user-avatar');
+                if(av){av.style.backgroundImage="url('"+(data.avatar||dataURL)+"')";av.style.backgroundSize='cover';av.style.backgroundPosition='center';av.textContent='';}
+                if(window.lvl3&&window.lvl3.showToast)window.lvl3.showToast('Profilbild aktualisiert.','success');
+              }else{errEl.textContent=data.error||'Fehler beim Hochladen.';}
+            }).catch(()=>{errEl.textContent='Verbindungsfehler. Bitte erneut versuchen.';});
         };
-        img.src = ev.target.result;
+        img.src=ev.target.result;
       };
       reader.readAsDataURL(file);
     });
-  </script>
+  }
+
+  // ── Cleanup on navigation away (was this.componentWillUnmount) ──
+  window.addEventListener('beforeunload',()=>{
+    if(raf)cancelAnimationFrame(raf);
+    if(posterRaf)cancelAnimationFrame(posterRaf);
+    if(onKey)window.removeEventListener('keydown',onKey);
+    if(lenis)lenis.destroy();
+  });
+
+  // ── Boot: wait for THREE + gsap + fonts, then build the scene ──
+  function boot(){
+    const wait=()=>new Promise(res=>{const t=()=>{if(window.THREE&&window.gsap&&document.fonts)document.fonts.ready.then(()=>res());else setTimeout(t,40);};t();});
+    wait().then(()=>init());
+  }
+
+  // ── Auth gate: checkAuth redirects to "/" itself when not logged in
+  //    or password not yet changed; we only boot the launcher on success. ──
+  window.lvl3.checkAuth(function () {
+    if(document.readyState==='loading'){
+      document.addEventListener('DOMContentLoaded',boot);
+    }else{
+      boot();
+    }
+  });
+})();
+</script>
 </body>
 </html>

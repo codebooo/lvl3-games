@@ -113,13 +113,27 @@ window.lvl3 = (function () {
     }
   }
 
-  function renderPlayerList(el, players, host, scores) {
+  // Latest { username: avatarUrl|null } map seen from any room:* payload.
+  // renderPlayerList falls back to this when no explicit avatars arg is passed,
+  // so existing 4-arg callers get custom pfps for free once the socket is live.
+  let _avatars = {};
+
+  function renderPlayerList(el, players, host, scores, avatars) {
     if (!el) return;
     scores = scores || {};
+    avatars = avatars || _avatars || {};
     el.innerHTML = players.map(function (p) {
       var ep = escapeHtml(p);
+      var url = avatars[p];
+      var avatarHtml;
+      if (url && typeof url === "string" && url.length > 0) {
+        avatarHtml = '<div class="player-avatar" style="background-image:url(' + url +
+          ');background-size:cover;background-position:center"></div>';
+      } else {
+        avatarHtml = '<div class="player-avatar" style="background:' + avatarColor(p) + '">' + avatarInitial(p) + '</div>';
+      }
       return '<li class="player-item' + (p === host ? " is-host" : "") + '">' +
-        '<div class="player-avatar" style="background:' + avatarColor(p) + '">' + avatarInitial(p) + '</div>' +
+        avatarHtml +
         '<span class="player-name">' + ep + (p === host ? '<span class="host-badge">Host</span>' : "") + '</span>' +
         '<span class="player-score">' + (scores[p] || 0) + '</span>' +
         '</li>';
@@ -131,7 +145,16 @@ window.lvl3 = (function () {
 
   return {
     get socket() {
-      if (!_socket) _socket = io({ transports: ["websocket", "polling"], upgrade: true });
+      if (!_socket) {
+        _socket = io({ transports: ["websocket", "polling"], upgrade: true });
+        // Capture avatar maps from room lifecycle events so renderPlayerList
+        // can render custom pfps without every game wiring the param through.
+        ["room:created", "room:joined", "room:players", "room:host-changed"].forEach(function (ev) {
+          _socket.on(ev, function (d) {
+            if (d && d.avatars && typeof d.avatars === "object") _avatars = d.avatars;
+          });
+        });
+      }
       return _socket;
     },
     getUsername,

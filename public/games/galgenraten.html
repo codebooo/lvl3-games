@@ -6,195 +6,371 @@
   <title>Galgenraten – Lvl 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=5">
-  <link rel="stylesheet" href="/css/games.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=4">
   <script src="/js/theme.js?v=4"></script>
   <style>
-    .game-layout{display:grid;grid-template-columns:260px 1fr;gap:20px;min-height:calc(100vh - 64px);padding:20px;max-width:1100px;margin:0 auto}
-    @media(max-width:760px){.game-layout{grid-template-columns:1fr}.sidebar{display:none}}
-    .page-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:64px;background:var(--surface);border-bottom:2px solid var(--border-thick);position:sticky;top:0;z-index:20}
-    .sidebar{display:flex;flex-direction:column;gap:16px}
-    .room-code-box{background:var(--card);padding:20px;text-align:center;border:2px solid var(--border-thick)}
-    .room-code-box .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px}
-    .room-code-box .code{font-size:32px;font-weight:900;letter-spacing:6px;color:var(--accent)}
-    .main-panel{background:var(--card);border:2px solid var(--border-thick);display:flex;flex-direction:column;position:relative;min-height:520px}
-    .screen{display:none;padding:28px;flex:1;flex-direction:column;align-items:center;justify-content:center}
+    /* ─────────────────────────────────────────────
+       PHANTOM.LAND — Galgenraten (full structural redesign)
+       Full-bleed black, no boxed containers, floating
+       content, oversized editorial type, custom cursor,
+       film grain + vignette. Every JS-bound id preserved.
+       ───────────────────────────────────────────── */
+    *{box-sizing:border-box}
+    :root{ --acc:#ff2244; --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+           --dim:rgba(255,255,255,.55); --mut:rgba(255,255,255,.32); }
+    html,body{margin:0;padding:0}
+    body{
+      background:#000;color:#fff;min-height:100vh;overflow-x:hidden;
+      font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;
+      cursor:none;
+    }
+    .mono{font-family:'JetBrains Mono',monospace}
+    .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;
+            text-transform:uppercase;color:var(--mut)}
+
+    /* ── film grain + vignette ── */
+    #grain{position:fixed;inset:0;z-index:70;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    #vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
+      background:radial-gradient(120% 120% at 50% 42%, transparent 30%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.92) 100%)}
+
+    /* ── custom cursor ── */
+    #cursor{position:fixed;top:0;left:0;z-index:90;pointer-events:none;width:8px;height:8px;border-radius:50%;
+      background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference;
+      transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
+    #cursor-ring{position:fixed;top:0;left:0;z-index:89;pointer-events:none;width:40px;height:40px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%) scale(.4);opacity:0;
+      transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+    @media(hover:none){ body{cursor:auto} #cursor,#cursor-ring{display:none} }
+
+    /* ── floating top header (no bar / no card) ── */
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+      justify-content:space-between;padding:26px 34px;pointer-events:none}
+    .site-header > *{pointer-events:auto}
+    .hdr-left{display:flex;align-items:center;gap:20px}
+    .brand{font-weight:700;font-size:20px;letter-spacing:.01em;text-decoration:none;color:#fff;line-height:1}
+    .brand span{color:var(--acc)}
+    .hdr-div{width:1px;height:18px;background:var(--line-2);display:block}
+    .hdr-game{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.26em;
+      color:var(--dim);text-transform:uppercase}
+    .hdr-right{display:flex;align-items:center;gap:14px}
+    .type-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--mut);
+      border:1px solid var(--line-2);border-radius:999px;padding:5px 13px;text-transform:uppercase}
+    #user-name{font-weight:500;font-size:13px;letter-spacing:.01em}
+
+    /* ── top hairline timer track (kept for parity) ── */
+    .timer-bar-wrap{position:fixed;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.06);z-index:45}
+    .timer-bar{height:100%;background:var(--acc);width:100%;transition:width 1s linear}
+
+    /* ── left floating rail: room code + players, NO boxes ── */
+    .rail{position:fixed;left:34px;top:118px;bottom:40px;width:210px;z-index:30;
+      display:flex;flex-direction:column;gap:30px;pointer-events:none}
+    .rail > *{pointer-events:auto}
+    .rail-block{display:flex;flex-direction:column;gap:12px}
+    .rail-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;letter-spacing:.16em;
+      color:var(--acc);line-height:1}
+    .rail-players{flex:1;min-height:0;overflow-y:auto}
+    .player-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+    .player-item{display:flex;align-items:center;gap:11px;padding:11px 0;
+      border-bottom:1px solid var(--line);background:transparent;border-radius:0}
+    .player-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:600;flex:0 0 auto;color:#fff;overflow:hidden;
+      background-size:cover;background-position:center;background-repeat:no-repeat}
+    .player-item .pname,.player-item span:not(.player-score):not(.player-avatar){font-size:13px;color:#fff}
+    .player-score{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc)}
+    @media(max-width:880px){ .rail{display:none} }
+
+    /* ── center stage (full-bleed, content floats in space) ── */
+    .stage{position:relative;z-index:20;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:120px 34px 60px 34px}
+    /* rail floats over the left margin; keep stage centered in the full viewport
+       but reserve symmetric side room on mid widths so content never collides with it */
+    @media(min-width:881px) and (max-width:1180px){ .stage{padding-left:264px;padding-right:264px} }
+    .screen{display:none;width:100%;max-width:680px;flex-direction:column;align-items:center;text-align:center}
     .screen.active{display:flex}
-    .setting-block{margin-bottom:16px;width:100%}
-    .setting-block label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-    .teams-preview{display:flex;gap:12px;width:100%;margin:8px 0 18px}
-    .team-box{flex:1;border:2px solid var(--border-thick);padding:12px;font-size:14px}
-    .team-box .team-name{font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-size:12px}
-    .team-box.team-a{border-color:var(--accent)}
-    .team-box.team-a .team-name{color:var(--accent)}
-    .team-box.team-b{border-color:var(--accent3)}
-    .team-box.team-b .team-name{color:var(--accent3)}
-    .boards-container{display:flex;gap:24px;justify-content:center;align-items:flex-start;width:100%;flex-wrap:wrap}
-    .board-card{flex:0 1 auto;max-width:420px;display:flex;flex-direction:column;align-items:center}
-    .boards-container.two .board-card{border:2px solid var(--border-thick);padding:14px;min-width:260px}
-    .board-card.mine{box-shadow:0 0 0 2px var(--accent) inset}
-    .board-card.team-a .board-label{color:var(--accent)}
-    .board-card.team-b .board-label{color:var(--accent3)}
-    .board-label{font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--text-dim);margin-bottom:8px}
-    .gallows-wrap{height:150px;display:flex;align-items:center;justify-content:center}
-    .word-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 6px}
-    .word-row.small{gap:4px}
-    .slot{display:inline-flex;align-items:flex-end;justify-content:center;min-width:26px;height:36px;font-size:24px;font-weight:800;color:var(--text);border-bottom:3px solid var(--border-thick)}
-    .word-row.small .slot{min-width:18px;height:26px;font-size:16px}
-    .slot.filled{color:var(--accent3)}
-    .slot.space{border-bottom:none;min-width:16px}
+
+    /* shared phantom type */
+    .p-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:22px}
+    .p-title{font-weight:700;font-size:clamp(44px,8vw,86px);line-height:.92;letter-spacing:-.02em;
+      text-transform:uppercase;margin:0}
+    .p-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--dim);margin-top:20px}
+
+    /* phantom inputs: bottom-border only */
+    .p-field{width:100%;background:none;border:none;border-bottom:1px solid var(--line-2);color:#fff;
+      font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;padding:12px 2px;border-radius:0;
+      outline:none;transition:border-color .25s}
+    .p-field::placeholder{color:rgba(255,255,255,.25)}
+    .p-field:focus{border-bottom-color:#fff}
+    select.p-field{appearance:none;cursor:none;color:#fff}
+    select.p-field option{background:#0a0a0a;color:#fff}
+
+    /* phantom buttons: pill, white-fill primary / outline secondary */
+    .p-btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:.04em;
+      text-transform:uppercase;border-radius:999px;padding:16px 30px;cursor:none;border:1px solid #fff;
+      transition:transform .25s cubic-bezier(.2,.8,.2,1),background-color .2s,color .2s,border-color .2s,opacity .2s}
+    .p-btn-primary{background:#fff;color:#000}
+    .p-btn-primary:hover:not(:disabled){transform:translateY(-3px)}
+    .p-btn-ghost{background:transparent;color:#fff;border-color:var(--line-2)}
+    .p-btn-ghost:hover:not(:disabled){transform:translateY(-3px);border-color:#fff}
+    .p-btn:disabled{opacity:.32}
+    .p-btn-full{width:100%;justify-content:center;display:flex;align-items:center;gap:10px}
+
+    /* join / lobby blocks */
+    .stack{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px;margin:38px auto 0}
+    .join-row{display:flex;gap:10px}
+    .join-row .p-field{text-align:center;letter-spacing:.4em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:15px}
+    .setting-block{width:100%;margin-bottom:22px;text-align:left}
+    .setting-block label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;
+      text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+    .hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-top:14px}
+    .err{color:var(--acc);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;min-height:16px;margin-top:4px}
+    .text-dim{color:var(--dim)}
+    .full{width:100%}
+    .hidden{display:none!important}
+
+    /* ── teams preview (hairline split, no filled boxes) ── */
+    .teams-preview{display:flex;gap:18px;width:100%;margin:6px 0 22px}
+    .team-box{flex:1;border:1px solid var(--line);padding:16px;text-align:left}
+    .team-box .team-name{font-family:'JetBrains Mono',monospace;font-weight:500;margin-bottom:10px;
+      text-transform:uppercase;letter-spacing:.22em;font-size:11px}
+    .team-box.team-a{border-color:var(--acc)}
+    .team-box.team-a .team-name{color:var(--acc)}
+    .team-box.team-b{border-color:#fff}
+    .team-box.team-b .team-name{color:#fff}
+
+    /* ── boards ── */
+    .boards-container{display:flex;gap:30px;justify-content:center;align-items:flex-start;width:100%;flex-wrap:wrap;margin-top:6px}
+    .board-card{flex:0 1 auto;max-width:460px;display:flex;flex-direction:column;align-items:center}
+    .boards-container.two .board-card{border:1px solid var(--line);padding:22px;min-width:280px}
+    .board-card.mine{box-shadow:0 0 0 1px var(--acc) inset}
+    .board-card.team-a .board-label{color:var(--acc)}
+    .board-card.team-b .board-label{color:#fff}
+    .board-label{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.22em;
+      font-weight:500;color:var(--dim);margin-bottom:16px}
+
+    /* ── gallows frame ── */
+    .gallows-wrap{height:170px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
+      padding:14px;width:100%}
+    .gallows-wrap svg{stroke:rgba(255,255,255,.55);fill:none;stroke-width:1.6;stroke-linecap:round}
+    .gallows-wrap.dead svg{stroke:var(--acc)}
+
+    /* ── word pattern (big editorial slots) ── */
+    .word-row{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:28px 0 10px}
+    .word-row.small{gap:8px}
+    .slot{display:inline-flex;align-items:flex-end;justify-content:center;min-width:40px;height:62px;
+      font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:700;letter-spacing:.04em;line-height:1;
+      color:#fff;border-bottom:1px solid var(--line-2);padding-bottom:6px}
+    .word-row.small .slot{min-width:22px;height:34px;font-size:20px;padding-bottom:3px}
+    .slot.filled{color:#fff}
+    .slot.space{border-bottom:none;min-width:20px}
     .slot.sep{border-bottom:none}
     .slot.empty{color:transparent}
-    .lives{font-size:13px;color:var(--text-dim);margin-top:4px}
-    #alphabet-grid{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:520px;margin:18px auto 0}
-    .key{width:40px;height:46px;font-size:18px;font-weight:700;background:var(--card);color:var(--text);border:2px solid var(--border-thick);cursor:pointer;transition:transform .08s,background .12s,color .12s,opacity .12s}
-    .key:hover:not(:disabled){background:var(--text);color:var(--bg)}
-    .key:active:not(:disabled){transform:translateY(2px)}
-    .key.correct{background:var(--green);color:#06231a;border-color:var(--green)}
-    .key.wrong{opacity:.28;color:var(--text-muted);cursor:default}
+    .lives{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.24em;
+      color:var(--mut);margin-top:12px}
+
+    /* ── alphabet keys (hairline ghost → white/black on hover) ── */
+    #alphabet-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:560px;margin:32px auto 0}
+    .key{width:44px;height:48px;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;
+      background:transparent;color:rgba(255,255,255,.78);border:1px solid var(--line-2);border-radius:0;cursor:none;
+      transition:transform .14s cubic-bezier(.2,.8,.2,1),background .14s,color .14s,opacity .14s,border-color .14s}
+    .key:hover:not(:disabled){background:#fff;color:#000;border-color:#fff;transform:translateY(-3px)}
+    .key:active:not(:disabled){transform:translateY(0)}
+    .key.correct{background:#fff;color:#000;border-color:#fff}
+    .key.wrong{opacity:1;color:rgba(255,255,255,.20);cursor:default;border-color:rgba(255,255,255,.06)}
     .key:disabled{cursor:default}
-    .game-status{min-height:24px;margin-top:16px;font-size:15px;font-weight:600;text-align:center}
-    .game-status .ok{color:var(--green)}
-    .game-status .bad{color:var(--red)}
-    .winner-card{border:2px solid var(--border-thick);padding:28px;text-align:center;width:100%;max-width:480px}
-    .end-boards{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:18px}
-    .hidden{display:none!important}
-    .text-dim{color:var(--text-dim)}
-    .full{width:100%}
+
+    /* ── game status line ── */
+    .game-status{min-height:24px;margin-top:24px;font-family:'JetBrains Mono',monospace;font-size:12px;
+      text-transform:uppercase;letter-spacing:.18em;font-weight:500;text-align:center;color:var(--dim)}
+    .game-status .ok{color:#fff}
+    .game-status .bad{color:var(--acc)}
+
+    /* ── pick screen ── */
+    #screen-pick .gallows-wrap{border:none}
+
+    /* ── end screen ── */
+    #screen-end{max-width:560px}
+    .winner-name{font-weight:700;font-size:clamp(38px,7vw,68px);line-height:.95;letter-spacing:-.02em;
+      text-transform:uppercase}
+    .end-boards{display:flex;flex-direction:column;gap:0;width:100%;margin-top:26px;text-align:left}
+    .end-boards .board-card{align-items:stretch;max-width:none;width:100%;border:none;border-top:1px solid var(--line);
+      padding:16px 2px}
+    .end-boards .board-card:last-child{border-bottom:1px solid var(--line)}
+    .end-boards .board-card .board-label{margin-bottom:10px}
   </style>
 </head>
 <body>
 
-<div class="page-header">
-  <a href="/dashboard.html" class="logo-text">LVL<span>³</span></a>
-  <div class="flex items-center gap-4">
-    <span style="color:var(--text-dim);font-size:13px;text-transform:uppercase;letter-spacing:1px">Galgenraten</span>
-    <div class="flex items-center gap-2">
-      <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px;border:2px solid var(--border-thick)"></div>
-      <span id="user-name" style="font-weight:700;font-size:14px"></span>
-    </div>
-    <button onclick="leaveRoom()" class="btn btn-secondary btn-sm">Verlassen</button>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- top hairline timer track -->
+<div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+
+<!-- floating header -->
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">Galgenraten</span>
   </div>
-</div>
+  <div class="hdr-right">
+    <span class="type-pill">Multiplayer</span>
+    <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px"></div>
+    <span id="user-name"></span>
+    <button onclick="leaveRoom()" class="p-btn p-btn-ghost" style="padding:9px 18px;font-size:11px">Verlassen</button>
+  </div>
+</header>
 
-<div class="game-layout">
-  <aside class="sidebar">
-    <div class="room-code-box">
-      <div class="label">Raum-Code</div>
-      <div class="code" id="room-code-display">––––</div>
+<!-- left floating rail -->
+<aside class="rail">
+  <div class="rail-block">
+    <div class="kicker">Raum-Code</div>
+    <div class="rail-code" id="room-code-display">––––</div>
+  </div>
+  <div class="rail-block rail-players">
+    <div class="kicker">Spieler</div>
+    <ul class="player-list" id="player-list"></ul>
+  </div>
+</aside>
+
+<!-- center stage -->
+<main class="stage">
+
+  <!-- ── Join ── -->
+  <div class="screen active" id="screen-join">
+    <div class="p-kicker">LVL³ · Galgenraten</div>
+    <h2 class="p-title">Galgen<br>raten</h2>
+    <p class="p-sub">Errate das Wort, bevor der Galgen fertig ist</p>
+    <div class="stack">
+      <button onclick="createRoom()" class="p-btn p-btn-primary p-btn-full">Raum erstellen</button>
+      <div class="join-row">
+        <input id="join-code-input" class="p-field" placeholder="Code" maxlength="4">
+        <button onclick="joinRoom()" class="p-btn p-btn-ghost" style="white-space:nowrap">Beitreten</button>
+      </div>
+      <div id="join-error" class="err"></div>
     </div>
-    <div class="card" style="padding:20px;flex:1">
-      <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);margin-bottom:12px">Spieler</div>
-      <ul class="player-list" id="player-list"></ul>
-    </div>
-  </aside>
+  </div>
 
-  <main class="main-panel">
-
-    <!-- Join -->
-    <div class="screen active" id="screen-join">
-      <div style="max-width:360px;width:100%;text-align:center">
-        <h2 style="font-size:26px;margin-bottom:8px">Galgenraten</h2>
-        <p class="text-dim" style="margin-bottom:28px;font-size:14px">Errate das Wort, bevor der Galgen fertig ist. Solo oder Team gegen Team.</p>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <button onclick="createRoom()" class="btn btn-primary btn-full">Raum erstellen</button>
-          <div style="display:flex;gap:8px">
-            <input id="join-code-input" class="input-field" placeholder="Code" maxlength="4" style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-weight:700">
-            <button onclick="joinRoom()" class="btn btn-secondary" style="white-space:nowrap">Beitreten</button>
-          </div>
-          <div id="join-error" style="color:var(--red);font-size:13px;min-height:18px"></div>
+  <!-- ── Lobby ── -->
+  <div class="screen" id="screen-lobby">
+    <div class="p-kicker">Lobby</div>
+    <h2 class="p-title" style="font-size:clamp(36px,6vw,60px)">Konfiguration</h2>
+    <div style="width:100%;max-width:500px;margin-top:40px">
+      <div id="host-settings" class="full">
+        <div class="setting-block">
+          <label>Modus</label>
+          <select id="sel-playmode" class="p-field" onchange="pushSettings()">
+            <option value="solo">Solo (Zufallswort)</option>
+            <option value="team">Team gegen Team</option>
+          </select>
         </div>
+        <div class="setting-block team-only" style="display:none">
+          <label>Team-Modus</label>
+          <select id="sel-wordmode" class="p-field" onchange="pushSettings()">
+            <option value="pick">Eigene Wörter — jedes Team wählt, der schnellere Rater gewinnt</option>
+            <option value="race">Zufalls-Rennen — gleiches Wort, beide Teams raten gleichzeitig</option>
+          </select>
+        </div>
+        <div class="setting-block" id="difficulty-row">
+          <label>Schwierigkeit (Zufallswort)</label>
+          <select id="sel-difficulty" class="p-field" onchange="pushSettings()">
+            <option value="easy">Leicht</option>
+            <option value="normal" selected>Mittel</option>
+            <option value="hard">Schwer</option>
+          </select>
+        </div>
+
+        <div class="teams-preview" id="teams-preview" style="display:none"></div>
+
+        <div class="stack" style="margin-top:10px">
+          <button onclick="startGame()" id="btn-start" class="p-btn p-btn-primary p-btn-full">Spiel starten</button>
+        </div>
+        <p id="start-hint" class="hint" style="text-align:center"></p>
+      </div>
+
+      <div id="guest-settings" style="display:none;text-align:center">
+        <p class="p-sub">Wartet auf den Host…</p>
+        <div id="guest-settings-display" class="hint" style="margin-top:16px"></div>
+        <div class="teams-preview" id="teams-preview-guest" style="display:none;margin-top:20px"></div>
       </div>
     </div>
+  </div>
 
-    <!-- Lobby -->
-    <div class="screen" id="screen-lobby">
-      <div style="max-width:480px;width:100%">
-        <div style="text-align:center;margin-bottom:22px"><h2 style="font-size:22px">Lobby</h2></div>
-
-        <div id="host-settings" class="full">
-          <div class="setting-block">
-            <label>Modus</label>
-            <select id="sel-playmode" class="input-field" onchange="pushSettings()">
-              <option value="solo">Solo (Zufallswort)</option>
-              <option value="team">Team gegen Team</option>
-            </select>
-          </div>
-          <div class="setting-block team-only" style="display:none">
-            <label>Team-Modus</label>
-            <select id="sel-wordmode" class="input-field" onchange="pushSettings()">
-              <option value="pick">Eigene Wörter — jedes Team wählt, der schnellere Rater gewinnt</option>
-              <option value="race">Zufalls-Rennen — gleiches Wort, beide Teams raten gleichzeitig</option>
-            </select>
-          </div>
-          <div class="setting-block" id="difficulty-row">
-            <label>Schwierigkeit (Zufallswort)</label>
-            <select id="sel-difficulty" class="input-field" onchange="pushSettings()">
-              <option value="easy">Leicht</option>
-              <option value="normal" selected>Mittel</option>
-              <option value="hard">Schwer</option>
-            </select>
-          </div>
-
-          <div class="teams-preview" id="teams-preview" style="display:none"></div>
-
-          <button onclick="startGame()" id="btn-start" class="btn btn-primary btn-full" style="margin-top:6px">Spiel starten</button>
-          <p id="start-hint" style="text-align:center;color:var(--text-dim);font-size:13px;margin-top:8px"></p>
-        </div>
-
-        <div id="guest-settings" style="display:none;text-align:center">
-          <p class="text-dim" style="margin-bottom:10px">Wartet auf den Host…</p>
-          <div id="guest-settings-display" style="font-size:14px;color:var(--text-dim);margin-bottom:16px"></div>
-          <div class="teams-preview" id="teams-preview-guest" style="display:none"></div>
-        </div>
+  <!-- ── Pick a word ── -->
+  <div class="screen" id="screen-pick">
+    <div style="max-width:460px;width:100%">
+      <div id="pick-info" class="p-kicker" style="font-size:12px;margin-bottom:24px"></div>
+      <div id="pick-setter-area" style="display:none">
+        <p class="hint" style="margin-bottom:18px">Gebt ein Wort ein (3–30 Buchstaben). Das andere Team sieht es nicht.</p>
+        <input id="set-word-input" class="p-field" placeholder="Geheimes Wort…" autocomplete="off" autocorrect="off" spellcheck="false" style="text-align:center;letter-spacing:.2em;text-transform:uppercase">
+        <div id="set-word-error" class="err" style="margin:10px 0"></div>
+        <div class="stack" style="margin-top:8px"><button onclick="setWord()" class="p-btn p-btn-primary p-btn-full">Wort festlegen</button></div>
+      </div>
+      <div id="pick-wait-area" style="display:none">
+        <div class="gallows-wrap"><div style="font-size:46px;color:rgba(255,255,255,.4)">✎</div></div>
+        <p id="pick-wait-text" class="hint" style="margin-top:14px"></p>
       </div>
     </div>
+  </div>
 
-    <!-- Pick a word -->
-    <div class="screen" id="screen-pick">
-      <div style="max-width:420px;width:100%;text-align:center">
-        <div id="pick-info" style="font-size:15px;margin-bottom:20px"></div>
-        <div id="pick-setter-area" style="display:none">
-          <p class="text-dim" style="font-size:13px;margin-bottom:10px">Gebt ein Wort ein (3–30 Buchstaben). Das andere Team sieht es nicht.</p>
-          <input id="set-word-input" class="input-field" placeholder="Geheimes Wort…" autocomplete="off" autocorrect="off" spellcheck="false" style="text-align:center;font-weight:700;letter-spacing:2px;text-transform:uppercase">
-          <div id="set-word-error" style="color:var(--red);font-size:13px;min-height:18px;margin:6px 0"></div>
-          <button onclick="setWord()" class="btn btn-primary btn-full">Wort festlegen</button>
-        </div>
-        <div id="pick-wait-area" style="display:none">
-          <div class="gallows-wrap"><div style="font-size:46px">✎</div></div>
-          <p id="pick-wait-text" class="text-dim"></p>
-        </div>
+  <!-- ── Game ── -->
+  <div class="screen" id="screen-game">
+    <div id="boards-container" class="boards-container full"></div>
+    <div id="alphabet-grid"></div>
+    <div id="game-status" class="game-status"></div>
+  </div>
+
+  <!-- ── End ── -->
+  <div class="screen" id="screen-end">
+    <div style="width:100%">
+      <div class="p-kicker">Ergebnis</div>
+      <div class="winner-name" id="end-title"></div>
+      <div id="end-detail" class="p-sub" style="margin-top:14px"></div>
+      <div id="end-boards" class="end-boards"></div>
+      <div class="stack" style="flex-direction:row;justify-content:center;max-width:none;margin-top:34px;flex-wrap:wrap">
+        <button id="btn-play-again" onclick="playAgain()" class="p-btn p-btn-primary hidden">Nochmal spielen</button>
+        <a href="/dashboard.html" class="p-btn p-btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center">Dashboard</a>
       </div>
     </div>
+  </div>
 
-    <!-- Game -->
-    <div class="screen" id="screen-game" style="justify-content:flex-start;padding-top:24px">
-      <div id="boards-container" class="boards-container full"></div>
-      <div id="alphabet-grid"></div>
-      <div id="game-status" class="game-status"></div>
-    </div>
-
-    <!-- End -->
-    <div class="screen" id="screen-end">
-      <div class="winner-card">
-        <div class="text-dim" style="margin-bottom:6px;font-size:13px;text-transform:uppercase;letter-spacing:1px">Ergebnis</div>
-        <div id="end-title" style="font-size:28px;font-weight:900;margin-bottom:10px"></div>
-        <div id="end-detail" style="font-size:15px;color:var(--text-dim)"></div>
-        <div id="end-boards" class="end-boards"></div>
-        <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-          <button id="btn-play-again" onclick="playAgain()" class="btn btn-primary hidden">Nochmal spielen</button>
-          <a href="/dashboard.html" class="btn btn-secondary">Dashboard</a>
-        </div>
-      </div>
-    </div>
-
-  </main>
-</div>
+</main>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/socket-utils.js?v=4"></script>
 <script src="/js/games/galgenraten.js?v=1"></script>
 <script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script>
+  // ── Custom cursor (dot + ring), self-contained ──
+  (function(){
+    if (window.matchMedia && window.matchMedia('(hover:none)').matches) return;
+    const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+    let rx=0,ry=0,tx=0,ty=0;
+    window.addEventListener('mousemove',e=>{
+      tx=e.clientX;ty=e.clientY;
+      cur.style.left=tx+'px';cur.style.top=ty+'px';
+      const hit=e.target.closest('button,a,input,select,.key,.board-card');
+      if(hit){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(1)';cur.style.width='5px';cur.style.height='5px';}
+      else{ring.style.opacity='0';ring.style.transform='translate(-50%,-50%) scale(.4)';cur.style.width='8px';cur.style.height='8px';}
+    });
+    (function loop(){ rx+=(tx-rx)*.18; ry+=(ty-ry)*.18; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  })();
+
+  // ── Entrance animation ──
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!window.gsap) return;
+    gsap.from('.site-header > *',{y:-14,opacity:0,duration:.7,stagger:.06,ease:'power3.out'});
+    gsap.from('.rail > *',{x:-18,opacity:0,duration:.7,stagger:.1,delay:.15,ease:'power3.out'});
+    gsap.from('#screen-join > *',{y:26,opacity:0,duration:.8,stagger:.07,delay:.2,ease:'power3.out'});
+  });
+</script>
 </body>
 </html>

@@ -12,6 +12,7 @@
   var timerTotal = 1;
   var inputLocked = false;
   var currentAnswerMode = "type";
+  var currentAvatars = {};
 
   var socket = window.lvl3.socket;
 
@@ -73,12 +74,14 @@
   // ── Room events ───────────────────────────────────────────────
   socket.on("room:created", function (data) {
     roomCode = data.code; isHost = true; players = data.players; host = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     settings = data.settings || settings;
     enterLobby();
   });
 
   socket.on("room:joined", function (data) {
     roomCode = data.code; isHost = data.isHost; players = data.players; host = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     settings = data.settings || settings;
     enterLobby();
   });
@@ -90,11 +93,13 @@
 
   socket.on("room:players", function (data) {
     players = data.players; host = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     renderPlayers();
   });
 
   socket.on("room:host-changed", function (data) {
     host = data.host; players = data.players; isHost = (host === username);
+    if (data.avatars) currentAvatars = data.avatars;
     renderPlayers(); updateHostUI();
   });
 
@@ -114,7 +119,7 @@
     var list = document.getElementById("player-list");
     var scoreMap = {};
     players.forEach(function (p) { scoreMap[p] = 0; });
-    window.lvl3.renderPlayerList(list, players, host, {});
+    window.lvl3.renderPlayerList(list, players, host, {}, currentAvatars);
   }
 
   function updateHostUI() {
@@ -213,7 +218,7 @@
     var scoreMap = data.scores || {};
     window.lvl3.renderPlayerList(
       document.getElementById("player-list"),
-      Object.keys(scoreMap), host, scoreMap
+      Object.keys(scoreMap), host, scoreMap, currentAvatars
     );
 
     timerLeft = data.timeLeft || 15;
@@ -316,7 +321,7 @@
     if (data.scores) {
       window.lvl3.renderPlayerList(
         document.getElementById("player-list"),
-        Object.keys(data.scores), host, data.scores
+        Object.keys(data.scores), host, data.scores, currentAvatars
       );
     }
   });
@@ -325,7 +330,7 @@
     if (data.scores) {
       window.lvl3.renderPlayerList(
         document.getElementById("player-list"),
-        Object.keys(data.scores), host, data.scores
+        Object.keys(data.scores), host, data.scores, currentAvatars
       );
     }
   });
@@ -360,7 +365,7 @@
 
     var scoreMap = data.scores || {};
     var sorted = Object.keys(scoreMap).sort(function (a, b) { return scoreMap[b] - scoreMap[a]; });
-    window.lvl3.renderPlayerList(document.getElementById("reveal-player-list"), sorted, host, scoreMap);
+    window.lvl3.renderPlayerList(document.getElementById("reveal-player-list"), sorted, host, scoreMap, currentAvatars);
 
     showScreen("reveal");
   }

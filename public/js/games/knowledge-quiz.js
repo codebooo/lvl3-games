@@ -9,6 +9,7 @@
   var currentScores = {};
   var currentPlayers = [];
   var currentHost = null;
+  var currentAvatars = {};
   var timerInterval = null;
   var timerSeconds = 0;
   var hasAnswered = false;
@@ -48,7 +49,7 @@
 
   // ── Helpers ───────────────────────────────────────────────────
   function updatePlayerList() {
-    window.lvl3.renderPlayerList(elPlayerList, currentPlayers, currentHost, currentScores);
+    window.lvl3.renderPlayerList(elPlayerList, currentPlayers, currentHost, currentScores, currentAvatars);
   }
 
   function clearTimer() {
@@ -103,6 +104,7 @@
     isHost         = data.isHost;
     currentHost    = data.host;
     currentPlayers = data.players || [];
+    if (data.avatars) currentAvatars = data.avatars;
     if (elRoomCode) elRoomCode.textContent = roomCode;
     applySettings(data.settings);
     renderHostControls();
@@ -179,6 +181,7 @@
   socket.on("room:players", function (data) {
     currentPlayers = data.players || [];
     currentHost    = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     isHost = currentHost === username;
     renderHostControls();
     updatePlayerList();
@@ -187,6 +190,7 @@
   socket.on("room:host-changed", function (data) {
     currentPlayers = data.players || [];
     currentHost    = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     isHost = currentHost === username;
     renderHostControls();
     updatePlayerList();

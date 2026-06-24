@@ -6,94 +6,206 @@
   <title>Finanzamt - Lvl 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=5">
-  <link rel="stylesheet" href="/css/games.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=4">
   <script src="/js/theme.js?v=4"></script>
+  <style>
+    /* ─────────────────────────────────────────────
+       PHANTOM.LAND — Finanzamt (TOOL, structural redesign)
+       Full-bleed black, hairline dividers, editorial type,
+       custom cursor, grain + vignette. Balance / history rows
+       are rendered by finanzamt.js into #fa-balances / #fa-history
+       (inline-styled <li> via theme vars). All JS ids preserved:
+       fa-date, fa-amount, fa-person, fa-submit, fa-balances,
+       fa-history + .fa-delete-btn class hook.
+       ───────────────────────────────────────────── */
+    *{box-sizing:border-box}
+    :root{ --acc:#ff2244; --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+           --dim:rgba(255,255,255,.55); --mut:rgba(255,255,255,.32); }
+    html,body{margin:0;padding:0}
+    body{
+      background:#000;color:#fff;min-height:100vh;overflow-x:hidden;
+      font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;
+      cursor:none;
+    }
+    .mono{font-family:'JetBrains Mono',monospace}
+
+    /* ── film grain + vignette ── */
+    #grain{position:fixed;inset:0;z-index:70;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    #vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
+      background:radial-gradient(120% 120% at 50% 42%, transparent 30%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.92) 100%)}
+
+    /* ── custom cursor ── */
+    #cursor{position:fixed;top:0;left:0;z-index:90;pointer-events:none;width:8px;height:8px;border-radius:50%;
+      background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference;
+      transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
+    #cursor-ring{position:fixed;top:0;left:0;z-index:89;pointer-events:none;width:40px;height:40px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%) scale(.4);opacity:0;
+      transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+    @media(hover:none){ body{cursor:auto} #cursor,#cursor-ring{display:none} }
+
+    /* ── floating top header ── */
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+      justify-content:space-between;padding:26px 34px;pointer-events:none}
+    .site-header > *{pointer-events:auto}
+    .hdr-left{display:flex;align-items:center;gap:20px}
+    .brand{font-weight:700;font-size:20px;letter-spacing:.01em;text-decoration:none;color:#fff;line-height:1}
+    .brand span{color:var(--acc)}
+    .hdr-div{width:1px;height:18px;background:var(--line-2);display:block}
+    .hdr-game{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.26em;
+      color:var(--dim);text-transform:uppercase}
+    .hdr-right{display:flex;align-items:center;gap:14px}
+    .type-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--mut);
+      border:1px solid var(--line-2);border-radius:999px;padding:5px 13px;text-transform:uppercase}
+
+    /* ── full-bleed tool stage ── */
+    .stage{position:relative;z-index:20;max-width:680px;margin:0 auto;padding:150px 34px 90px}
+    @media(max-width:560px){ .stage{padding:124px 22px 70px} }
+
+    .p-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:20px}
+    .p-title{font-weight:700;font-size:clamp(40px,7vw,72px);line-height:.94;letter-spacing:-.02em;
+      text-transform:uppercase;margin:0}
+    .p-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--acc);margin-top:18px}
+
+    /* hairline section divider + mono micro-label */
+    .sec{margin-top:64px;padding-top:30px;border-top:1px solid var(--line)}
+    .sec-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:26px}
+
+    /* phantom inputs: bottom-border only */
+    .p-field{background:none;border:none;border-bottom:1px solid var(--line-2);color:#fff;
+      font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;padding:9px 2px;border-radius:0;
+      outline:none;transition:border-color .25s}
+    .p-field::placeholder{color:rgba(255,255,255,.25)}
+    .p-field:focus{border-bottom-color:#fff}
+    select.p-field{appearance:none;cursor:none;color:#fff}
+    select.p-field option{background:#0a0a0a;color:#fff}
+    /* date inputs need a visible color scheme on dark bg */
+    input[type=date].p-field{color-scheme:dark}
+
+    /* editorial sentence form */
+    .fa-sentence{font-family:'Space Grotesk',sans-serif;font-size:20px;line-height:2.4;color:#fff;
+      display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+    .select-wrap{position:relative;flex:0 0 auto}
+    .select-caret{position:absolute;right:6px;top:50%;transform:translateY(-50%);pointer-events:none;
+      color:rgba(255,255,255,.4);font-size:10px}
+
+    /* phantom buttons: pill */
+    .p-btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:.06em;
+      text-transform:uppercase;border-radius:999px;padding:14px 30px;cursor:none;border:1px solid #fff;
+      transition:transform .25s cubic-bezier(.2,.8,.2,1),background-color .2s,color .2s,border-color .2s,opacity .2s}
+    .p-btn-primary{background:#fff;color:#000}
+    .p-btn-primary:hover:not(:disabled){transform:translateY(-3px)}
+
+    /* balance / history surfaces (rendered by finanzamt.js) */
+    .fa-loading{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
+      letter-spacing:.2em;color:var(--mut)}
+    /* JS renders inline-styled <li> rows; nudge them onto hairline + mono.
+       owed person uses var(--accent)=#ff2244 (red), amount uses var(--gold). */
+    #fa-balances li,#fa-history li{font-family:'JetBrains Mono',monospace !important;
+      font-size:13px !important;letter-spacing:.02em}
+  </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <div class="page-header">
-    <div class="flex items-center gap-4">
-      <a href="/dashboard.html" class="btn btn-secondary btn-sm">&#8592; Zurück</a>
-      <span style="font-weight:700;font-size:18px">Finanzamt</span>
-    </div>
-    <div class="logo-text" style="font-size:24px">LVL³</div>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- floating header -->
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">Finanzamt</span>
   </div>
+  <div class="hdr-right">
+    <span class="type-pill">Tool</span>
+    <a href="/dashboard.html" class="p-btn p-btn-primary" style="padding:9px 18px;font-size:11px;text-decoration:none">Zurück</a>
+  </div>
+</header>
 
-  <!-- Main -->
-  <div class="benzin-layout" style="padding:40px 20px">
+<!-- full-bleed tool stage -->
+<main class="stage">
 
-    <!-- Title Card -->
-    <div class="card" style="margin-bottom:20px;text-align:center">
-      <h1 style="font-size:26px;margin-bottom:6px">Finanzamt</h1>
-      <p style="color:var(--text-dim);font-size:15px">Fick den Kapitalismus</p>
+  <div class="p-kicker">LVL³ · Schulden & Zahlungen</div>
+  <h1 class="p-title">Finanz<br>amt</h1>
+  <p class="p-sub">Fick den Kapitalismus</p>
+
+  <!-- ── Zahlung eintragen ── -->
+  <section class="sec">
+    <div class="sec-label">Zahlung eintragen</div>
+
+    <div class="fa-sentence">
+      <span>Ich habe am</span>
+      <input id="fa-date" type="date" class="p-field" style="width:auto">
+      <span>insgesamt</span>
+      <input id="fa-amount" type="number" class="p-field" min="0.01" step="0.01" placeholder="0,00" style="width:120px">
+      <span>€ für</span>
+      <span class="select-wrap">
+        <select id="fa-person" class="p-field" style="padding-right:34px">
+          <option value="">— Person —</option>
+        </select>
+        <span class="select-caret">&#9660;</span>
+      </span>
+      <span>gezahlt.</span>
     </div>
 
-    <!-- Input Card -->
-    <div class="card" style="margin-bottom:20px;text-align:left">
-      <h2 style="font-size:16px;margin-bottom:20px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Zahlung eintragen</h2>
-
-      <div class="form-group" style="margin-bottom:0">
-        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:15px;line-height:2">
-          <span>Ich habe am</span>
-          <input
-            id="fa-date"
-            type="date"
-            class="input-field"
-            style="width:auto;flex:0 0 auto"
-          >
-          <span>insgesamt</span>
-          <input
-            id="fa-amount"
-            type="number"
-            class="input-field"
-            min="0.01"
-            step="0.01"
-            placeholder="0,00"
-            style="width:110px;flex:0 0 auto"
-          >
-          <span>€ für</span>
-          <div style="position:relative;flex:0 0 auto">
-            <select id="fa-person" class="select-field" style="padding-right:32px">
-              <option value="">— Person —</option>
-            </select>
-            <div style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-dim)">&#9660;</div>
-          </div>
-          <span>gezahlt.</span>
-        </div>
-      </div>
-
-      <div style="margin-top:20px">
-        <button id="fa-submit" class="btn btn-primary" style="justify-content:center;font-size:15px;padding:12px 28px">
-          Eintragen
-        </button>
-      </div>
+    <div style="margin-top:30px">
+      <button id="fa-submit" class="p-btn p-btn-primary">Eintragen</button>
     </div>
+  </section>
 
-    <!-- Balances Card -->
-    <div class="card" style="margin-bottom:20px;text-align:left">
-      <h2 style="font-size:16px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Wer schuldet wem?</h2>
-      <div id="fa-balances">
-        <div style="color:var(--text-dim);font-size:14px">Wird geladen...</div>
-      </div>
+  <!-- ── Balances ── -->
+  <section class="sec">
+    <div class="sec-label">Wer schuldet wem?</div>
+    <div id="fa-balances">
+      <div class="fa-loading">Wird geladen…</div>
     </div>
+  </section>
 
-    <!-- History Card -->
-    <div class="card" style="margin-bottom:20px;text-align:left">
-      <h2 style="font-size:16px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Verlauf</h2>
-      <div id="fa-history">
-        <div style="color:var(--text-dim);font-size:14px">Wird geladen...</div>
-      </div>
+  <!-- ── History ── -->
+  <section class="sec">
+    <div class="sec-label">Verlauf</div>
+    <div id="fa-history">
+      <div class="fa-loading">Wird geladen…</div>
     </div>
+  </section>
 
-    <div style="height:40px"></div>
+</main>
 
-  </div><!-- /.benzin-layout -->
+<script src="/js/socket-utils.js?v=3"></script>
+<script src="/js/games/finanzamt.js?v=1"></script>
+<script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script>
+  // ── Custom cursor (dot + ring), self-contained ──
+  (function(){
+    if (window.matchMedia && window.matchMedia('(hover:none)').matches) return;
+    const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+    let rx=0,ry=0,tx=0,ty=0;
+    window.addEventListener('mousemove',e=>{
+      tx=e.clientX;ty=e.clientY;
+      cur.style.left=tx+'px';cur.style.top=ty+'px';
+      const hit=e.target.closest('button,a,input,select');
+      if(hit){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(1)';cur.style.width='5px';cur.style.height='5px';}
+      else{ring.style.opacity='0';ring.style.transform='translate(-50%,-50%) scale(.4)';cur.style.width='8px';cur.style.height='8px';}
+    });
+    (function loop(){ rx+=(tx-rx)*.18; ry+=(ty-ry)*.18; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  })();
 
-  <script src="/js/socket-utils.js?v=3"></script>
-  <script src="/js/games/finanzamt.js?v=1"></script>
-  <script src="/js/bug-report.js?v=1"></script>
+  // ── Entrance animation ──
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!window.gsap) return;
+    gsap.from('.site-header > *',{y:-14,opacity:0,duration:.7,stagger:.06,ease:'power3.out'});
+    gsap.from('.stage > .p-kicker, .stage > .p-title, .stage > .p-sub',{y:22,opacity:0,duration:.8,stagger:.07,delay:.15,ease:'power3.out'});
+    gsap.from('.sec',{y:24,opacity:0,duration:.7,stagger:.1,delay:.3,ease:'power3.out'});
+  });
+</script>
 </body>
 </html>

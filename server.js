@@ -571,6 +571,19 @@ function generateUniqueCode() {
   return code;
 }
 
+// Build a { username: avatarUrl|null } map for a list of player usernames.
+// Lets clients render custom profile pictures in lobbies / scoreboards while
+// the existing string[] `players` shape stays untouched.
+function avatarsFor(players) {
+  const users = loadUsers();
+  const map = {};
+  (players || []).forEach(name => {
+    const u = users.find(x => x.username === name);
+    map[name] = (u && u.avatar) || null;
+  });
+  return map;
+}
+
 function handleLeave(socket) {
   const code = socket.roomCode;
   if (!code) return;
@@ -601,9 +614,9 @@ function handleLeave(socket) {
 
   if (room.host === socket.username) {
     room.host = room.players[0];
-    io.to(code).emit("room:host-changed", { host: room.host, players: room.players });
+    io.to(code).emit("room:host-changed", { host: room.host, players: room.players, avatars: avatarsFor(room.players) });
   } else {
-    io.to(code).emit("room:players", { players: room.players, host: room.host });
+    io.to(code).emit("room:players", { players: room.players, host: room.host, avatars: avatarsFor(room.players) });
   }
 }
 
@@ -643,6 +656,7 @@ io.on("connection", (socket) => {
       gameType,
       players: [socket.username],
       host: socket.username,
+      avatars: avatarsFor(room.players),
       settings: room.settings,
       isHost: true
     });
@@ -679,11 +693,12 @@ io.on("connection", (socket) => {
       gameType: room.gameType,
       players: room.players,
       host: room.host,
+      avatars: avatarsFor(room.players),
       settings: room.settings,
       isHost: room.host === socket.username
     });
 
-    io.to(upperCode).emit("room:players", { players: room.players, host: room.host });
+    io.to(upperCode).emit("room:players", { players: room.players, host: room.host, avatars: avatarsFor(room.players) });
   });
 
   socket.on("room:leave", () => handleLeave(socket));

@@ -6,196 +6,329 @@
   <title>Benzinrechner - Lvl 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=5">
-  <link rel="stylesheet" href="/css/games.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=4">
   <script src="/js/theme.js?v=4"></script>
+  <style>
+    /* ─────────────────────────────────────────────
+       PHANTOM.LAND — Benzinrechner (TOOL, structural redesign)
+       Full-bleed black, no boxed containers, floating
+       content, hairline dividers, oversized editorial type,
+       custom cursor, film grain + vignette.
+       Every JS-bound id preserved (tank-volume, oil-ratio,
+       custom-group, custom-pct, petrol-price, calc-btn,
+       results-card, ref-card, result-oil-ml, result-ratio-label,
+       stat-*, ref-tbody) + .hidden toggle + .benzin-error-msg.
+       ───────────────────────────────────────────── */
+    *{box-sizing:border-box}
+    :root{ --acc:#ff2244; --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+           --dim:rgba(255,255,255,.55); --mut:rgba(255,255,255,.32); }
+    html,body{margin:0;padding:0}
+    body{
+      background:#000;color:#fff;min-height:100vh;overflow-x:hidden;
+      font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;
+      cursor:none;
+    }
+    .mono{font-family:'JetBrains Mono',monospace}
+    .hidden{display:none !important}
+
+    /* ── film grain + vignette ── */
+    #grain{position:fixed;inset:0;z-index:70;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    #vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
+      background:radial-gradient(120% 120% at 50% 42%, transparent 30%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.92) 100%)}
+
+    /* ── custom cursor ── */
+    #cursor{position:fixed;top:0;left:0;z-index:90;pointer-events:none;width:8px;height:8px;border-radius:50%;
+      background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference;
+      transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
+    #cursor-ring{position:fixed;top:0;left:0;z-index:89;pointer-events:none;width:40px;height:40px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%) scale(.4);opacity:0;
+      transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+    @media(hover:none){ body{cursor:auto} #cursor,#cursor-ring{display:none} }
+
+    /* ── floating top header (no bar / no card) ── */
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+      justify-content:space-between;padding:26px 34px;pointer-events:none}
+    .site-header > *{pointer-events:auto}
+    .hdr-left{display:flex;align-items:center;gap:20px}
+    .brand{font-weight:700;font-size:20px;letter-spacing:.01em;text-decoration:none;color:#fff;line-height:1}
+    .brand span{color:var(--acc)}
+    .hdr-div{width:1px;height:18px;background:var(--line-2);display:block}
+    .hdr-game{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.26em;
+      color:var(--dim);text-transform:uppercase}
+    .hdr-right{display:flex;align-items:center;gap:14px}
+    .type-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--mut);
+      border:1px solid var(--line-2);border-radius:999px;padding:5px 13px;text-transform:uppercase}
+
+    /* ── full-bleed tool stage ── */
+    .stage{position:relative;z-index:20;max-width:680px;margin:0 auto;
+      padding:150px 34px 90px}
+    @media(max-width:560px){ .stage{padding:124px 22px 70px} }
+
+    .p-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:20px}
+    .p-title{font-weight:700;font-size:clamp(40px,7vw,72px);line-height:.94;letter-spacing:-.02em;
+      text-transform:uppercase;margin:0}
+    .p-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--dim);margin-top:18px}
+
+    /* hairline section divider + mono micro-label */
+    .sec{margin-top:64px;padding-top:30px;border-top:1px solid var(--line)}
+    .sec-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:26px}
+
+    /* phantom inputs: bottom-border only */
+    .field-group{margin-bottom:30px}
+    .field-group:last-child{margin-bottom:0}
+    .field-label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;
+      text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+    .field-label .opt{color:var(--mut);text-transform:none;letter-spacing:.04em}
+    .p-field{width:100%;background:none;border:none;border-bottom:1px solid var(--line-2);color:#fff;
+      font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;padding:11px 2px;border-radius:0;
+      outline:none;transition:border-color .25s}
+    .p-field::placeholder{color:rgba(255,255,255,.25)}
+    .p-field:focus{border-bottom-color:#fff}
+    select.p-field{appearance:none;cursor:none;color:#fff}
+    select.p-field option{background:#0a0a0a;color:#fff}
+    .field-hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+      color:var(--mut);margin-top:8px}
+    .select-wrap{position:relative}
+    .select-caret{position:absolute;right:4px;top:50%;transform:translateY(-50%);pointer-events:none;
+      color:rgba(255,255,255,.4);font-size:10px}
+    /* JS-created inline error (parentElement = .field-group) */
+    .benzin-error-msg{color:var(--acc);font-family:'JetBrains Mono',monospace;font-size:10px;
+      letter-spacing:.14em;text-transform:uppercase;margin-top:8px}
+
+    /* phantom buttons: pill */
+    .p-btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:.06em;
+      text-transform:uppercase;border-radius:999px;padding:16px 30px;cursor:none;border:1px solid #fff;
+      transition:transform .25s cubic-bezier(.2,.8,.2,1),background-color .2s,color .2s,border-color .2s,opacity .2s}
+    .p-btn-primary{background:#fff;color:#000}
+    .p-btn-primary:hover:not(:disabled){transform:translateY(-3px)}
+    .p-btn-full{width:100%;display:flex;align-items:center;justify-content:center;gap:10px}
+
+    /* big mono mix-ratio readout */
+    .result-readout{text-align:center;margin-top:6px}
+    .benzin-result{font-family:'JetBrains Mono',monospace;font-size:clamp(64px,16vw,112px);font-weight:700;
+      color:var(--acc);letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:8px 0 4px}
+    .benzin-result-label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.22em;
+      text-transform:uppercase;color:var(--dim)}
+
+    /* result stat blocks — hairline grid */
+    .benzin-breakdown{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:42px;
+      background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    @media(max-width:640px){ .benzin-breakdown{grid-template-columns:1fr 1fr} }
+    .benzin-stat{background:#000;padding:24px 18px;text-align:center}
+    .benzin-stat-value{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:#fff;
+      font-variant-numeric:tabular-nums}
+    .benzin-stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--mut);margin-top:8px}
+
+    /* tables — hairline rows, mono */
+    .tbl-wrap{overflow-x:auto}
+    table.benzin-tbl{width:100%;font-family:'JetBrains Mono',monospace;font-size:13px;border-collapse:collapse}
+    table.benzin-tbl th{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.2em;
+      color:var(--mut);padding:10px 12px;border-bottom:1px solid var(--line-2);text-align:right}
+    table.benzin-tbl th:first-child{text-align:left}
+    table.benzin-tbl td{padding:13px 12px;border-bottom:1px solid var(--line);
+      font-variant-numeric:tabular-nums;text-align:right}
+    table.benzin-tbl td:first-child{text-align:left}
+    table.benzin-tbl tr:last-child td{border-bottom:none}
+    .benzin-accent{color:var(--acc)}
+    .benzin-ml{color:rgba(255,255,255,.85)}
+    .benzin-dim{color:var(--mut)}
+
+    .benzin-hint{margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.85;
+      letter-spacing:.02em;color:var(--mut)}
+    .benzin-hint strong{color:var(--acc);letter-spacing:.18em;text-transform:uppercase}
+  </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <div class="page-header">
-    <div class="flex items-center gap-4">
-      <a href="/dashboard.html" class="btn btn-secondary btn-sm">&#8592; Zurück</a>
-      <span style="font-weight:700;font-size:18px">Benzinrechner</span>
-    </div>
-    <div class="logo-text" style="font-size:24px">LVL³</div>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- floating header -->
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">Benzinrechner</span>
   </div>
+  <div class="hdr-right">
+    <span class="type-pill">Tool</span>
+    <a href="/dashboard.html" class="p-btn p-btn-primary" style="padding:9px 18px;font-size:11px;text-decoration:none">Zurück</a>
+  </div>
+</header>
 
-  <!-- Main -->
-  <div class="benzin-layout" style="padding:40px 20px">
+<!-- full-bleed tool stage -->
+<main class="stage">
 
-    <!-- Title Card -->
-    <div class="card" style="margin-bottom:20px;text-align:center">
-      <h1 style="font-size:26px;margin-bottom:6px">2-Takt Mischungsrechner</h1>
-      <p style="color:var(--text-dim);font-size:15px">Für Mofas und andere 2-Takt Motoren</p>
+  <div class="p-kicker">LVL³ · 2-Takt Mischung</div>
+  <h1 class="p-title">Benzin<br>rechner</h1>
+  <p class="p-sub">Für Mofas und andere 2-Takt Motoren</p>
+
+  <!-- ── Eingabe ── -->
+  <section class="sec">
+    <div class="sec-label">Eingabe</div>
+
+    <!-- Tank volume -->
+    <div class="field-group">
+      <label class="field-label" for="tank-volume">Tankvolumen (Liter)</label>
+      <input id="tank-volume" type="number" class="p-field" min="0.5" max="20" step="0.1" value="1" placeholder="z.B. 3.5">
     </div>
 
-    <!-- Inputs Card -->
-    <div class="card" style="margin-bottom:20px;text-align:left">
-      <h2 style="font-size:16px;margin-bottom:20px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Eingabe</h2>
-
-      <!-- Tank volume -->
-      <div class="form-group">
-        <label class="label" for="tank-volume">Tankvolumen (Liter)</label>
-        <input
-          id="tank-volume"
-          type="number"
-          class="input-field"
-          min="0.5"
-          max="20"
-          step="0.1"
-          value="1"
-          placeholder="z.B. 3.5"
-        >
-      </div>
-
-      <!-- Oil ratio -->
-      <div class="form-group">
-        <label class="label" for="oil-ratio">Mischungsverhältnis</label>
-        <div style="position:relative">
-          <select id="oil-ratio" class="select-field">
-            <option value="4">1:25 (4%) — Sport / Einfahren</option>
-            <option value="3.03">1:33 (3%) — Mittel</option>
-            <option value="2" selected>1:50 (2%) — Standard</option>
-            <option value="1">1:100 (1%) — Modern / sparsam</option>
-            <option value="custom">Benutzerdefiniert</option>
-          </select>
-          <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-dim)">&#9660;</div>
-        </div>
-      </div>
-
-      <!-- Custom percentage (hidden by default) -->
-      <div class="form-group hidden" id="custom-group">
-        <label class="label" for="custom-pct">Eigener Prozentsatz (%)</label>
-        <input
-          id="custom-pct"
-          type="number"
-          class="input-field"
-          min="0.5"
-          max="10"
-          step="0.1"
-          value="2"
-          placeholder="z.B. 2.5"
-        >
-        <div style="font-size:12px;color:var(--text-dim);margin-top:6px">Zwischen 0.5% und 10%</div>
-      </div>
-
-      <!-- Petrol price -->
-      <div class="form-group" style="margin-bottom:0">
-        <label class="label" for="petrol-price">Benzinpreis Super E5 (€/Liter) <span style="font-weight:400;opacity:0.6">optional</span></label>
-        <input
-          id="petrol-price"
-          type="number"
-          class="input-field"
-          min="0"
-          max="5"
-          step="0.01"
-          value="1.79"
-          placeholder="z.B. 1.79"
-        >
+    <!-- Oil ratio -->
+    <div class="field-group">
+      <label class="field-label" for="oil-ratio">Mischungsverhältnis</label>
+      <div class="select-wrap">
+        <select id="oil-ratio" class="p-field">
+          <option value="4">1:25 (4%) — Sport / Einfahren</option>
+          <option value="3.03">1:33 (3%) — Mittel</option>
+          <option value="2" selected>1:50 (2%) — Standard</option>
+          <option value="1">1:100 (1%) — Modern / sparsam</option>
+          <option value="custom">Benutzerdefiniert</option>
+        </select>
+        <span class="select-caret">&#9660;</span>
       </div>
     </div>
 
-    <!-- Calculate Button -->
-    <button id="calc-btn" class="btn btn-primary w-full" style="margin-bottom:20px;justify-content:center;font-size:16px;padding:16px">
-      Berechnen
-    </button>
+    <!-- Custom percentage (hidden by default) -->
+    <div class="field-group hidden" id="custom-group">
+      <label class="field-label" for="custom-pct">Eigener Prozentsatz (%)</label>
+      <input id="custom-pct" type="number" class="p-field" min="0.5" max="10" step="0.1" value="2" placeholder="z.B. 2.5">
+      <div class="field-hint">Zwischen 0.5% und 10%</div>
+    </div>
 
-    <!-- Results Card -->
-    <div class="card hidden" id="results-card" style="margin-bottom:20px;text-align:center">
-      <div style="font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);margin-bottom:4px">Benötigtes 2-Takt Öl</div>
+    <!-- Petrol price -->
+    <div class="field-group">
+      <label class="field-label" for="petrol-price">Benzinpreis Super E5 (€/Liter) <span class="opt">optional</span></label>
+      <input id="petrol-price" type="number" class="p-field" min="0" max="5" step="0.01" value="1.79" placeholder="z.B. 1.79">
+    </div>
+
+    <div style="margin-top:34px">
+      <button id="calc-btn" class="p-btn p-btn-primary p-btn-full">Berechnen</button>
+    </div>
+  </section>
+
+  <!-- ── Ergebnis ── -->
+  <section class="sec hidden" id="results-card">
+    <div class="sec-label">Benötigtes 2-Takt Öl</div>
+    <div class="result-readout">
       <div class="benzin-result" id="result-oil-ml">— ml</div>
       <div class="benzin-result-label" id="result-ratio-label">bei 1:50 (2%)</div>
-
-      <div class="benzin-breakdown" style="margin-top:24px">
-        <div class="benzin-stat">
-          <div class="benzin-stat-value" id="stat-oil">—</div>
-          <div class="benzin-stat-label">Öl</div>
-        </div>
-        <div class="benzin-stat">
-          <div class="benzin-stat-value" id="stat-petrol">—</div>
-          <div class="benzin-stat-label">Benzin (Super E5)</div>
-        </div>
-        <div class="benzin-stat">
-          <div class="benzin-stat-value" id="stat-total">—</div>
-          <div class="benzin-stat-label">Gesamtmenge</div>
-        </div>
-        <div class="benzin-stat" id="stat-cost-wrap">
-          <div class="benzin-stat-value" id="stat-cost">—</div>
-          <div class="benzin-stat-label">Kosten</div>
-        </div>
-      </div>
     </div>
 
-    <!-- Quick Reference Table -->
-    <div class="card hidden" id="ref-card" style="margin-bottom:20px;text-align:left">
-      <h2 style="font-size:15px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">
-        Schnellreferenz — aktuelles Verhältnis
-      </h2>
-      <div style="overflow-x:auto">
-        <table id="ref-table" style="width:100%;border-collapse:collapse;font-size:14px">
-          <thead>
-            <tr style="border-bottom:1px solid var(--border)">
-              <th style="padding:8px 12px;text-align:left;color:var(--text-dim);font-weight:600">Tankgröße</th>
-              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Öl (ml)</th>
-              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Benzin (ml)</th>
-            </tr>
-          </thead>
-          <tbody id="ref-tbody">
-          </tbody>
-        </table>
+    <div class="benzin-breakdown">
+      <div class="benzin-stat">
+        <div class="benzin-stat-value" id="stat-oil">—</div>
+        <div class="benzin-stat-label">Öl</div>
+      </div>
+      <div class="benzin-stat">
+        <div class="benzin-stat-value" id="stat-petrol">—</div>
+        <div class="benzin-stat-label">Benzin (Super E5)</div>
+      </div>
+      <div class="benzin-stat">
+        <div class="benzin-stat-value" id="stat-total">—</div>
+        <div class="benzin-stat-label">Gesamtmenge</div>
+      </div>
+      <div class="benzin-stat" id="stat-cost-wrap">
+        <div class="benzin-stat-value" id="stat-cost">—</div>
+        <div class="benzin-stat-label">Kosten</div>
       </div>
     </div>
+  </section>
 
-    <!-- Info Card: Common ratios -->
-    <div class="card" style="text-align:left">
-      <h2 style="font-size:15px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">
-        Häufige Mischungsverhältnisse
-      </h2>
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:14px">
-          <thead>
-            <tr style="border-bottom:1px solid var(--border)">
-              <th style="padding:8px 12px;text-align:left;color:var(--text-dim);font-weight:600">Verhältnis</th>
-              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Prozent</th>
-              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Auf 1 L</th>
-              <th style="padding:8px 12px;text-align:right;color:var(--text-dim);font-weight:600">Auf 5 L</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom:1px solid var(--border)">
-              <td style="padding:10px 12px;font-weight:700;color:var(--accent)">1:25</td>
-              <td style="padding:10px 12px;text-align:right">4 %</td>
-              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">40 ml</td>
-              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">200 ml</td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--border)">
-              <td style="padding:10px 12px;font-weight:700;color:var(--green)">1:50</td>
-              <td style="padding:10px 12px;text-align:right">2 %</td>
-              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">20 ml</td>
-              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">100 ml</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 12px;font-weight:700;color:var(--text-dim)">1:100</td>
-              <td style="padding:10px 12px;text-align:right">1 %</td>
-              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">10 ml</td>
-              <td style="padding:10px 12px;text-align:right;color:var(--accent3)">50 ml</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div style="margin-top:16px;padding:12px 14px;background:rgba(6,182,212,0.07);border-radius:var(--radius-sm);border:1px solid rgba(6,182,212,0.2);font-size:13px;color:var(--text-dim);line-height:1.6">
-        <strong style="color:var(--accent3)">Hinweis:</strong> Das richtige Mischungsverhältnis steht im Handbuch deines Mofas / Motors.
-        Zu viel Öl kann zu Ablagerungen führen, zu wenig Öl kann den Motor beschädigen.
-      </div>
+  <!-- ── Schnellreferenz ── -->
+  <section class="sec hidden" id="ref-card">
+    <div class="sec-label">Schnellreferenz — aktuelles Verhältnis</div>
+    <div class="tbl-wrap">
+      <table id="ref-table" class="benzin-tbl">
+        <thead>
+          <tr>
+            <th>Tankgröße</th>
+            <th>Öl (ml)</th>
+            <th>Benzin (ml)</th>
+          </tr>
+        </thead>
+        <tbody id="ref-tbody"></tbody>
+      </table>
     </div>
+  </section>
 
-    <div style="height:40px"></div>
+  <!-- ── Häufige Verhältnisse ── -->
+  <section class="sec">
+    <div class="sec-label">Häufige Mischungsverhältnisse</div>
+    <div class="tbl-wrap">
+      <table class="benzin-tbl">
+        <thead>
+          <tr>
+            <th>Verhältnis</th>
+            <th>Prozent</th>
+            <th>Auf 1 L</th>
+            <th>Auf 5 L</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="benzin-accent" style="font-weight:700">1:25</td>
+            <td class="benzin-dim">4 %</td>
+            <td class="benzin-ml">40 ml</td>
+            <td class="benzin-ml">200 ml</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">1:50</td>
+            <td class="benzin-dim">2 %</td>
+            <td class="benzin-ml">20 ml</td>
+            <td class="benzin-ml">100 ml</td>
+          </tr>
+          <tr>
+            <td class="benzin-dim" style="font-weight:700">1:100</td>
+            <td class="benzin-dim">1 %</td>
+            <td class="benzin-ml">10 ml</td>
+            <td class="benzin-ml">50 ml</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="benzin-hint">
+      <strong>Hinweis</strong> — Das richtige Mischungsverhältnis steht im Handbuch deines Mofas / Motors.
+      Zu viel Öl kann zu Ablagerungen führen, zu wenig Öl kann den Motor beschädigen.
+    </div>
+  </section>
 
-  </div><!-- /.benzin-layout -->
+</main>
 
-  <script src="/js/games/benzinrechner.js"></script>
-  <script src="/js/bug-report.js?v=1"></script>
+<script src="/js/games/benzinrechner.js"></script>
+<script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script>
+  // ── Custom cursor (dot + ring), self-contained ──
+  (function(){
+    if (window.matchMedia && window.matchMedia('(hover:none)').matches) return;
+    const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+    let rx=0,ry=0,tx=0,ty=0;
+    window.addEventListener('mousemove',e=>{
+      tx=e.clientX;ty=e.clientY;
+      cur.style.left=tx+'px';cur.style.top=ty+'px';
+      const hit=e.target.closest('button,a,input,select');
+      if(hit){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(1)';cur.style.width='5px';cur.style.height='5px';}
+      else{ring.style.opacity='0';ring.style.transform='translate(-50%,-50%) scale(.4)';cur.style.width='8px';cur.style.height='8px';}
+    });
+    (function loop(){ rx+=(tx-rx)*.18; ry+=(ty-ry)*.18; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  })();
+
+  // ── Entrance animation ──
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!window.gsap) return;
+    gsap.from('.site-header > *',{y:-14,opacity:0,duration:.7,stagger:.06,ease:'power3.out'});
+    gsap.from('.stage > .p-kicker, .stage > .p-title, .stage > .p-sub',{y:22,opacity:0,duration:.8,stagger:.07,delay:.15,ease:'power3.out'});
+    gsap.from('.sec',{y:24,opacity:0,duration:.7,stagger:.1,delay:.3,ease:'power3.out'});
+  });
+</script>
 </body>
 </html>

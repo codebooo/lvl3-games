@@ -3,49 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lvl 3 Games</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=5">
+  <title>LVL³ — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
   <script src="/js/theme.js?v=4"></script>
+  <style>
+    body { cursor: none; overflow: hidden; }
+    input:-webkit-autofill { -webkit-box-shadow: 0 0 0 100px #000 inset !important; -webkit-text-fill-color: #fff !important; }
+    input:focus { outline: none; }
+    ::placeholder { color: rgba(255,255,255,.22) !important; }
+    @keyframes lvspin { to { transform: rotate(360deg); } }
+    @media (hover: none) { body { cursor: auto; } }
+  </style>
 </head>
-<body class="centered">
+<body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Space Grotesk',sans-serif">
 
-  <div style="width:100%;max-width:420px">
+  <!-- Ambient bg canvas (Three.js sphere, same as launcher but dimmed) -->
+  <canvas id="bg-canvas" style="position:fixed;inset:0;z-index:0;opacity:.38;pointer-events:none"></canvas>
+  <!-- Vignette -->
+  <div style="position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 50%,transparent 18%,rgba(0,0,0,.65) 70%,rgba(0,0,0,.98) 100%)"></div>
 
-    <!-- Logo -->
-    <div style="text-align:center;margin-bottom:32px">
-      <div class="logo-text" style="font-size:52px;margin-bottom:8px">LVL<span>³</span></div>
-      <p style="color:var(--text-dim);font-size:15px">Wo Freundschaft auf Skill trifft</p>
+  <!-- Form -->
+  <div id="form-wrap" style="position:relative;z-index:2;width:min(420px,90vw)">
+
+    <div style="margin-bottom:52px">
+      <div style="font-size:52px;font-weight:700;letter-spacing:-.01em;line-height:1">LVL<span style="color:#ff2244">³</span></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;color:rgba(255,255,255,.45);margin-top:12px;text-transform:uppercase">Privates Party-Spiele-Archiv</div>
     </div>
 
-    <!-- Login Card -->
-    <div class="card">
-      <h2 style="margin-bottom:24px">Einloggen</h2>
-      <form id="login-form">
-        <div class="form-group">
-          <label class="label" for="inp-username">Benutzername</label>
-          <input id="inp-username" type="text" class="input-field" placeholder="Dein Name" autocomplete="username" required>
-        </div>
-        <div class="form-group">
-          <label class="label" for="inp-password">Passwort</label>
-          <input id="inp-password" type="password" class="input-field" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <div id="login-error" class="error-msg"></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
-          <input type="checkbox" id="inp-remember" style="width:15px;height:15px;cursor:pointer;accent-color:var(--accent)">
-          <label for="inp-remember" style="font-size:13px;color:var(--text-dim);cursor:pointer">Eingeloggt bleiben</label>
-        </div>
-        <button type="submit" class="btn btn-primary w-full btn-lg mt-4" id="login-btn">Einloggen</button>
-      </form>
-    </div>
+    <h1 style="font-size:clamp(32px,5vw,48px);font-weight:700;line-height:.96;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:44px">Willkommen<br>zurück.</h1>
 
-    <p style="text-align:center;margin-top:20px;color:var(--text-muted);font-size:12px">Lvl 3 Games — Nur für Freunde</p>
+    <form id="login-form" style="display:flex;flex-direction:column;gap:0">
+
+      <div id="el-user" style="border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:18px;margin-bottom:18px;transition:border-color .3s">
+        <label style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;color:rgba(255,255,255,.4);display:block;margin-bottom:10px">BENUTZERNAME</label>
+        <input id="inp-username" type="text" autocomplete="username" placeholder="Dein Name"
+          style="width:100%;background:none;border:none;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:500;padding:0">
+      </div>
+
+      <div id="el-pass" style="border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:18px;margin-bottom:36px;transition:border-color .3s">
+        <label style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;color:rgba(255,255,255,.4);display:block;margin-bottom:10px">PASSWORT</label>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input id="inp-password" type="password" autocomplete="current-password" placeholder="••••••••"
+            style="flex:1;background:none;border:none;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:500;padding:0">
+          <button type="button" id="btn-eye" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:4px;transition:color .2s">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="login-error" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:#ff2244;min-height:20px;margin-bottom:16px;transition:opacity .3s" class="error-msg"></div>
+
+      <button id="login-btn" type="submit"
+        style="width:100%;padding:18px 32px;border-radius:999px;border:none;background:#fff;color:#000;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s;display:flex;align-items:center;justify-content:center;gap:10px">
+        <span id="btn-text">Spielen</span>
+        <svg id="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+
+    <div style="margin-top:28px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:rgba(255,255,255,.25);text-align:center">
+      VIER SPIELER · NEUN SPIELE · UNVERGESSLICHE ABENDE
+    </div>
   </div>
 
-  <!-- Change Password Overlay -->
-  <div id="change-pw-overlay" class="modal-overlay hidden">
+  <!-- Custom cursor -->
+  <div id="cursor" style="position:fixed;top:0;left:0;z-index:50;pointer-events:none;width:8px;height:8px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference"></div>
+
+  <!-- Change Password Overlay (required by auth-client.js for first-login flow) -->
+  <div id="change-pw-overlay" class="modal-overlay hidden" style="z-index:10">
     <div class="modal">
       <h2>Willkommen!</h2>
       <p>Du meldest dich zum ersten Mal an. Bitte ändere dein temporäres Passwort.</p>
@@ -65,5 +90,75 @@
   </div>
 
   <script src="/js/auth-client.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script>
+    // Cursor
+    window.addEventListener('mousemove', e => {
+      const c = document.getElementById('cursor');
+      if (c) { c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px'; }
+    });
+
+    // Focus effects on inputs
+    document.getElementById('inp-username').addEventListener('focus', () => document.getElementById('el-user').style.borderBottomColor = 'rgba(255,255,255,.7)');
+    document.getElementById('inp-username').addEventListener('blur',  () => document.getElementById('el-user').style.borderBottomColor = 'rgba(255,255,255,.15)');
+    document.getElementById('inp-password').addEventListener('focus', () => document.getElementById('el-pass').style.borderBottomColor = 'rgba(255,255,255,.7)');
+    document.getElementById('inp-password').addEventListener('blur',  () => document.getElementById('el-pass').style.borderBottomColor = 'rgba(255,255,255,.15)');
+
+    // Password toggle
+    document.getElementById('btn-eye').addEventListener('click', () => {
+      const inp = document.getElementById('inp-password');
+      inp.type = inp.type === 'text' ? 'password' : 'text';
+    });
+
+    // Button hover: lift up, slide back down
+    const btn = document.getElementById('login-btn');
+    btn.addEventListener('mouseenter', () => btn.style.transform = 'translateY(-5px)');
+    btn.addEventListener('mouseleave', () => btn.style.transform = 'translateY(0)');
+
+    // Entrance animation (runs after GSAP loads)
+    window.addEventListener('load', () => {
+      if (!window.gsap) return;
+      gsap.from('#form-wrap > *', { y: 28, opacity: 0, duration: .85, stagger: .09, ease: 'power3.out', delay: .1 });
+    });
+
+    // Ambient rotating sphere bg (runs after Three.js loads)
+    window.addEventListener('load', () => {
+      if (!window.THREE) return;
+      const cv = document.getElementById('bg-canvas');
+      cv.width = window.innerWidth; cv.height = window.innerHeight;
+      const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+      renderer.setClearColor(0x000000, 0);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      renderer.setSize(cv.width, cv.height);
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(55, cv.width / cv.height, 0.1, 100);
+      camera.rotation.order = 'YXZ';
+      // Minimal plane tiles on a sphere
+      const geo = new THREE.PlaneGeometry(1, 1, 8, 8);
+      const COLS = 10, ROWS = 5, lonSpan = Math.PI * 2 / COLS, latStep = 0.38;
+      const HUES = [352, 212, 150, 28, 46, 280, 190, 96, 322];
+      const vert = `varying vec2 vUv;uniform float uLon,uLat,uLonSpan,uLatSpan;void main(){vUv=uv;float lon=uLon+(uv.x-.5)*uLonSpan;float lat=uLat+(uv.y-.5)*uLatSpan;float cl=cos(lat);vec3 p=10.*vec3(cl*sin(lon),sin(lat),-cl*cos(lon));gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`;
+      const frag = `precision highp float;varying vec2 vUv;uniform float uTime,uHue,uSeed;float h21(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.31);return fract(p.x*p.y);}float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1.,0.)),u.x),mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),u.x),u.y);}float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*noise(p);p*=2.;a*=.5;}return v;}vec3 hsl2rgb(vec3 c){vec3 rgb=clamp(abs(mod(c.x*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);return c.z+c.y*(rgb-.5)*(1.-abs(2.*c.z-1.));}void main(){float h=uHue/360.;vec2 pm=(vUv-.5)*2.;float t=uTime*.04;float n=fbm(pm*1.8+vec2(t+uSeed,-t*.7+uSeed*.5));vec3 dark=hsl2rgb(vec3(h,.6,.06));vec3 hi=hsl2rgb(vec3(fract(h-.04),.8,.35));vec3 col=mix(dark,hi,smoothstep(.2,.8,n));col*=mix(.4,1.,smoothstep(1.2,.1,length(pm)));gl_FragColor=vec4(col,.5);}`;
+      const tiles = [];
+      for (let i = 0; i < ROWS; i++) {
+        const lat = (i - (ROWS - 1) / 2) * latStep;
+        for (let j = 0; j < COLS; j++) {
+          const lon = j * lonSpan, gi = (i * COLS + j) % HUES.length;
+          const mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, transparent: true,
+            uniforms: { uTime: { value: 0 }, uHue: { value: HUES[gi] }, uSeed: { value: Math.random() * 80 },
+              uLon: { value: lon }, uLat: { value: lat }, uLonSpan: { value: lonSpan * .93 }, uLatSpan: { value: latStep * .91 } } });
+          const mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; scene.add(mesh);
+          tiles.push({ mat, lon, lat });
+        }
+      }
+      let yaw = 0;
+      const clock = new THREE.Clock();
+      (function raf() { requestAnimationFrame(raf); const tt = clock.getElapsedTime(); yaw -= 4e-4; camera.rotation.y = yaw;
+        tiles.forEach(t => t.mat.uniforms.uTime.value = tt + t.lon); renderer.render(scene, camera); })();
+      window.addEventListener('resize', () => { cv.width = window.innerWidth; cv.height = window.innerHeight;
+        camera.aspect = cv.width / cv.height; camera.updateProjectionMatrix(); renderer.setSize(cv.width, cv.height); });
+    });
+  </script>
 </body>
 </html>

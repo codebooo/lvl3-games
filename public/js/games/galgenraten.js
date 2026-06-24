@@ -9,6 +9,7 @@
   var settings = { playMode: "solo", wordMode: "pick", difficulty: "normal" };
   var myTeam = null;
   var lastPhase = null;
+  var currentAvatars = {};
 
   var ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ".split("");
   var socket = window.lvl3.socket;
@@ -72,15 +73,17 @@
   // ── Room events ──
   socket.on("room:created", function (data) {
     roomCode = data.code; isHost = true; players = data.players; host = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     settings = mergeSettings(data.settings); enterLobby();
   });
   socket.on("room:joined", function (data) {
     roomCode = data.code; isHost = data.isHost; players = data.players; host = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     settings = mergeSettings(data.settings); enterLobby();
   });
   socket.on("room:error", function (data) { var err = $("join-error"); if (err) err.textContent = data.message || "Fehler"; });
-  socket.on("room:players", function (data) { players = data.players; host = data.host; renderLobby(); });
-  socket.on("room:host-changed", function (data) { host = data.host; players = data.players; isHost = (host === username); renderLobby(); });
+  socket.on("room:players", function (data) { players = data.players; host = data.host; if (data.avatars) currentAvatars = data.avatars; renderLobby(); });
+  socket.on("room:host-changed", function (data) { host = data.host; players = data.players; isHost = (host === username); if (data.avatars) currentAvatars = data.avatars; renderLobby(); });
   socket.on("room:settings-updated", function (data) { settings = mergeSettings(data); renderLobby(); });
   socket.on("game:error", function (data) { window.lvl3.showToast(data.message || "Fehler", "error"); });
 
@@ -101,7 +104,7 @@
   }
 
   function renderLobby() {
-    window.lvl3.renderPlayerList($("player-list"), players, host, {});
+    window.lvl3.renderPlayerList($("player-list"), players, host, {}, currentAvatars);
     var hostPanel = $("host-settings"), guestPanel = $("guest-settings");
     if (hostPanel) hostPanel.style.display = isHost ? "" : "none";
     if (guestPanel) guestPanel.style.display = isHost ? "none" : "";

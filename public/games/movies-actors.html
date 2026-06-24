@@ -6,399 +6,370 @@
   <title>Filme &amp; Schauspieler – Lvl 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css?v=5">
-  <link rel="stylesheet" href="/css/games.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=4">
   <script src="/js/theme.js?v=4"></script>
   <style>
-    /* ── Layout ── */
-    .game-layout {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 20px;
-      min-height: calc(100vh - 72px);
-      padding: 20px;
-      max-width: 1100px;
-      margin: 0 auto;
+    /* ─────────────────────────────────────────────
+       PHANTOM.LAND — Filme & Schauspieler (full structural redesign)
+       Full-bleed black, no boxed containers, floating
+       content, oversized editorial type, custom cursor,
+       film grain + vignette. Every JS-bound id preserved.
+       Category badge classes (.movie/.series/.actor) kept
+       as JS hooks but neutralized to mono hairline.
+       ───────────────────────────────────────────── */
+    *{box-sizing:border-box}
+    :root{ --acc:#ff2244; --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+           --dim:rgba(255,255,255,.55); --mut:rgba(255,255,255,.32); }
+    html,body{margin:0;padding:0}
+    body{
+      background:#000;color:#fff;min-height:100vh;overflow-x:hidden;
+      font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;
+      cursor:none;
     }
-    @media (max-width: 700px) {
-      .game-layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
-    }
+    .mono{font-family:'JetBrains Mono',monospace}
+    .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;
+            text-transform:uppercase;color:var(--mut)}
+    .hidden{display:none!important}
+    .text-center{text-align:center}
+    .text-dim{color:var(--dim)}
 
-    /* ── Header ── */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      height: 64px;
-      background: var(--surface);
-      border-bottom: 2px solid var(--border-thick);
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
+    /* ── film grain + vignette ── */
+    #grain{position:fixed;inset:0;z-index:70;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    #vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
+      background:radial-gradient(120% 120% at 50% 42%, transparent 30%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.92) 100%)}
 
-    /* ── Sidebar ── */
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .room-code-box {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 20px;
-      text-align: center;
-      border: 1px solid var(--border);
-    }
-    .room-code-box .label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-dim);
-      margin-bottom: 6px;
-    }
-    .room-code-box .code {
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: 6px;
-      color: var(--accent);
-    }
+    /* ── custom cursor ── */
+    #cursor{position:fixed;top:0;left:0;z-index:90;pointer-events:none;width:8px;height:8px;border-radius:50%;
+      background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference;
+      transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
+    #cursor-ring{position:fixed;top:0;left:0;z-index:89;pointer-events:none;width:40px;height:40px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%) scale(.4);opacity:0;
+      transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+    @media(hover:none){ body{cursor:auto} #cursor,#cursor-ring{display:none} }
 
-    /* ── Main panel ── */
-    .main-panel {
-      background: var(--card);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow: hidden;
-      min-height: 520px;
-    }
+    /* ── floating top header ── */
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+      justify-content:space-between;padding:26px 34px;pointer-events:none}
+    .site-header > *{pointer-events:auto}
+    .hdr-left{display:flex;align-items:center;gap:20px}
+    .brand{font-weight:700;font-size:20px;letter-spacing:.01em;text-decoration:none;color:#fff;line-height:1}
+    .brand span{color:var(--acc)}
+    .hdr-div{width:1px;height:18px;background:var(--line-2);display:block}
+    .hdr-game{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.26em;
+      color:var(--dim);text-transform:uppercase}
+    .hdr-right{display:flex;align-items:center;gap:14px}
+    .type-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--mut);
+      border:1px solid var(--line-2);border-radius:999px;padding:5px 13px;text-transform:uppercase}
+    #user-name{font-weight:500;font-size:13px;letter-spacing:.01em}
 
-    /* ── Screens ── */
-    .screen { display: none; padding: 32px; flex: 1; flex-direction: column; align-items: center; justify-content: center; }
-    .screen.active { display: flex; }
+    /* ── top hairline timer track ── */
+    .timer-bar-wrap{position:fixed;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.06);z-index:45}
+    .timer-bar{height:100%;background:var(--acc);width:100%;transition:width 1s linear}
 
-    /* ── Lobby ── */
-    .lobby-inner { max-width: 460px; width: 100%; }
-    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-    @media (max-width: 480px) { .settings-grid { grid-template-columns: 1fr; } }
-    .setting-block label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* ── left floating rail ── */
+    .rail{position:fixed;left:34px;top:118px;bottom:40px;width:210px;z-index:30;
+      display:flex;flex-direction:column;gap:30px;pointer-events:none}
+    .rail > *{pointer-events:auto}
+    .rail-block{display:flex;flex-direction:column;gap:12px}
+    .rail-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;letter-spacing:.16em;
+      color:var(--acc);line-height:1}
+    .rail-players{flex:1;min-height:0;overflow-y:auto}
+    .player-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+    /* socket-utils renderPlayerList builds .player-item / .player-avatar / .player-name / .player-score */
+    .player-item{display:flex;align-items:center;gap:11px;padding:11px 0;
+      border-bottom:1px solid var(--line);background:transparent;border-radius:0}
+    .player-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:600;flex:0 0 auto;color:#fff;overflow:hidden;
+      background-size:cover;background-position:center;background-repeat:no-repeat}
+    .player-name,.player-item .pname,.player-item span:not(.player-score):not(.player-avatar){
+      font-family:'Space Grotesk',sans-serif;font-size:13px;color:#fff}
+    .player-score{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc)}
+    @media(max-width:880px){ .rail{display:none} }
 
-    /* ── Timer bar ── */
-    .timer-bar-wrap {
-      height: 5px;
-      background: rgba(255,255,255,0.07);
-      position: absolute;
-      top: 0; left: 0; right: 0;
-    }
-    .timer-bar {
-      height: 100%;
-      background: var(--accent);
-      transition: width 1s linear;
-      border-radius: 0 3px 3px 0;
-    }
+    /* ── center stage ── */
+    .stage{position:relative;z-index:20;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:120px 34px 60px 34px}
+    /* rail is position:fixed and floats over the left edge — stage centers in the full viewport */
+    .screen{display:none;width:100%;max-width:620px;flex-direction:column;align-items:center;text-align:center}
+    .screen.active{display:flex}
 
-    /* ── Category badge ── */
-    .category-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 16px;
-    }
-    .category-badge.movie  { background: rgba(233,69,96,0.15);  color: var(--accent); border: 1px solid rgba(233,69,96,0.3); }
-    .category-badge.series { background: rgba(124,58,237,0.15); color: var(--accent2); border: 1px solid rgba(124,58,237,0.3); }
-    .category-badge.actor  { background: rgba(6,182,212,0.15);  color: var(--accent3); border: 1px solid rgba(6,182,212,0.3); }
+    /* shared phantom type */
+    .p-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:22px}
+    .p-title{font-weight:700;font-size:clamp(44px,8vw,86px);line-height:.92;letter-spacing:-.02em;
+      text-transform:uppercase;margin:0}
+    .p-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--dim);margin-top:20px}
 
-    /* ── Poster / photo ── */
-    .poster-wrap {
-      position: relative;
-      display: inline-block;
-    }
-    .movie-poster {
-      width: 230px;
-      height: auto;
-      object-fit: cover;
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow);
-      display: block;
-    }
-    .poster-placeholder {
-      width: 230px;
-      height: 344px;
-      background: var(--surface);
-      border-radius: var(--radius-sm);
-      border: 2px dashed var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48px;
-    }
+    /* phantom inputs */
+    .p-field,.input-field{width:100%;background:none;border:none;border-bottom:1px solid var(--line-2);color:#fff;
+      font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;padding:12px 2px;border-radius:0;
+      outline:none;transition:border-color .25s}
+    .p-field::placeholder,.input-field::placeholder{color:rgba(255,255,255,.25)}
+    .p-field:focus,.input-field:focus{border-bottom-color:#fff}
+    .input-field:disabled{opacity:.5}
+    select.p-field,select.input-field{appearance:none;cursor:none;color:#fff}
+    select.p-field option,select.input-field option{background:#0a0a0a;color:#fff}
 
-    /* ── Reveal answer box ── */
-    .reveal-answer {
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--green);
-      margin: 12px 0 4px;
-    }
-    .reveal-next-label {
-      font-size: 13px;
-      color: var(--text-dim);
-    }
+    /* phantom buttons */
+    .p-btn,.btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:.04em;
+      text-transform:uppercase;border-radius:999px;padding:16px 30px;cursor:none;border:1px solid #fff;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+      transition:transform .25s cubic-bezier(.2,.8,.2,1),background-color .2s,color .2s,border-color .2s,opacity .2s}
+    .p-btn-primary,.btn-primary{background:#fff;color:#000;border-color:#fff}
+    .p-btn-primary:hover:not(:disabled),.btn-primary:hover:not(:disabled){transform:translateY(-3px)}
+    .p-btn-ghost,.btn-secondary{background:transparent;color:#fff;border-color:var(--line-2)}
+    .p-btn-ghost:hover:not(:disabled),.btn-secondary:hover:not(:disabled){transform:translateY(-3px);border-color:#fff}
+    .p-btn:disabled,.btn:disabled{opacity:.32}
+    .p-btn-full,.btn-full{width:100%;justify-content:center;display:flex;align-items:center;gap:10px}
+    .btn-sm{padding:9px 18px;font-size:11px}
 
-    /* ── Progress ── */
-    .progress-label {
-      font-size: 12px;
-      color: var(--text-dim);
-      text-align: center;
-      margin-bottom: 8px;
-    }
+    /* join / lobby blocks */
+    .stack{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px;margin:38px auto 0}
+    .join-row{display:flex;gap:10px}
+    .join-row .p-field,.join-row .input-field{text-align:center;letter-spacing:.4em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:15px}
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:0 auto 26px;max-width:460px;width:100%;text-align:left}
+    @media(max-width:520px){.settings-grid{grid-template-columns:1fr}}
+    .setting-block label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;
+      text-transform:uppercase;color:var(--dim);margin-bottom:10px}
 
-    /* ── Input ── */
-    .input-field {
-      width: 100%;
-      background: rgba(255,255,255,0.05);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      font-family: 'Poppins', sans-serif;
-      font-size: 16px;
-      padding: 12px 16px;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .input-field:focus { border-color: var(--accent); }
-    .input-field:disabled { opacity: 0.5; cursor: not-allowed; }
-    select.input-field { cursor: pointer; }
+    /* countdown */
+    .countdown-number{font-weight:700;font-size:clamp(120px,22vw,240px);line-height:1;letter-spacing:-.04em}
 
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 24px;
-      border-radius: var(--radius-sm);
-      font-family: 'Poppins', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-      border: none;
-    }
-    .btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-secondary { background: rgba(255,255,255,0.08); color: var(--text); border: 1px solid var(--border); }
-    .btn-full { width: 100%; }
-    .btn-sm { padding: 8px 16px; font-size: 13px; }
+    /* question screen */
+    #screen-question{max-width:640px;justify-content:flex-start}
+    .progress-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:16px}
+    /* category badge → neutral mono micro-label (override colored .movie/.series/.actor variants) */
+    .category-badge,
+    .category-badge.movie,
+    .category-badge.series,
+    .category-badge.actor{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+      font-size:10px;letter-spacing:.24em;text-transform:uppercase;padding:5px 12px;margin-bottom:18px;
+      border-radius:0;background:transparent;border:1px solid var(--line-2);color:var(--dim)}
+    .poster-wrap{position:relative;display:inline-block}
+    .movie-poster{width:230px;height:auto;object-fit:cover;display:block;border-radius:0;
+      border:1px solid var(--line);box-shadow:0 0 0 1px transparent}
+    .poster-placeholder{width:230px;height:344px;background:#0a0a0a;border-radius:0;border:1px solid var(--line);
+      display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--mut)}
+    .movie-hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--mut);text-align:center}
+    .answer-row{display:flex;gap:12px;width:100%;max-width:460px;margin:0 auto}
+    .answer-row .p-field,.answer-row .input-field{flex:1}
+    .answered-banner{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+      padding:10px 20px;border-radius:0;background:transparent;border:1px solid var(--line-2);color:var(--dim);
+      text-align:center;margin-top:14px}
+    #timer-display{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--acc)}
 
-    /* ── Player list ── */
-    .player-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .player-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); border: 1px solid transparent; }
-    .player-item.is-host { border-color: rgba(245,158,11,0.25); }
-    .player-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
-    .player-name { flex: 1; font-size: 14px; font-weight: 600; }
-    .player-score { font-size: 14px; font-weight: 700; color: var(--accent); min-width: 28px; text-align: right; }
-    .host-badge { font-size: 10px; background: rgba(245,158,11,0.2); color: var(--gold); padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+    /* reveal screen */
+    .reveal-answer{font-family:'Space Grotesk',sans-serif;font-weight:700;color:#fff;font-size:34px;letter-spacing:-.01em;
+      margin:14px 0 6px;text-transform:uppercase}
+    .reveal-next-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--dim)}
 
-    /* ── Misc ── */
-    .text-dim { color: var(--text-dim); }
-    .text-center { text-align: center; }
-    .mt-4 { margin-top: 16px; }
-    .mt-6 { margin-top: 24px; }
-    .gap-2 { gap: 8px; }
-    .flex { display: flex; }
-    .items-center { align-items: center; }
+    /* end screen */
+    #screen-end{max-width:560px}
+    .winner-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(40px,7vw,72px);line-height:.95;
+      letter-spacing:-.02em;text-transform:uppercase;color:var(--acc)}
+    .final-scores{font-family:'JetBrains Mono',monospace;margin-top:24px;width:100%;max-width:420px;margin-left:auto;margin-right:auto}
 
-    /* ── answered state ── */
-    .answered-banner {
-      padding: 10px 20px;
-      background: rgba(34,197,94,0.12);
-      border: 1px solid rgba(34,197,94,0.3);
-      border-radius: var(--radius-sm);
-      color: var(--green);
-      font-weight: 600;
-      text-align: center;
-      margin-top: 12px;
-    }
+    .err{color:var(--acc);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;min-height:16px;margin-top:4px}
+    .hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-top:14px}
   </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="page-header">
-  <a href="/dashboard.html" class="logo-text">LVL<span>³</span></a>
-  <div class="flex items-center gap-4">
-    <span style="color:var(--text-dim);font-size:13px;text-transform:uppercase;letter-spacing:1px">Filme &amp; Schauspieler</span>
-    <div class="flex items-center gap-2">
-      <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px;border:2px solid var(--border-thick)"></div>
-      <span id="user-name" style="font-weight:700;font-size:14px"></span>
-    </div>
-    <button onclick="leaveRoom()" class="btn btn-secondary btn-sm">Verlassen</button>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- top hairline timer track -->
+<div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+
+<!-- floating header -->
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">Filme &amp; Schauspieler</span>
   </div>
-</div>
+  <div class="hdr-right">
+    <span class="type-pill">Quiz</span>
+    <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px"></div>
+    <span id="user-name"></span>
+    <button onclick="leaveRoom()" class="p-btn p-btn-ghost btn-sm">Verlassen</button>
+  </div>
+</header>
 
-<!-- Layout -->
-<div class="game-layout">
+<!-- left floating rail -->
+<aside class="rail">
+  <div class="rail-block">
+    <div class="kicker">Raum-Code</div>
+    <div class="rail-code" id="room-code-display">––––</div>
+  </div>
+  <div class="rail-block rail-players">
+    <div class="kicker">Spieler</div>
+    <ul class="player-list" id="player-list"></ul>
+  </div>
+</aside>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="room-code-box">
-      <div class="label">Raum-Code</div>
-      <div class="code" id="room-code-display">––––</div>
+<!-- center stage -->
+<main class="stage">
+
+  <!-- ── Join ── -->
+  <div class="screen active" id="screen-join">
+    <div class="p-kicker">LVL³ · Filme &amp; Schauspieler</div>
+    <h2 class="p-title">Filme &amp;<br>Schauspieler</h2>
+    <p class="p-sub">Raum erstellen oder beitreten</p>
+    <div class="stack">
+      <button onclick="createRoom()" class="p-btn p-btn-primary p-btn-full">Raum erstellen</button>
+      <div class="join-row">
+        <input id="join-code-input" class="p-field" placeholder="Code" maxlength="4">
+        <button onclick="joinRoom()" class="p-btn p-btn-ghost" style="white-space:nowrap">Beitreten</button>
+      </div>
     </div>
-    <div class="card" style="padding:20px;flex:1">
-      <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);margin-bottom:12px">Spieler</div>
-      <ul class="player-list" id="player-list"></ul>
-    </div>
-  </aside>
+  </div>
 
-  <!-- Main panel -->
-  <main class="main-panel">
-    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
-
-    <!-- ── Screen: Join ─────────────────────────────────────────── -->
-    <div class="screen active" id="screen-join">
-      <div style="max-width:360px;width:100%;text-align:center">
-        <h2 style="font-size:24px;margin-bottom:8px">Filme &amp; Schauspieler</h2>
-        <p class="text-dim" style="margin-bottom:28px;font-size:14px">Raum erstellen oder beitreten</p>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <button onclick="createRoom()" class="btn btn-primary btn-full">Raum erstellen</button>
-          <div style="display:flex;gap:8px">
-            <input id="join-code-input" class="input-field" placeholder="Code eingeben" maxlength="4" style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-weight:700">
-            <button onclick="joinRoom()" class="btn btn-secondary" style="white-space:nowrap">Beitreten</button>
+  <!-- ── Lobby ── -->
+  <div class="screen" id="screen-lobby">
+    <div class="p-kicker">Lobby</div>
+    <h2 class="p-title" style="font-size:clamp(36px,6vw,60px)">Konfiguration</h2>
+    <div style="width:100%;margin-top:40px">
+      <!-- Host-only settings -->
+      <div id="host-settings">
+        <div class="settings-grid">
+          <div class="setting-block">
+            <label>Kategorie</label>
+            <select id="setting-category" class="p-field" onchange="pushSettings()">
+              <option value="mixed">Gemischt</option>
+              <option value="movies">Filme</option>
+              <option value="series">Serien</option>
+              <option value="actors">Schauspieler</option>
+            </select>
+          </div>
+          <div class="setting-block">
+            <label>Schwierigkeit</label>
+            <select id="setting-difficulty" class="p-field" onchange="pushSettings()">
+              <option value="easy">Leicht</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Schwer</option>
+            </select>
+          </div>
+          <div class="setting-block">
+            <label>Punkte zum Sieg (max 1000)</label>
+            <input type="number" id="setting-points" class="p-field" min="1" max="1000" value="10" onchange="pushSettings()">
           </div>
         </div>
+        <div class="stack">
+          <button onclick="startGame()" id="start-btn" class="p-btn p-btn-primary p-btn-full">Spiel starten</button>
+        </div>
+      </div>
+
+      <!-- Guest view -->
+      <div id="guest-settings" style="display:none">
+        <p class="p-sub">Wartet auf den Host…</p>
+        <div id="guest-settings-display" class="hint" style="margin-top:16px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Countdown ── -->
+  <div class="screen" id="screen-countdown">
+    <div class="p-kicker">Spiel startet in</div>
+    <div class="countdown-number" id="countdown-num">3</div>
+  </div>
+
+  <!-- ── Question ── -->
+  <div class="screen" id="screen-question">
+    <div id="progress-label" class="progress-label">Frage 1</div>
+    <div id="category-badge" class="category-badge movie">Film</div>
+
+    <div class="text-center" style="margin-bottom:24px">
+      <div class="poster-wrap">
+        <img id="poster-img" class="movie-poster" src="" alt="Poster" onerror="showPosterFallback(this)">
+        <div id="poster-fallback" class="poster-placeholder" style="display:none">?</div>
       </div>
     </div>
 
-    <!-- ── Screen: Lobby ────────────────────────────────────────── -->
-    <div class="screen" id="screen-lobby">
-      <div class="lobby-inner">
-        <div class="text-center" style="margin-bottom:28px">
-          <h2 style="font-size:22px">Lobby</h2>
-        </div>
+    <p id="hint-text" class="movie-hint" style="margin-bottom:20px"></p>
 
-        <!-- Host-only settings -->
-        <div id="host-settings">
-          <div class="settings-grid">
-            <div class="setting-block">
-              <label>Kategorie</label>
-              <select id="setting-category" class="input-field" onchange="pushSettings()">
-                <option value="mixed">Gemischt</option>
-                <option value="movies">Filme</option>
-                <option value="series">Serien</option>
-                <option value="actors">Schauspieler</option>
-              </select>
-            </div>
-            <div class="setting-block">
-              <label>Schwierigkeit</label>
-              <select id="setting-difficulty" class="input-field" onchange="pushSettings()">
-                <option value="easy">Leicht</option>
-                <option value="normal" selected>Normal</option>
-                <option value="hard">Schwer</option>
-              </select>
-            </div>
-          </div>
-          <div class="settings-grid">
-            <div class="setting-block">
-              <label>Punkte zum Sieg (max 1000)</label>
-              <input type="number" id="setting-points" class="input-field" min="1" max="1000" value="10" onchange="pushSettings()">
-            </div>
-          </div>
-          <button onclick="startGame()" id="start-btn" class="btn btn-primary btn-full mt-4">Spiel starten</button>
-        </div>
-
-        <!-- Guest view -->
-        <div id="guest-settings" style="display:none;text-align:center">
-          <p class="text-dim" style="margin-bottom:12px">Wartet auf den Host…</p>
-          <div id="guest-settings-display" style="font-size:13px;color:var(--text-dim)"></div>
-        </div>
+    <div style="max-width:460px;width:100%">
+      <div class="answer-row">
+        <input id="answer-input" class="p-field" placeholder="Antwort eingeben…" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button onclick="submitAnswer()" id="submit-btn" class="p-btn p-btn-primary">OK</button>
       </div>
+      <div id="answered-banner" class="answered-banner" style="display:none">Richtig! Nächste Frage kommt gleich…</div>
     </div>
 
-    <!-- ── Screen: Countdown ────────────────────────────────────── -->
-    <div class="screen" id="screen-countdown">
-      <div class="countdown-overlay" style="position:relative;inset:auto;background:none;flex-direction:column;gap:8px">
-        <div style="font-size:16px;color:var(--text-dim)">Spiel startet in…</div>
-        <div class="countdown-number" id="countdown-num">3</div>
+    <div class="movie-hint" style="margin-top:18px;letter-spacing:.24em">
+      Zeit · <span id="timer-display" style="letter-spacing:0">25</span>s
+    </div>
+  </div>
+
+  <!-- ── Reveal ── -->
+  <div class="screen" id="screen-reveal">
+    <div class="text-center" style="width:100%">
+      <div id="reveal-category-badge" class="category-badge movie" style="margin:0 auto 16px"></div>
+      <div class="poster-wrap" style="display:inline-block;margin-bottom:16px">
+        <img id="reveal-poster" class="movie-poster" src="" alt="" onerror="showPosterFallback(this)">
+        <div id="reveal-poster-fallback" class="poster-placeholder" style="display:none">?</div>
+      </div>
+      <div class="reveal-answer" id="reveal-answer-text"></div>
+      <div class="reveal-next-label" id="reveal-next-label">Nächste Frage in <span id="reveal-countdown">4</span>s</div>
+      <div style="margin-top:20px;max-width:340px;margin-left:auto;margin-right:auto">
+        <ul class="player-list" id="reveal-scores"></ul>
       </div>
     </div>
+  </div>
 
-    <!-- ── Screen: Question ─────────────────────────────────────── -->
-    <div class="screen" id="screen-question" style="justify-content:flex-start;padding-top:40px">
-      <div id="progress-label" class="progress-label">Frage 1</div>
-      <div id="category-badge" class="category-badge movie">Film</div>
-
-      <div class="movie-display text-center" style="margin-bottom:20px">
-        <div class="poster-wrap">
-          <img id="poster-img" class="movie-poster" src="" alt="Poster" onerror="showPosterFallback(this)">
-          <div id="poster-fallback" class="poster-placeholder" style="display:none">?</div>
-        </div>
-      </div>
-
-      <p id="hint-text" class="movie-hint" style="margin-bottom:20px"></p>
-
-      <div style="max-width:460px;width:100%">
-        <div class="answer-row">
-          <input id="answer-input" class="input-field" placeholder="Antwort eingeben…" autocomplete="off" autocorrect="off" spellcheck="false">
-          <button onclick="submitAnswer()" id="submit-btn" class="btn btn-primary">OK</button>
-        </div>
-        <div id="answered-banner" class="answered-banner" style="display:none">Richtig! Nächste Frage kommt gleich…</div>
-      </div>
-
-      <div style="margin-top:16px;font-size:13px;color:var(--text-dim)">
-        Zeit: <span id="timer-display" style="font-weight:700;color:var(--accent)">25</span>s
+  <!-- ── End ── -->
+  <div class="screen" id="screen-end">
+    <div style="width:100%">
+      <div class="p-kicker">Gewinner</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="p-sub" style="margin-top:14px">gewinnt das Spiel</div>
+      <div class="final-scores" id="final-scores"></div>
+      <div class="stack" style="flex-direction:row;justify-content:center;max-width:none;margin-top:34px">
+        <button onclick="backToLobby()" class="p-btn p-btn-ghost">Neue Runde</button>
+        <button onclick="leaveRoom()" class="p-btn p-btn-primary">Verlassen</button>
       </div>
     </div>
+  </div>
 
-    <!-- ── Screen: Reveal ───────────────────────────────────────── -->
-    <div class="screen" id="screen-reveal">
-      <div class="text-center">
-        <div id="reveal-category-badge" class="category-badge movie" style="margin:0 auto 16px"></div>
-        <div class="poster-wrap" style="display:inline-block;margin-bottom:16px">
-          <img id="reveal-poster" class="movie-poster" src="" alt="" onerror="showPosterFallback(this)">
-          <div id="reveal-poster-fallback" class="poster-placeholder" style="display:none">?</div>
-        </div>
-        <div class="reveal-answer" id="reveal-answer-text"></div>
-        <div class="reveal-next-label" id="reveal-next-label">Nächste Frage in <span id="reveal-countdown">4</span>s</div>
-        <div style="margin-top:20px;max-width:340px;margin-left:auto;margin-right:auto">
-          <ul class="player-list" id="reveal-scores"></ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Screen: Game End ─────────────────────────────────────── -->
-    <div class="screen" id="screen-end">
-      <div class="winner-card" style="width:100%;max-width:480px">
-        <div class="winner-name" id="winner-name"></div>
-        <div class="text-dim" style="margin-top:4px;font-size:15px">gewinnt das Spiel!</div>
-        <div class="final-scores" id="final-scores"></div>
-        <div style="margin-top:28px;display:flex;gap:12px;justify-content:center">
-          <button onclick="backToLobby()" class="btn btn-secondary">Neue Runde</button>
-          <button onclick="leaveRoom()" class="btn btn-primary">Verlassen</button>
-        </div>
-      </div>
-    </div>
-
-  </main>
-</div>
+</main>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/socket-utils.js"></script>
 <script src="/js/games/movies-actors.js"></script>
 <script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script>
+  // ── Custom cursor (dot + ring), self-contained ──
+  (function(){
+    if (window.matchMedia && window.matchMedia('(hover:none)').matches) return;
+    const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+    let rx=0,ry=0,tx=0,ty=0;
+    window.addEventListener('mousemove',e=>{
+      tx=e.clientX;ty=e.clientY;
+      cur.style.left=tx+'px';cur.style.top=ty+'px';
+      const hit=e.target.closest('button,a,input,select,.poster-wrap');
+      if(hit){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(1)';cur.style.width='5px';cur.style.height='5px';}
+      else{ring.style.opacity='0';ring.style.transform='translate(-50%,-50%) scale(.4)';cur.style.width='8px';cur.style.height='8px';}
+    });
+    (function loop(){ rx+=(tx-rx)*.18; ry+=(ty-ry)*.18; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  })();
+
+  // ── Entrance animation ──
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!window.gsap) return;
+    gsap.from('.site-header > *',{y:-14,opacity:0,duration:.7,stagger:.06,ease:'power3.out'});
+    gsap.from('.rail > *',{x:-18,opacity:0,duration:.7,stagger:.1,delay:.15,ease:'power3.out'});
+    gsap.from('#screen-join > *',{y:26,opacity:0,duration:.8,stagger:.07,delay:.2,ease:'power3.out'});
+  });
+</script>
 </body>
 </html>

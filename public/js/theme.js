@@ -29,6 +29,24 @@
   /* Apply immediately — blocks paint so no flash */
   apply(read());
 
+  /* Global accent — the launcher's palette picker writes 'lvl3-accent' (a hex
+     string); apply it site-wide (incl. game pages) so themed accents follow the
+     user's choice. Defaults to the brand red when unset. */
+  var ACCENT_KEY = 'lvl3-accent';
+  var ACCENT_DEFAULT = '#ff2244';
+
+  function readAccent() {
+    try { return localStorage.getItem(ACCENT_KEY) || ACCENT_DEFAULT; } catch (e) { return ACCENT_DEFAULT; }
+  }
+
+  function applyAccent(val) {
+    var color = val || ACCENT_DEFAULT;
+    document.documentElement.style.setProperty('--acc', color);
+    document.documentElement.style.setProperty('--accent', color);
+  }
+
+  applyAccent(readAccent());
+
   window.lvl3Theme = {
     current: function () { return read(); },
     set: function (theme) {
@@ -39,6 +57,11 @@
     toggle: function () {
       var next = read() === 'dark' ? 'light' : 'dark';
       window.lvl3Theme.set(next);
+    },
+    accent: function () { return readAccent(); },
+    setAccent: function (val) {
+      try { localStorage.setItem(ACCENT_KEY, val); } catch (e) {}
+      applyAccent(val);
     }
   };
 

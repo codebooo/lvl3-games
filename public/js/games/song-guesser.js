@@ -12,6 +12,7 @@
   var timerSecondsLeft = 15;
   var pendingPreviewUrl = null;
   var audioUnlocked = false;
+  var currentAvatars = {};
 
   // ── Screen switcher ───────────────────────────────────────────
   function showScreen(name) {
@@ -354,10 +355,11 @@
   socket.on("room:created", function (data) {
     currentRoom = data.code;
     isHost = true;
+    if (data.avatars) currentAvatars = data.avatars;
     applySettings(data.settings || {});
     var rcd = document.getElementById("room-code-display");
     if (rcd) rcd.textContent = data.code;
-    if (data.players) window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {});
+    if (data.players) window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {}, currentAvatars);
     updateHostUI();
     showScreen("lobby");
   });
@@ -365,21 +367,24 @@
   socket.on("room:joined", function (data) {
     currentRoom = data.code;
     isHost = data.isHost;
+    if (data.avatars) currentAvatars = data.avatars;
     applySettings(data.settings || {});
     var rcd = document.getElementById("room-code-display");
     if (rcd) rcd.textContent = data.code;
-    if (data.players) window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {});
+    if (data.players) window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {}, currentAvatars);
     updateHostUI();
     showScreen("lobby");
   });
 
   socket.on("room:players", function (data) {
-    window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {});
+    if (data.avatars) currentAvatars = data.avatars;
+    window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {}, currentAvatars);
   });
 
   socket.on("room:host-changed", function (data) {
     isHost = data.host === me;
-    window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {});
+    if (data.avatars) currentAvatars = data.avatars;
+    window.lvl3.renderPlayerList(document.getElementById("player-list"), data.players, data.host, {}, currentAvatars);
     updateHostUI();
   });
 

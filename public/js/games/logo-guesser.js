@@ -8,6 +8,7 @@
   var players = [];
   var host = null;
   var currentScores = {};
+  var currentAvatars = {};
   var timerInterval = null;
   var timerSeconds = 0;
   var timerMax = 15;
@@ -48,7 +49,7 @@
 
   // ── Helpers ───────────────────────────────────────────────────
   function updatePlayerList() {
-    window.lvl3.renderPlayerList(elPlayerList, players, host, currentScores);
+    window.lvl3.renderPlayerList(elPlayerList, players, host, currentScores, currentAvatars);
   }
 
   function setAnswerEnabled(enabled) {
@@ -107,6 +108,7 @@
     isHost   = data.isHost;
     host     = data.host;
     players  = data.players || [];
+    if (data.avatars) currentAvatars = data.avatars;
     if (elRoomCode) elRoomCode.textContent = roomCode;
     applySettings(data.settings);
     renderLobbyControls();
@@ -190,6 +192,7 @@
   socket.on("room:players", function (data) {
     players = data.players || [];
     host    = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     isHost  = host === myUsername;
     renderLobbyControls();
     updatePlayerList();
@@ -198,6 +201,7 @@
   socket.on("room:host-changed", function (data) {
     players = data.players || [];
     host    = data.host;
+    if (data.avatars) currentAvatars = data.avatars;
     isHost  = host === myUsername;
     renderLobbyControls();
     updatePlayerList();

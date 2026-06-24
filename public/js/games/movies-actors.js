@@ -10,6 +10,7 @@
   var timerInterval = null;
   var timerTotal    = 25;
   var revealInterval = null;
+  var currentAvatars = {};
 
   var CATEGORY_LABELS = {
     movie:  { label: "Film",          cls: "movie"  },
@@ -88,7 +89,7 @@
 
   // ─── Player list ───────────────────────────────────────────────────────────
   function renderPlayers(players, host, scores) {
-    window.lvl3.renderPlayerList($("player-list"), players, host, scores || {});
+    window.lvl3.renderPlayerList($("player-list"), players, host, scores || {}, currentAvatars);
   }
 
   // ─── Auth & init ───────────────────────────────────────────────────────────
@@ -179,6 +180,7 @@
   socket.on("room:created", function (d) {
     myRoomCode = d.code;
     isHost     = true;
+    if (d.avatars) currentAvatars = d.avatars;
     $("room-code-display").textContent = d.code;
     renderPlayers(d.players, d.host, {});
     applySettings(d.settings);
@@ -189,6 +191,7 @@
   socket.on("room:joined", function (d) {
     myRoomCode = d.code;
     isHost     = d.isHost;
+    if (d.avatars) currentAvatars = d.avatars;
     $("room-code-display").textContent = d.code;
     renderPlayers(d.players, d.host, {});
     applySettings(d.settings);
@@ -197,11 +200,13 @@
   });
 
   socket.on("room:players", function (d) {
+    if (d.avatars) currentAvatars = d.avatars;
     renderPlayers(d.players, d.host, {});
   });
 
   socket.on("room:host-changed", function (d) {
     isHost = (d.host === myUsername);
+    if (d.avatars) currentAvatars = d.avatars;
     renderPlayers(d.players, d.host, {});
     setHostMode(isHost);
   });
