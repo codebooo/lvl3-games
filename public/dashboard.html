@@ -18,6 +18,86 @@
     #lv-scroll::-webkit-scrollbar{width:0}
     @keyframes lvspin{to{transform:rotate(360deg)}}
     @media(hover:none){body{cursor:auto}}
+
+    /* ── Responsive: tablet ≤900px ── (desktop look is unchanged above this) */
+    @media(max-width:900px){
+      #top-bar{padding:18px 18px}
+      #bottom-bar{padding:18px 18px}
+      #header-subtitle{max-width:240px;font-size:10px}
+      #lv-nav{padding:18px 18px}
+      /* detail panel: tighten the two-column layout before it stacks */
+      .detail-grid{gap:36px;padding:36px}
+      .detail-content p{max-width:none}
+    }
+
+    /* ── Responsive: phone ≤640px ── */
+    @media(max-width:640px){
+      /* HEADER: hide the long centered subtitle, keep brand + gear + logout reachable */
+      #top-bar{padding:14px 14px;align-items:center;gap:10px}
+      #header-subtitle{display:none}
+      #top-bar > div:first-child{gap:14px}
+      #sound-label{display:none}            /* keep the eq icon, drop the text */
+      #counter{display:none}                 /* 09/09 counter — drop on phones */
+      #top-bar > div:last-child{gap:10px}
+      #logout-btn{padding:7px 12px;letter-spacing:.12em}
+
+      /* FOOTER: restack the 1fr auto 1fr grid so chips stay tappable.
+         Row 1: filter chips (full width, centered, horizontally scrollable).
+         Row 2: view-toggle (left) + leaderboard (right). */
+      #bottom-bar{
+        grid-template-columns:1fr 1fr;
+        grid-template-areas:"chips chips" "toggle lb";
+        gap:12px;
+        padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));
+      }
+      #bottom-bar > #view-toggle{grid-area:toggle;justify-self:start}
+      #bottom-bar > #chips{
+        grid-area:chips;justify-self:stretch!important;justify-content:flex-start;
+        overflow-x:auto;-webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      #bottom-bar > #chips::-webkit-scrollbar{height:0;width:0}
+      #bottom-bar > div:last-child{grid-area:lb;justify-self:end}
+      #drag-hint{display:none}               /* hide "ZIEHEN ZUM ERKUNDEN" on phones */
+
+      /* LIST-VIEW NAV: same restack as the footer */
+      #lv-nav{
+        grid-template-columns:1fr 1fr;
+        grid-template-areas:"chips chips" "back lb";
+        gap:12px;
+        padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));
+      }
+      #lv-nav > #lv-back{grid-area:back;justify-self:start;padding:9px 14px}
+      #lv-nav > #lv-chips{
+        grid-area:chips;justify-self:stretch!important;justify-content:flex-start;
+        overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+      }
+      #lv-nav > #lv-chips::-webkit-scrollbar{height:0;width:0}
+      #lv-nav > #lv-lb{grid-area:lb;justify-self:end;padding:9px 14px}
+
+      /* LIST-VIEW scroll padding: leave room for the taller restacked nav */
+      #lv-scroll{padding:96px 16px 140px}
+
+      /* DETAIL PANEL: stack to a single column, top-align + scroll if tall.
+         #detail carries an inline display:flex, so override with !important. */
+      #detail{display:block!important;overflow-y:auto;-webkit-overflow-scrolling:touch}
+      .detail-grid{
+        grid-template-columns:1fr;
+        gap:24px;
+        padding:64px 18px calc(28px + env(safe-area-inset-bottom,0px));
+        width:auto;
+        margin:0;
+        align-items:stretch;
+      }
+      .detail-poster-col{max-width:340px;margin:0 auto;width:100%}
+      .detail-content p{max-width:none}
+      .detail-x{top:14px;right:14px;width:40px;height:40px}
+
+      /* OVERLAYS: reduce padding so content fits at 390px */
+      #lb-scroll{padding:72px 16px 60px}
+      #settings-overlay > div{padding:72px 16px 60px}
+      #accent-swatches{gap:10px}
+    }
   </style>
 </head>
 <body>
@@ -35,7 +115,7 @@
   </div>
 
   <!-- top bar -->
-  <header style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:flex-start;justify-content:space-between;padding:26px 30px;pointer-events:none">
+  <header id="top-bar" style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:flex-start;justify-content:space-between;padding:26px 30px;pointer-events:none">
     <div style="display:flex;align-items:center;gap:30px">
       <div id="brand" style="pointer-events:auto;cursor:pointer;font-weight:700;font-size:23px;letter-spacing:.02em;line-height:1">LVL<span style="color:#ff2244">³</span></div>
       <button id="sound-btn" style="pointer-events:auto;background:none;border:none;color:rgba(255,255,255,.62);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;cursor:pointer;display:flex;align-items:center;gap:9px;padding:6px 0">
@@ -47,7 +127,7 @@
         <span id="sound-label">SOUND [AUS]</span>
       </button>
     </div>
-    <div style="max-width:340px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;letter-spacing:.04em;color:rgba(255,255,255,.55);text-transform:uppercase;text-align:center">LVL³ — ein privates Party-Spiele-Archiv für Marlin, Oskar, David &amp; Bosse.</div>
+    <div id="header-subtitle" style="max-width:340px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;letter-spacing:.04em;color:rgba(255,255,255,.55);text-transform:uppercase;text-align:center">LVL³ — ein privates Party-Spiele-Archiv für Marlin, Oskar, David &amp; Bosse.</div>
     <div style="display:flex;align-items:center;gap:18px">
       <div id="counter" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55)">09 / 09</div>
       <button id="settings-btn" title="Akzentfarbe" style="pointer-events:auto;background:none;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:rgba(255,255,255,.62);cursor:pointer;padding:7px 9px;display:flex;align-items:center;justify-content:center;transition:border-color .25s,color .25s">
@@ -58,7 +138,7 @@
   </header>
 
   <!-- bottom bar -->
-  <footer style="position:absolute;bottom:0;left:0;right:0;z-index:10;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:26px 30px;pointer-events:none">
+  <footer id="bottom-bar" style="position:absolute;bottom:0;left:0;right:0;z-index:10;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:26px 30px;pointer-events:none">
     <div id="view-toggle" style="justify-self:start;pointer-events:auto;display:flex;align-items:center;gap:2px;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px">
       <button data-view="sphere" class="vt-btn" style="width:34px;height:30px;border-radius:999px;border:none;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .25s,color .25s">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -538,7 +618,7 @@ void main(){
     const hsl=(l,s)=>`hsl(${g.hue} ${s}% ${l}%)`;
     const tags=g.tags.map(t=>`<span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 15px">${t.toUpperCase()}</span>`).join('');
     const el=document.getElementById('detail');
-    el.innerHTML=`<div style="position:absolute;inset:0" data-close></div><div style="position:relative;margin:auto;width:min(1100px,90vw);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;padding:48px"><div><canvas id="detail-poster" width="900" height="900" style="width:100%;aspect-ratio:1;display:block;border:1px solid rgba(255,255,255,.1)"></canvas><div style="display:flex;justify-content:space-between;margin-top:14px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.8)">${g.client}</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45)">${g.type}</span></div></div><div data-content><div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;color:${hsl(62,90)};margin-bottom:20px">${g.types.join(' · ')}</div><h1 style="font-size:clamp(34px,4.8vw,68px);font-weight:700;line-height:.96;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:22px">${titleDisplay}</h1><p style="font-size:16px;line-height:1.65;color:rgba(255,255,255,.58);max-width:420px;margin-bottom:28px">${g.desc}</p><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:38px">${tags}</div><div style="display:flex;align-items:center;gap:20px"><a href="${g.route}" data-play style="display:inline-flex;align-items:center;gap:11px;background:#fff;color:#000;font-weight:600;font-size:14px;letter-spacing:.05em;text-transform:uppercase;padding:16px 32px;border-radius:999px;text-decoration:none;transition:transform .3s,background .3s">SPIELEN <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a><button data-close style="background:none;border:none;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;cursor:pointer">ESC · SCHLIESSEN</button></div></div><button data-close style="position:absolute;top:-6px;right:-6px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+    el.innerHTML=`<div style="position:absolute;inset:0" data-close></div><div class="detail-grid" style="position:relative;margin:auto;width:min(1100px,90vw);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;padding:48px"><div class="detail-poster-col"><canvas id="detail-poster" width="900" height="900" style="width:100%;aspect-ratio:1;display:block;border:1px solid rgba(255,255,255,.1)"></canvas><div style="display:flex;justify-content:space-between;margin-top:14px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.8)">${g.client}</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45)">${g.type}</span></div></div><div class="detail-content" data-content><div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;color:${hsl(62,90)};margin-bottom:20px">${g.types.join(' · ')}</div><h1 style="font-size:clamp(34px,4.8vw,68px);font-weight:700;line-height:.96;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:22px">${titleDisplay}</h1><p style="font-size:16px;line-height:1.65;color:rgba(255,255,255,.58);max-width:420px;margin-bottom:28px">${g.desc}</p><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:38px">${tags}</div><div style="display:flex;align-items:center;gap:20px"><a href="${g.route}" data-play style="display:inline-flex;align-items:center;gap:11px;background:#fff;color:#000;font-weight:600;font-size:14px;letter-spacing:.05em;text-transform:uppercase;padding:16px 32px;border-radius:999px;text-decoration:none;transition:transform .3s,background .3s">SPIELEN <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a><button data-close style="background:none;border:none;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;cursor:pointer">ESC · SCHLIESSEN</button></div></div><button class="detail-x" data-close style="position:absolute;top:-6px;right:-6px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
     el.style.pointerEvents='auto';
     el.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closeDetail()));
     const play=el.querySelector('[data-play]');

@@ -173,6 +173,43 @@
       text-transform:uppercase;letter-spacing:.04em;color:#fff;margin-bottom:8px}
 
     @media(max-width:480px){ .seg-group,.filter-tabs{flex-wrap:wrap} }
+
+    /* ─────────────────────────────────────────────
+       RESPONSIVE — tablet ≤900px / phone ≤640px.
+       Desktop above untouched; only ADD overrides. No horizontal scroll.
+       ───────────────────────────────────────────── */
+    @media(max-width:900px){
+      .stage{max-width:100%;padding:132px 26px 80px}
+      .sec{margin-top:48px;padding-top:26px}
+      .input-field,textarea.input-field,.p-field{font-size:16px;padding:13px 2px}  /* ~44px tappable */
+    }
+    @media(max-width:640px){
+      .site-header{padding:18px 18px}
+      .hdr-left{gap:12px}
+      .brand{font-size:17px}
+      .hdr-game{font-size:10px;letter-spacing:.18em}
+      .hdr-right{gap:9px}
+      .stage{padding:118px 18px 64px}
+      .p-title{font-size:clamp(36px,12vw,56px)}
+      .p-sub{font-size:10px;letter-spacing:.16em}
+      .sec-label{margin-bottom:20px}
+
+      /* pill chips wrap to multiple rows */
+      .seg-group,.filter-tabs{gap:7px}
+      .seg-btn,.filter-tab{padding:9px 14px;letter-spacing:.12em}
+
+      /* controls row: stack filter tabs above the random button */
+      .sl-controls{flex-direction:column;align-items:stretch;gap:16px}
+      .sl-controls .filter-tabs{min-width:0}
+      #sl-random-btn{width:100%;justify-content:center}
+
+      /* entry rows: stack body + actions, smaller name, meta wraps */
+      .spiele-entry{flex-direction:column;gap:12px;padding:18px 0}
+      .spiele-entry-name{font-size:17px}
+      .spiele-entry-actions{align-self:flex-start}
+      .random-banner{padding:18px 18px}
+      .random-banner-name{font-size:23px}
+    }
   </style>
 </head>
 <body>

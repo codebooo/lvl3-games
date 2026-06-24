@@ -108,6 +108,41 @@
        owed person uses var(--accent)=#ff2244 (red), amount uses var(--gold). */
     #fa-balances li,#fa-history li{font-family:'JetBrains Mono',monospace !important;
       font-size:13px !important;letter-spacing:.02em}
+
+    /* ─────────────────────────────────────────────
+       RESPONSIVE — tablet ≤900px / phone ≤640px.
+       Desktop above untouched; only ADD overrides. No horizontal scroll.
+       ───────────────────────────────────────────── */
+    @media(max-width:900px){
+      .stage{max-width:100%;padding:132px 26px 80px}
+      .sec{margin-top:48px;padding-top:26px}
+      .fa-sentence{font-size:18px;line-height:1.9;gap:10px}
+    }
+    @media(max-width:640px){
+      .site-header{padding:18px 18px}
+      .hdr-left{gap:12px}
+      .brand{font-size:17px}
+      .hdr-game{font-size:10px;letter-spacing:.18em}
+      .hdr-right{gap:9px}
+      .stage{padding:118px 18px 64px}
+      .p-title{font-size:clamp(36px,12vw,56px)}
+      .p-sub{font-size:10px;letter-spacing:.16em}
+      .sec-label{margin-bottom:20px}
+
+      /* editorial sentence → stacked, full-width tappable controls */
+      .fa-sentence{flex-direction:column;align-items:stretch;gap:6px;font-size:17px;line-height:1.6}
+      .fa-sentence > span{color:var(--dim)}
+      .fa-sentence input,
+      .fa-sentence .select-wrap{width:100% !important;flex:1 1 auto}
+      .fa-sentence .p-field{font-size:16px;padding:12px 2px}   /* ~44px tappable */
+      .fa-sentence .select-wrap .p-field{width:100%}
+      #fa-submit{width:100%;display:flex;align-items:center;justify-content:center}
+
+      /* JS-rendered balance/history rows: stack label / value */
+      #fa-balances li,#fa-history li{flex-direction:column;align-items:flex-start !important;gap:6px !important}
+      #fa-balances li span,#fa-history li span{white-space:normal !important}
+      #fa-history li .fa-delete-btn{align-self:flex-end}
+    }
   </style>
 </head>
 <body>

@@ -143,6 +143,37 @@
     .benzin-hint{margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.85;
       letter-spacing:.02em;color:var(--mut)}
     .benzin-hint strong{color:var(--acc);letter-spacing:.18em;text-transform:uppercase}
+
+    /* ─────────────────────────────────────────────
+       RESPONSIVE — tablet ≤900px / phone ≤640px.
+       Desktop above untouched; only ADD overrides. No horizontal scroll.
+       ───────────────────────────────────────────── */
+    @media(max-width:900px){
+      .stage{max-width:100%;padding:132px 26px 80px}
+      .sec{margin-top:48px;padding-top:26px}
+      .p-field{font-size:16px;padding:13px 2px}   /* ~44px tappable */
+    }
+    @media(max-width:640px){
+      .site-header{padding:18px 18px}
+      .hdr-left{gap:12px}
+      .brand{font-size:17px}
+      .hdr-game{font-size:10px;letter-spacing:.18em}
+      .hdr-right{gap:9px}
+      .stage{padding:118px 18px 64px}
+      .p-title{font-size:clamp(36px,12vw,56px)}
+      .p-sub{font-size:10px;letter-spacing:.16em}
+      .sec-label{margin-bottom:20px}
+      /* big mono mix-ratio readout must not overflow */
+      .benzin-result{font-size:clamp(52px,18vw,80px)}
+      .benzin-stat{padding:18px 12px}
+      .benzin-stat-value{font-size:20px}
+      table.benzin-tbl{font-size:12px}
+      table.benzin-tbl th,table.benzin-tbl td{padding:10px 8px}
+    }
+    @media(max-width:380px){
+      .benzin-result{font-size:46px}
+      .benzin-breakdown{grid-template-columns:1fr 1fr}
+    }
   </style>
 </head>
 <body>
