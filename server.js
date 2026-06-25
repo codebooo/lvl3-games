@@ -705,7 +705,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => handleLeave(socket));
 
   // Load game handlers
-  ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten"].forEach(g => {
+  ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten", "connect4"].forEach(g => {
     try {
       require("./server/games/" + g + "-handler")(socket, io, rooms);
     } catch (e) {

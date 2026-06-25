@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4 Gewinnt – Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=4">
+  <script src="/js/theme.js?v=4"></script>
+  <style>
+    /* ─────────────────────────────────────────────
+       PHANTOM.LAND — 4 Gewinnt (Connect 4), 1v1
+       Full-bleed black, no boxed containers, floating
+       content, oversized editorial type, custom cursor,
+       film grain + vignette. Every JS-bound id preserved.
+       ───────────────────────────────────────────── */
+    *{box-sizing:border-box}
+    :root{ --acc:#ff2244; --gold:#ffd34e; --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+           --dim:rgba(255,255,255,.55); --mut:rgba(255,255,255,.32); }
+    html,body{margin:0;padding:0}
+    body{
+      background:#000;color:#fff;min-height:100vh;overflow-x:hidden;
+      font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;
+      cursor:none;
+    }
+    .mono{font-family:'JetBrains Mono',monospace}
+    .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;
+            text-transform:uppercase;color:var(--mut)}
+
+    /* ── film grain + vignette ── */
+    #grain{position:fixed;inset:0;z-index:70;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    #vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
+      background:radial-gradient(120% 120% at 50% 42%, transparent 30%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.92) 100%)}
+
+    /* ── custom cursor ── */
+    #cursor{position:fixed;top:0;left:0;z-index:90;pointer-events:none;width:8px;height:8px;border-radius:50%;
+      background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference;
+      transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
+    #cursor-ring{position:fixed;top:0;left:0;z-index:89;pointer-events:none;width:40px;height:40px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%) scale(.4);opacity:0;
+      transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+    @media(hover:none){ body{cursor:auto} #cursor,#cursor-ring{display:none} }
+
+    /* ── floating top header ── */
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+      justify-content:space-between;padding:26px 34px;pointer-events:none}
+    .site-header > *{pointer-events:auto}
+    .hdr-left{display:flex;align-items:center;gap:20px}
+    .brand{font-weight:700;font-size:20px;letter-spacing:.01em;text-decoration:none;color:#fff;line-height:1}
+    .brand span{color:var(--acc)}
+    .hdr-div{width:1px;height:18px;background:var(--line-2);display:block}
+    .hdr-game{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.26em;
+      color:var(--dim);text-transform:uppercase}
+    .hdr-right{display:flex;align-items:center;gap:14px}
+    .type-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--mut);
+      border:1px solid var(--line-2);border-radius:999px;padding:5px 13px;text-transform:uppercase}
+    #user-name{font-weight:500;font-size:13px;letter-spacing:.01em}
+
+    /* ── left floating rail: room code + players, NO boxes ── */
+    .rail{position:fixed;left:34px;top:118px;bottom:40px;width:210px;z-index:30;
+      display:flex;flex-direction:column;gap:30px;pointer-events:none}
+    .rail > *{pointer-events:auto}
+    .rail-block{display:flex;flex-direction:column;gap:12px}
+    .rail-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;letter-spacing:.16em;
+      color:var(--acc);line-height:1}
+    .rail-players{flex:1;min-height:0;overflow-y:auto}
+    .player-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+    .player-item{display:flex;align-items:center;gap:11px;padding:11px 0;
+      border-bottom:1px solid var(--line);background:transparent;border-radius:0}
+    .player-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:600;flex:0 0 auto;color:#fff;overflow:hidden;
+      background-size:cover;background-position:center;background-repeat:no-repeat}
+    .player-item .pname,.player-item span:not(.player-score):not(.player-avatar){font-size:13px;color:#fff}
+    .player-score{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc)}
+
+    /* ── center stage ── */
+    .stage{position:relative;z-index:20;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:120px 34px 60px 34px}
+    .screen{display:none;width:100%;max-width:620px;flex-direction:column;align-items:center;text-align:center}
+    .screen.active{display:flex}
+    #screen-game{max-width:760px}
+
+    /* shared phantom type */
+    .p-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:22px}
+    .p-title{font-weight:700;font-size:clamp(44px,8vw,86px);line-height:.92;letter-spacing:-.02em;
+      text-transform:uppercase;margin:0}
+    .p-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--dim);margin-top:20px}
+
+    /* phantom inputs */
+    .p-field{width:100%;background:none;border:none;border-bottom:1px solid var(--line-2);color:#fff;
+      font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;padding:12px 2px;border-radius:0;
+      outline:none;transition:border-color .25s}
+    .p-field::placeholder{color:rgba(255,255,255,.25)}
+    .p-field:focus{border-bottom-color:#fff}
+
+    /* phantom buttons */
+    .p-btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:.04em;
+      text-transform:uppercase;border-radius:999px;padding:16px 30px;cursor:none;border:1px solid #fff;
+      transition:transform .25s cubic-bezier(.2,.8,.2,1),background-color .2s,color .2s,border-color .2s,opacity .2s}
+    .p-btn-primary{background:#fff;color:#000}
+    .p-btn-primary:hover:not(:disabled){transform:translateY(-3px)}
+    .p-btn-ghost{background:transparent;color:#fff;border-color:var(--line-2)}
+    .p-btn-ghost:hover:not(:disabled){transform:translateY(-3px);border-color:#fff}
+    .p-btn:disabled{opacity:.32}
+    .p-btn-full{width:100%;justify-content:center;display:flex;align-items:center;gap:10px}
+
+    /* join / lobby blocks */
+    .stack{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px;margin:38px auto 0}
+    .join-row{display:flex;gap:10px}
+    .join-row .p-field{text-align:center;letter-spacing:.4em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:15px}
+
+    .err{color:var(--acc);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;min-height:16px;margin-top:4px}
+    .hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-top:14px}
+
+    /* ── turn indicator ── */
+    .turn-line{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.24em;text-transform:uppercase;
+      color:var(--dim);margin-bottom:24px;min-height:18px;display:flex;align-items:center;justify-content:center;gap:12px}
+    .turn-line .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 auto}
+    .turn-line.mine{color:#fff}
+    .turn-line .dot.p1{background:var(--acc)}
+    .turn-line .dot.p2{background:var(--gold)}
+
+    /* ── the Connect-4 board ── */
+    .c4-board-wrap{position:relative;width:100%;max-width:520px;margin:0 auto;
+      /* board aspect = 7 cols : 6 rows */
+    }
+    .c4-board{position:relative;width:100%;aspect-ratio:7/6;
+      background:linear-gradient(180deg,#10131c,#0a0c12);
+      border:1px solid var(--line-2);border-radius:18px;padding:2.4%;
+      display:grid;grid-template-columns:repeat(7,1fr);gap:0;overflow:hidden;
+      box-shadow:0 30px 80px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.04)}
+    .c4-col{position:relative;display:flex;flex-direction:column;justify-content:flex-start;
+      gap:0;cursor:none;transition:background-color .18s}
+    .c4-board.interactive .c4-col:hover{background:rgba(255,255,255,.05)}
+    .c4-board.interactive .c4-col.col-p1:hover{background:rgba(255,34,68,.10)}
+    .c4-board.interactive .c4-col.col-p2:hover{background:rgba(255,211,78,.10)}
+    .c4-cell{position:relative;width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+    /* the hole punched in the board face */
+    .c4-hole{width:78%;height:78%;border-radius:50%;
+      background:radial-gradient(circle at 38% 32%, #05060a, #020306);
+      box-shadow:inset 0 3px 8px rgba(0,0,0,.85), inset 0 -1px 1px rgba(255,255,255,.05);}
+    /* a settled chip sits inside a cell */
+    .c4-chip{position:absolute;width:78%;height:78%;border-radius:50%;left:11%;top:11%;
+      box-shadow:inset 0 4px 10px rgba(255,255,255,.18), inset 0 -6px 12px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.5)}
+    .c4-chip.p1{background:radial-gradient(circle at 38% 30%, #ff5d77, var(--acc) 62%, #b8142e)}
+    .c4-chip.p2{background:radial-gradient(circle at 38% 30%, #ffe79a, var(--gold) 60%, #c79a16)}
+    .c4-chip.win{animation:c4pulse 1s ease-in-out infinite}
+    @keyframes c4pulse{0%,100%{box-shadow:inset 0 4px 10px rgba(255,255,255,.18), inset 0 -6px 12px rgba(0,0,0,.45), 0 0 0 0 rgba(255,255,255,.0)}
+      50%{box-shadow:inset 0 4px 10px rgba(255,255,255,.35), inset 0 -6px 12px rgba(0,0,0,.3), 0 0 22px 4px rgba(255,255,255,.55)}}
+    /* the falling chip layer floats above the board face, animated by JS */
+    .c4-falling{position:absolute;border-radius:50%;z-index:6;pointer-events:none;
+      box-shadow:inset 0 4px 10px rgba(255,255,255,.18), inset 0 -6px 12px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.5)}
+    .c4-falling.p1{background:radial-gradient(circle at 38% 30%, #ff5d77, var(--acc) 62%, #b8142e)}
+    .c4-falling.p2{background:radial-gradient(circle at 38% 30%, #ffe79a, var(--gold) 60%, #c79a16)}
+
+    .seat-row{display:flex;align-items:center;justify-content:center;gap:26px;margin-top:26px;
+      font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+    .seat{display:flex;align-items:center;gap:9px}
+    .seat .chip-key{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
+    .seat .chip-key.p1{background:var(--acc)}
+    .seat .chip-key.p2{background:var(--gold)}
+    .seat.active{color:#fff}
+
+    /* end screen */
+    #screen-end{max-width:560px}
+    .winner-name{font-weight:700;font-size:clamp(40px,7vw,72px);line-height:.95;letter-spacing:-.02em;
+      text-transform:uppercase}
+
+    /* ───────────────────────── RESPONSIVE ───────────────────────── */
+    @media(max-width:900px){
+      .rail{position:static;left:auto;top:auto;bottom:auto;width:auto;z-index:30;
+        flex-direction:row;align-items:flex-start;gap:20px 28px;flex-wrap:wrap;pointer-events:auto;
+        padding:96px 20px 0;max-width:100%}
+      .rail-block{gap:6px}
+      .rail-players{flex:1 1 100%;min-height:0;overflow:visible}
+      .rail-code{font-size:26px}
+      .player-list{flex-direction:row;flex-wrap:wrap;gap:8px 16px;margin-top:8px}
+      .player-item{border-bottom:none;padding:6px 0;gap:8px}
+      .player-score{margin-left:6px}
+      .stage{min-height:0;padding:30px 20px 60px}
+      .screen{max-width:560px}
+      #screen-game{max-width:560px}
+    }
+    @media(max-width:640px){
+      .site-header{padding:16px 18px}
+      .brand{font-size:17px}
+      .hdr-left{gap:12px}
+      .hdr-game{display:none}
+      .hdr-right{gap:10px}
+      .type-pill{display:none}
+      #user-name{font-size:12px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .rail{padding-top:74px}
+      .rail-code{font-size:24px}
+      .p-title{font-size:clamp(34px,11vw,52px)}
+      .p-sub{font-size:10px;letter-spacing:.18em}
+      .stack{max-width:100%}
+      .p-field{font-size:16px}
+      .p-btn{padding:14px 24px}
+      .c4-board{border-radius:14px}
+      .c4-board-wrap{max-width:100%}
+      .seat-row{gap:16px;font-size:10px}
+      #screen-end .stack{flex-wrap:wrap;gap:12px}
+    }
+  </style>
+</head>
+<body>
+
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- floating header -->
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">4 Gewinnt</span>
+  </div>
+  <div class="hdr-right">
+    <span class="type-pill">Multiplayer</span>
+    <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px"></div>
+    <span id="user-name"></span>
+    <button onclick="leaveRoom()" class="p-btn p-btn-ghost" style="padding:9px 18px;font-size:11px">Verlassen</button>
+  </div>
+</header>
+
+<!-- left floating rail -->
+<aside class="rail">
+  <div class="rail-block">
+    <div class="kicker">Raum-Code</div>
+    <div class="rail-code" id="room-code-display">––––</div>
+  </div>
+  <div class="rail-block rail-players">
+    <div class="kicker">Spieler</div>
+    <ul class="player-list" id="player-list"></ul>
+  </div>
+</aside>
+
+<!-- center stage -->
+<main class="stage">
+
+  <!-- ── Join ── -->
+  <div class="screen active" id="screen-join">
+    <div class="p-kicker">LVL³ · Multiplayer</div>
+    <h2 class="p-title">4<br>Gewinnt</h2>
+    <p class="p-sub">Vier in einer Reihe — 1 gegen 1</p>
+    <div class="stack">
+      <button onclick="createRoom()" class="p-btn p-btn-primary p-btn-full">Raum erstellen</button>
+      <div class="join-row">
+        <input id="join-code-input" class="p-field" placeholder="Code" maxlength="4">
+        <button onclick="joinRoom()" class="p-btn p-btn-ghost" style="white-space:nowrap">Beitreten</button>
+      </div>
+      <div id="join-error" class="err"></div>
+    </div>
+  </div>
+
+  <!-- ── Lobby ── -->
+  <div class="screen" id="screen-lobby">
+    <div class="p-kicker">Lobby</div>
+    <h2 class="p-title" style="font-size:clamp(36px,6vw,60px)">Bereit?</h2>
+    <p class="p-sub">4 Gewinnt ist exakt 1 gegen 1</p>
+    <div style="width:100%;margin-top:40px">
+      <div id="host-settings">
+        <div class="stack">
+          <button onclick="startGame()" id="btn-start" class="p-btn p-btn-primary p-btn-full" disabled>Spiel starten</button>
+        </div>
+        <p class="hint" id="start-hint">Genau 2 Spieler erforderlich</p>
+      </div>
+      <div id="guest-settings" style="display:none">
+        <p class="p-sub">Wartet auf den Host…</p>
+        <div class="hint" id="guest-hint" style="margin-top:16px">Der Host startet das Spiel</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Game ── -->
+  <div class="screen" id="screen-game">
+    <div class="turn-line" id="turn-line"><span class="dot p1"></span><span id="turn-text">Spiel beginnt…</span></div>
+    <div class="c4-board-wrap">
+      <div class="c4-board" id="c4-board"></div>
+    </div>
+    <div class="seat-row">
+      <div class="seat" id="seat-1"><span class="chip-key p1"></span><span id="seat-1-name">Spieler 1</span></div>
+      <div class="seat" id="seat-2"><span class="chip-key p2"></span><span id="seat-2-name">Spieler 2</span></div>
+    </div>
+  </div>
+
+  <!-- ── End ── -->
+  <div class="screen" id="screen-end">
+    <div style="width:100%">
+      <div class="p-kicker">Ergebnis</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="p-sub" id="end-sub" style="margin-top:14px"></div>
+      <div class="stack" style="flex-direction:row;justify-content:center;max-width:none;margin-top:34px">
+        <button onclick="playAgain()" id="btn-play-again" class="p-btn p-btn-ghost">Neue Runde</button>
+        <button onclick="leaveRoom()" class="p-btn p-btn-primary">Verlassen</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/socket-utils.js?v=4"></script>
+<script src="/js/games/connect4.js?v=1"></script>
+<script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script>
+  // ── Custom cursor (dot + ring), self-contained ──
+  (function(){
+    if (window.matchMedia && window.matchMedia('(hover:none)').matches) return;
+    const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+    let rx=0,ry=0,tx=0,ty=0;
+    window.addEventListener('mousemove',e=>{
+      tx=e.clientX;ty=e.clientY;
+      cur.style.left=tx+'px';cur.style.top=ty+'px';
+      const hit=e.target.closest('button,a,input,select,.c4-col');
+      if(hit){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(1)';cur.style.width='5px';cur.style.height='5px';}
+      else{ring.style.opacity='0';ring.style.transform='translate(-50%,-50%) scale(.4)';cur.style.width='8px';cur.style.height='8px';}
+    });
+    (function loop(){ rx+=(tx-rx)*.18; ry+=(ty-ry)*.18; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  })();
+
+  // ── Entrance animation ──
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!window.gsap) return;
+    gsap.from('.site-header > *',{y:-14,opacity:0,duration:.7,stagger:.06,ease:'power3.out'});
+    gsap.from('.rail > *',{x:-18,opacity:0,duration:.7,stagger:.1,delay:.15,ease:'power3.out'});
+    gsap.from('#screen-join > *',{y:26,opacity:0,duration:.8,stagger:.07,delay:.2,ease:'power3.out'});
+  });
+</script>
+</body>
+</html>
