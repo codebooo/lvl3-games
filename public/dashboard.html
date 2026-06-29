@@ -129,7 +129,7 @@
     </div>
     <div id="header-subtitle" style="max-width:340px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;letter-spacing:.04em;color:rgba(255,255,255,.55);text-transform:uppercase;text-align:center">LVL³ — ein privates Party-Spiele-Archiv für Marlin, Oskar, David &amp; Bosse.</div>
     <div style="display:flex;align-items:center;gap:18px">
-      <div id="counter" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55)">10 / 10</div>
+      <div id="counter" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55)">11 / 11</div>
       <button id="settings-btn" title="Akzentfarbe" style="pointer-events:auto;background:none;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:rgba(255,255,255,.62);cursor:pointer;padding:7px 9px;display:flex;align-items:center;justify-content:center;transition:border-color .25s,color .25s">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
@@ -305,6 +305,7 @@
     {id:'finanzamt',      title:'Finanzamt',            client:'LVL³',type:'TOOL',       types:['TOOL'],              tags:['Tool'],                          hue:96, route:'/games/finanzamt.html',     desc:'Wer hat wann für wen gezahlt — und wer schuldet wem was.',            variant:7},
     {id:'spiele-liste',   title:'Spiele-Liste',         client:'LVL³',type:'TOOL',       types:['TOOL'],              tags:['Tool'],                          hue:322,route:'/games/spiele-liste.html',  desc:'Sammelt Spiele zum Zocken — PC, Web oder Brettspiel.',               variant:8},
     {id:'connect4',       title:'4 Gewinnt',            client:'LVL³',type:'MULTIPLAYER',types:['MULTIPLAYER'],       tags:['1v1'],                           hue:256,route:'/games/connect4.html',     desc:'Klassisches 4 Gewinnt — lass die Chips fallen und mach vier in einer Reihe. Genau 1v1.', variant:9},
+    {id:'verhext',        title:'Verhext',              client:'LVL³',type:'MULTIPLAYER',types:['MULTIPLAYER'],       tags:['2v2','Team'],                    hue:320,route:'/games/verhext.html',      desc:'Zwei Teams, ein Wort — errate, was dein Mitspieler tippt. Gleiches Wort = Punkt.', variant:10},
   ];
 
   // ── Module-scope state (was this._xxx / this.three) ──
@@ -670,7 +671,7 @@ void main(){
     const rows=document.getElementById('lv-rows');rows.innerHTML='';
     const head=document.createElement('div');
     head.style.cssText='display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:16px;margin-bottom:8px';
-    head.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.24em;color:rgba(255,255,255,.45)">INDEX — 10 SPIELE</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45)">LVL³</div>';
+    head.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.24em;color:rgba(255,255,255,.45)">INDEX — 11 SPIELE</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45)">LVL³</div>';
     rows.appendChild(head);
     GAMES.forEach((g,i)=>{
       const r=document.createElement('div');
