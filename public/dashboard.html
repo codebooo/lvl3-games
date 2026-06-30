@@ -10,7 +10,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
-  <script src="/js/theme.js?v=6"></script>
+  <script src="/js/theme.js?v=7"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{height:100%;background:#000;overflow:hidden}
@@ -533,9 +533,8 @@ void main(){
     const setZoom=(isDrag)=>{setDragDPR(isDrag);gsap.killTweensOf(camera);gsap.to(camera,{fov:isDrag?70:60,duration:isDrag?.35:1.0,ease:isDrag?'power2.out':'power3.inOut',onUpdate:()=>camera.updateProjectionMatrix()});};
 
     const dom=renderer.domElement;
-    const onDown=(e)=>{if(sceneDetailOpen||listOpen)return;dragging=true;moved=0;idle=0;const p=e.touches?e.touches[0]:e;lastX=p.clientX;lastY=p.clientY;vLon=0;vLat=0;setZoom(true);setCursorState('grab');};
-    let lastDragSound=0;
-    const onMove=(e)=>{const p=e.touches?e.touches[0]:e;cursorXY(p.clientX,p.clientY);if(!dragging){if(!sceneDetailOpen&&!listOpen)hoverTest(p.clientX,p.clientY);return;}const dx=p.clientX-lastX,dy=p.clientY-lastY;moved+=Math.abs(dx)+Math.abs(dy);tLon-=dx*SENS;tLat+=dy*SENS;vLon=-dx*SENS*.85;vLat=dy*SENS*.85;lastX=p.clientX;lastY=p.clientY;idle=0;const now=performance.now();if(now-lastDragSound>90){lastDragSound=now;try{lvl3Click(300+Math.random()*60,.04,.025);}catch(e){}}};
+    const onDown=(e)=>{if(sceneDetailOpen||listOpen)return;dragging=true;moved=0;idle=0;const p=e.touches?e.touches[0]:e;lastX=p.clientX;lastY=p.clientY;vLon=0;vLat=0;setZoom(true);setCursorState('grab');try{lvl3Click(.45);}catch(e){}};
+    const onMove=(e)=>{const p=e.touches?e.touches[0]:e;cursorXY(p.clientX,p.clientY);if(!dragging){if(!sceneDetailOpen&&!listOpen)hoverTest(p.clientX,p.clientY);return;}const dx=p.clientX-lastX,dy=p.clientY-lastY;moved+=Math.abs(dx)+Math.abs(dy);tLon-=dx*SENS;tLat+=dy*SENS;vLon=-dx*SENS*.85;vLat=dy*SENS*.85;lastX=p.clientX;lastY=p.clientY;idle=0;};
     const onUp=(e)=>{if(!dragging)return;dragging=false;setZoom(false);setCursorState('idle');const p=(e.changedTouches&&e.changedTouches[0])||e;if(moved<8){const hit=pickTile(p.clientX,p.clientY);if(hit)openDetail(hit.g,hit);}};
     dom.addEventListener('mousedown',onDown);window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);
     dom.addEventListener('touchstart',onDown,{passive:true});window.addEventListener('touchmove',onMove,{passive:true});window.addEventListener('touchend',onUp);
@@ -627,7 +626,20 @@ void main(){
     el.style.pointerEvents='auto';
     el.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closeDetail()));
     const play=el.querySelector('[data-play]');
-    play.addEventListener('click',()=>{try{lvl3Click(520,.18,.1);setTimeout(()=>lvl3Click(780,.22,.08),60);}catch(e){}});
+    play.addEventListener('click',(ev)=>{
+      ev.preventDefault();
+      const dest=play.getAttribute('href');
+      let dur=1.2; try{dur=lvl3Portal()||1.2;}catch(e){}
+      // immersive transition: dim+blur the world, bright veil opening like a portal
+      const veil=document.createElement('div');
+      veil.style.cssText='position:fixed;inset:0;z-index:999;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.9),'+hsl(64,80)+' 40%,#000 100%);opacity:0';
+      document.body.appendChild(veil);
+      try{
+        gsap.to('#app',{filter:'blur(14px) brightness(1.6)',scale:1.08,duration:dur*.9,ease:'power2.in'});
+        gsap.to(veil,{opacity:1,duration:dur*.85,ease:'power2.in'});
+      }catch(e){}
+      setTimeout(()=>{window.location.href=dest;},Math.min(dur,1.6)*1000);
+    });
     play.addEventListener('mouseenter',()=>{play.style.transform='scale(1.04)';play.style.background=hsl(64,92);});
     play.addEventListener('mouseleave',()=>{play.style.transform='scale(1)';play.style.background='#fff';});
     startDetailPoster(g.hue);

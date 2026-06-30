@@ -47,37 +47,81 @@
 
   applyAccent(readAccent());
 
-  /* Global click sound — soft, creamy synth click on every click, site-wide. */
-  var clickCtx;
-  function lvl3Click(freq, dur, vol) {
+  /* Global click sound — the mixkit click WAV, decoded once, played site-wide. */
+  var clickCtx, clickBuf;
+  function ensureCtx() {
+    clickCtx = clickCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (clickCtx.state === 'suspended') clickCtx.resume();
+    return clickCtx;
+  }
+  // ponytail: fetch+decode once; each play is a throwaway BufferSource so clicks can overlap.
+  (function loadClick() {
     try {
-      clickCtx = clickCtx || new (window.AudioContext || window.webkitAudioContext)();
-      var ctx = clickCtx, t = ctx.currentTime, f0 = freq || 700, d = dur || 0.05, v = vol || 0.06;
-
-      // tonal body: quick pitch drop = creamy "thock"
-      var o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 2600;
-      o.type = 'triangle';
-      o.frequency.setValueAtTime(f0 * 2, t);
-      o.frequency.exponentialRampToValueAtTime(f0 * 0.5, t + d);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(v, t + 0.002);   // sharp attack
-      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-      o.connect(lp); lp.connect(g); g.connect(ctx.destination);
-      o.start(t); o.stop(t + d + 0.02);
-
-      // noise transient: the actual "click" snap (~8ms)
-      var nd = 0.012, nb = ctx.createBuffer(1, ctx.sampleRate * nd, ctx.sampleRate), ch = nb.getChannelData(0);
-      for (var i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
-      var ns = ctx.createBufferSource(); ns.buffer = nb;
-      var nf = ctx.createBiquadFilter(); nf.type = 'highpass'; nf.frequency.value = 1500;
-      var ng = ctx.createGain(); ng.gain.value = v * 0.7;
-      ns.connect(nf); nf.connect(ng); ng.connect(ctx.destination);
-      ns.start(t);
+      fetch('/audio/click.wav').then(function (r) { return r.arrayBuffer(); })
+        .then(function (b) { return ensureCtx().decodeAudioData(b); })
+        .then(function (buf) { clickBuf = buf; })
+        .catch(function () {});
+    } catch (e) {}
+  })();
+  function lvl3Click(vol) {
+    try {
+      if (!clickBuf) return;
+      var ctx = ensureCtx(), s = ctx.createBufferSource(), g = ctx.createGain();
+      s.buffer = clickBuf;
+      g.gain.value = (vol == null ? 0.6 : vol);
+      s.connect(g); g.connect(ctx.destination);
+      s.start(0);
     } catch (e) {}
   }
   window.lvl3Click = lvl3Click;
   document.addEventListener('click', function () { lvl3Click(); }, true);
+  window.lvl3AudioCtx = ensureCtx;
+
+  /* Immersive "enter another dimension" sound — wavery, misty rising swell.
+     Detuned shimmer sweep + filtered noise wash, ~2s. Returns its duration. */
+  function lvl3Portal() {
+    try {
+      var ctx = ensureCtx(), t = ctx.currentTime, DUR = 2.0;
+      var out = ctx.createGain(); out.gain.value = 0.9; out.connect(ctx.destination);
+
+      // misty noise wash, slowly opening lowpass + slow tremolo = "wavery"
+      var nb = ctx.createBuffer(1, ctx.sampleRate * DUR, ctx.sampleRate), d = nb.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      var ns = ctx.createBufferSource(); ns.buffer = nb;
+      var nf = ctx.createBiquadFilter(); nf.type = 'lowpass';
+      nf.frequency.setValueAtTime(300, t); nf.frequency.exponentialRampToValueAtTime(4000, t + DUR * 0.7);
+      nf.Q.value = 6;
+      var ng = ctx.createGain();
+      ng.gain.setValueAtTime(0.0001, t);
+      ng.gain.exponentialRampToValueAtTime(0.18, t + 0.6);
+      ng.gain.exponentialRampToValueAtTime(0.0001, t + DUR);
+      var trem = ctx.createOscillator(), tg = ctx.createGain();   // tremolo = wavery
+      trem.frequency.value = 7; tg.gain.value = 0.5; trem.connect(tg); tg.connect(ng.gain);
+      ns.connect(nf); nf.connect(ng); ng.connect(out); ns.start(t); trem.start(t); trem.stop(t + DUR);
+
+      // three detuned sine shimmers sweeping upward = "rising into another dimension"
+      [220, 277, 330].forEach(function (f, k) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, t);
+        o.frequency.exponentialRampToValueAtTime(f * 3, t + DUR * 0.85);
+        o.detune.value = (k - 1) * 12;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.12, t + 0.5 + k * 0.12);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + DUR);
+        o.connect(g); g.connect(out); o.start(t); o.stop(t + DUR);
+      });
+
+      // low boom underneath for the "whoosh in"
+      var b = ctx.createOscillator(), bg = ctx.createGain();
+      b.type = 'sine'; b.frequency.setValueAtTime(120, t); b.frequency.exponentialRampToValueAtTime(40, t + 1.2);
+      bg.gain.setValueAtTime(0.0001, t); bg.gain.exponentialRampToValueAtTime(0.3, t + 0.15);
+      bg.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+      b.connect(bg); bg.connect(out); b.start(t); b.stop(t + 1.5);
+      return DUR;
+    } catch (e) { return 0; }
+  }
+  window.lvl3Portal = lvl3Portal;
 
   window.lvl3Theme = {
     current: function () { return read(); },
