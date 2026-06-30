@@ -819,18 +819,19 @@ const PORT = process.env.PORT || 3000;
   // Hydrate the in-memory store (Redis or fs) before handling any request.
   await store.hydrate();
 
-  // Forced password resync for David/Oskar/Marlin: hydrate() only seeds Redis
-  // from data/users.json when the Redis key is still empty, so a plain edit
-  // of that file never reaches a deployment whose Redis already has a cached
-  // users blob. Idempotent: only overwrites a user whose stored hash doesn't
-  // already match the target, so this never touches a password the user
-  // later changes via the UI.
+  // Forced password resync for David/Oskar/Marlin/Bosse: hydrate() only seeds
+  // Redis from data/users.json when the Redis key is still empty, so a plain
+  // edit of that file never reaches a deployment whose Redis already has a
+  // cached users blob. Idempotent: only overwrites a user whose stored hash
+  // doesn't already match the target, so this never touches a password the
+  // user later changes via the UI.
   // ponytail: drop this whole block once it's confirmed deployed.
   {
     const resyncHashes = {
       david:  "$2a$10$/COoDNWvqAroziSU2MhTueBWv8he5WgKRtF6nPF.RLdMaaiL/uSj6",
       oskar:  "$2a$10$9sF4E1AHGFIef/f5i9cmP.Myq51dZjmaUAPcQa0w0DJ/dbfbKei.a",
-      marlin: "$2a$10$AAzD6Q.vVjG1yC/fhzLqFeNGKOmLPlYbrz3sYuaz8HfwV2SPuNa3C"
+      marlin: "$2a$10$AAzD6Q.vVjG1yC/fhzLqFeNGKOmLPlYbrz3sYuaz8HfwV2SPuNa3C",
+      bosse:  "$2a$10$Pm8JzRpxc44RFMpPKhwHF.ZKMqgj/gVyoqbSZyLp9ykE9MFdvWPW."
     };
     const resyncUsers = loadUsers();
     let resynced = false;
