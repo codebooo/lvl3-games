@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeopardy – Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=4">
+  <script src="/js/theme.js?v=4"></script>
+  <style>
+    /* ─────────────────────────────────────────────
+       PHANTOM.LAND — Jeopardy (host quizmaster + contestants)
+       Same full-bleed black phantom system as 4 Gewinnt.
+       Every JS-bound id preserved.
+       ───────────────────────────────────────────── */
+    *{box-sizing:border-box}
+    :root{ --acc:#ff2244; --gold:#ffd34e; --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+           --dim:rgba(255,255,255,.55); --mut:rgba(255,255,255,.32); --jp:#2a3bff; }
+    html,body{margin:0;padding:0}
+    body{
+      background:#000;color:#fff;min-height:100vh;overflow-x:hidden;
+      font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;
+      cursor:none;
+    }
+    .mono{font-family:'JetBrains Mono',monospace}
+    .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;
+            text-transform:uppercase;color:var(--mut)}
+
+    /* ── film grain + vignette ── */
+    #grain{position:fixed;inset:0;z-index:70;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    #vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
+      background:radial-gradient(120% 120% at 50% 42%, transparent 30%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.92) 100%)}
+
+    /* ── custom cursor ── */
+    #cursor{position:fixed;top:0;left:0;z-index:90;pointer-events:none;width:8px;height:8px;border-radius:50%;
+      background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference;
+      transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
+    #cursor-ring{position:fixed;top:0;left:0;z-index:89;pointer-events:none;width:40px;height:40px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%) scale(.4);opacity:0;
+      transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+    @media(hover:none){ body{cursor:auto} #cursor,#cursor-ring{display:none} }
+
+    /* ── floating top header ── */
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+      justify-content:space-between;padding:26px 34px;pointer-events:none}
+    .site-header > *{pointer-events:auto}
+    .hdr-left{display:flex;align-items:center;gap:20px}
+    .brand{font-weight:700;font-size:20px;letter-spacing:.01em;text-decoration:none;color:#fff;line-height:1}
+    .brand span{color:var(--acc)}
+    .hdr-div{width:1px;height:18px;background:var(--line-2);display:block}
+    .hdr-game{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.26em;
+      color:var(--dim);text-transform:uppercase}
+    .hdr-right{display:flex;align-items:center;gap:14px}
+    .type-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--mut);
+      border:1px solid var(--line-2);border-radius:999px;padding:5px 13px;text-transform:uppercase}
+    #user-name{font-weight:500;font-size:13px;letter-spacing:.01em}
+
+    /* ── left floating rail: room code + players ── */
+    .rail{position:fixed;left:34px;top:118px;bottom:40px;width:210px;z-index:30;
+      display:flex;flex-direction:column;gap:30px;pointer-events:none}
+    .rail > *{pointer-events:auto}
+    .rail-block{display:flex;flex-direction:column;gap:12px}
+    .rail-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;letter-spacing:.16em;
+      color:var(--acc);line-height:1}
+    .rail-players{flex:1;min-height:0;overflow-y:auto}
+    .player-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+    .player-item{display:flex;align-items:center;gap:11px;padding:11px 0;
+      border-bottom:1px solid var(--line);background:transparent;border-radius:0}
+    .player-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:600;flex:0 0 auto;color:#fff;overflow:hidden;
+      background-size:cover;background-position:center;background-repeat:no-repeat}
+    .player-item .pname,.player-item span:not(.player-score):not(.player-avatar){font-size:13px;color:#fff}
+    .player-score{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc)}
+
+    /* ── center stage ── */
+    .stage{position:relative;z-index:20;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:120px 34px 60px 34px}
+    .screen{display:none;width:100%;max-width:620px;flex-direction:column;align-items:center;text-align:center}
+    .screen.active{display:flex}
+    #screen-builder{max-width:980px;text-align:left}
+    #screen-board{max-width:1040px}
+    #screen-clue{max-width:840px}
+
+    /* shared phantom type */
+    .p-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:22px}
+    .p-title{font-weight:700;font-size:clamp(44px,8vw,86px);line-height:.92;letter-spacing:-.02em;
+      text-transform:uppercase;margin:0}
+    .p-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--dim);margin-top:20px}
+
+    /* phantom inputs */
+    .p-field{width:100%;background:none;border:none;border-bottom:1px solid var(--line-2);color:#fff;
+      font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;padding:12px 2px;border-radius:0;
+      outline:none;transition:border-color .25s}
+    .p-field::placeholder{color:rgba(255,255,255,.25)}
+    .p-field:focus{border-bottom-color:#fff}
+
+    /* phantom buttons */
+    .p-btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:.04em;
+      text-transform:uppercase;border-radius:999px;padding:16px 30px;cursor:none;border:1px solid #fff;
+      transition:transform .25s cubic-bezier(.2,.8,.2,1),background-color .2s,color .2s,border-color .2s,opacity .2s}
+    .p-btn-primary{background:#fff;color:#000}
+    .p-btn-primary:hover:not(:disabled){transform:translateY(-3px)}
+    .p-btn-ghost{background:transparent;color:#fff;border-color:var(--line-2)}
+    .p-btn-ghost:hover:not(:disabled){transform:translateY(-3px);border-color:#fff}
+    .p-btn:disabled{opacity:.32}
+    .p-btn-full{width:100%;justify-content:center;display:flex;align-items:center;gap:10px}
+    .p-btn-sm{padding:10px 18px;font-size:12px}
+
+    /* join / lobby blocks */
+    .stack{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px;margin:38px auto 0}
+    .join-row{display:flex;gap:10px}
+    .join-row .p-field{text-align:center;letter-spacing:.4em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:15px}
+
+    .err{color:var(--acc);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;min-height:16px;margin-top:4px}
+    .hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-top:14px}
+
+    /* ── BUILDER ── */
+    .bld-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%;margin:24px 0 18px}
+    .bld-bar .grow{flex:1}
+    .bld-tabs{display:flex;gap:10px}
+    .bld-tab{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--dim);border:1px solid var(--line-2);border-radius:999px;padding:8px 16px;cursor:none;background:none}
+    .bld-tab.active{color:#000;background:#fff;border-color:#fff}
+    .bld-load{background:none;border:1px solid var(--line-2);color:#fff;border-radius:999px;
+      font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 14px;cursor:none}
+    .bld-board{display:none}
+    .bld-board.active{display:block}
+    .bld-cats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
+    .bld-cats .p-field{font-size:13px;text-align:center;font-family:'JetBrains Mono',monospace;letter-spacing:.06em}
+    .bld-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .bld-cell{aspect-ratio:5/3;border:1px solid var(--line-2);border-radius:10px;display:flex;
+      flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:none;
+      background:linear-gradient(180deg,rgba(42,59,255,.10),rgba(0,0,0,.3));transition:border-color .2s,transform .2s}
+    .bld-cell:hover{border-color:#fff;transform:translateY(-2px)}
+    .bld-cell .val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--gold)}
+    .bld-cell .mark{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+    .bld-cell.filled{border-color:rgba(34,197,94,.6)}
+    .bld-cell.filled .mark{color:#22c55e}
+    .bld-cell.empty .mark{color:var(--mut)}
+    #bld-final{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+    .bld-final-fields{display:none;flex-direction:column;gap:12px;margin-top:14px}
+    .bld-final-fields.active{display:flex}
+    .toggle-row{display:flex;align-items:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em}
+
+    /* cell editor modal */
+    .modal{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:24px}
+    .modal.active{display:flex}
+    .modal-card{width:100%;max-width:520px;background:#0a0c12;border:1px solid var(--line-2);border-radius:18px;
+      padding:30px 28px;display:flex;flex-direction:column;gap:16px;max-height:90vh;overflow-y:auto}
+    .modal-card h3{margin:0;font-size:18px;font-weight:700}
+    .modal-card textarea.p-field{font-family:'Space Grotesk',sans-serif;resize:vertical;min-height:70px;font-size:16px}
+    .modal-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .media-mark{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)}
+    .media-thumb{max-width:120px;max-height:80px;border-radius:8px;border:1px solid var(--line-2)}
+
+    /* ── BOARD (play) ── */
+    .board-head{display:flex;align-items:center;justify-content:space-between;width:100%;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+    .board-idx{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+    .jp-cats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
+    .jp-cat{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+      text-align:center;padding:14px 6px;border-radius:10px;background:var(--jp);color:#fff;
+      display:flex;align-items:center;justify-content:center;min-height:54px}
+    .jp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .jp-cell{aspect-ratio:5/3;border-radius:10px;display:flex;align-items:center;justify-content:center;
+      font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--gold);
+      background:linear-gradient(180deg,rgba(42,59,255,.18),rgba(0,0,0,.35));border:1px solid var(--line-2)}
+    .jp-cell.used{color:transparent;background:rgba(255,255,255,.02);border-color:var(--line)}
+    .jp-cell.pick{cursor:none;transition:transform .2s,border-color .2s}
+    .jp-cell.pick:hover{transform:scale(1.04);border-color:#fff}
+    .board-foot{display:flex;gap:12px;justify-content:center;margin-top:22px}
+
+    /* ── CLUE ── */
+    .clue-cat{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+    .clue-val{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim);margin-bottom:24px}
+    .clue-text{font-weight:600;font-size:clamp(24px,4vw,40px);line-height:1.15;margin:0 0 18px}
+    .clue-media{margin:18px auto;max-width:100%}
+    .clue-media img{max-width:100%;max-height:300px;border-radius:12px;border:1px solid var(--line-2)}
+    .clue-answer{font-family:'JetBrains Mono',monospace;font-size:clamp(18px,3vw,26px);color:#22c55e;
+      letter-spacing:.04em;margin-top:18px;min-height:22px}
+    .clue-buzzer-status{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.16em;
+      text-transform:uppercase;color:var(--acc);margin-top:18px;min-height:18px}
+    .buzzer{width:200px;height:200px;border-radius:50%;border:none;background:radial-gradient(circle at 38% 30%,#ff5d77,var(--acc) 62%,#b8142e);
+      color:#fff;font-weight:700;font-size:22px;letter-spacing:.1em;text-transform:uppercase;cursor:none;margin:24px auto 0;
+      box-shadow:0 18px 50px -12px rgba(255,34,68,.6);transition:transform .12s,opacity .2s}
+    .buzzer:active:not(:disabled){transform:scale(.94)}
+    .buzzer:disabled{opacity:.3;filter:grayscale(.6)}
+    .clue-controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+
+    /* ── FINAL ── */
+    .final-clue{font-weight:600;font-size:clamp(22px,3.4vw,34px);line-height:1.2;margin:14px 0}
+    .final-list{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-direction:column;gap:10px;width:100%;max-width:440px}
+    .final-list li{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:10px 0;text-align:left}
+    .final-list .fl-name{flex:1;font-size:14px}
+    .final-list .fl-meta{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)}
+    .final-list .fl-judge{display:flex;gap:6px}
+
+    /* scoreboard (board + end + clue) */
+    .scoreboard{list-style:none;padding:0;margin:22px auto 0;display:flex;flex-direction:column;gap:6px;width:100%;max-width:440px}
+    .scoreboard li{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:9px 0}
+    .scoreboard .sb-name{flex:1;font-size:14px;text-align:left}
+    .scoreboard .sb-score{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--gold)}
+    .scoreboard li.is-buzzer .sb-name{color:var(--acc)}
+
+    /* end screen */
+    #screen-end{max-width:560px}
+    .winner-name{font-weight:700;font-size:clamp(40px,7vw,72px);line-height:.95;letter-spacing:-.02em;text-transform:uppercase}
+
+    /* ───────────────────────── RESPONSIVE ───────────────────────── */
+    @media(max-width:900px){
+      .rail{position:static;left:auto;top:auto;bottom:auto;width:auto;z-index:30;
+        flex-direction:row;align-items:flex-start;gap:20px 28px;flex-wrap:wrap;pointer-events:auto;
+        padding:96px 20px 0;max-width:100%}
+      .rail-block{gap:6px}
+      .rail-players{flex:1 1 100%;min-height:0;overflow:visible}
+      .rail-code{font-size:26px}
+      .player-list{flex-direction:row;flex-wrap:wrap;gap:8px 16px;margin-top:8px}
+      .player-item{border-bottom:none;padding:6px 0;gap:8px}
+      .player-score{margin-left:6px}
+      .stage{min-height:0;padding:30px 20px 60px}
+      .screen{max-width:640px}
+      .bld-cats .p-field{font-size:11px}
+      .jp-cell{font-size:18px}
+      .jp-cat{font-size:10px;min-height:46px}
+    }
+    @media(max-width:640px){
+      .site-header{padding:16px 18px}
+      .brand{font-size:17px}
+      .hdr-left{gap:12px}
+      .hdr-game{display:none}
+      .hdr-right{gap:10px}
+      .type-pill{display:none}
+      #user-name{font-size:12px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .rail{padding-top:74px}
+      .rail-code{font-size:24px}
+      .p-title{font-size:clamp(34px,11vw,52px)}
+      .p-sub{font-size:10px;letter-spacing:.18em}
+      .stack{max-width:100%}
+      .p-field{font-size:16px}
+      .p-btn{padding:14px 24px}
+      .bld-cats{gap:5px}
+      .bld-grid{gap:5px}
+      .jp-cats{gap:5px}
+      .jp-grid{gap:5px}
+      .jp-cell{font-size:15px;border-radius:8px}
+      .jp-cat{font-size:8.5px;padding:8px 3px;min-height:40px}
+      .buzzer{width:160px;height:160px;font-size:18px}
+      #screen-end .stack{flex-wrap:wrap;gap:12px}
+    }
+  </style>
+</head>
+<body>
+
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- floating header -->
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">Jeopardy</span>
+  </div>
+  <div class="hdr-right">
+    <span class="type-pill">Quiz</span>
+    <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px"></div>
+    <span id="user-name"></span>
+    <button onclick="leaveRoom()" class="p-btn p-btn-ghost" style="padding:9px 18px;font-size:11px">Verlassen</button>
+  </div>
+</header>
+
+<!-- left floating rail -->
+<aside class="rail">
+  <div class="rail-block">
+    <div class="kicker">Raum-Code</div>
+    <div class="rail-code" id="room-code-display">––––</div>
+  </div>
+  <div class="rail-block rail-players">
+    <div class="kicker">Spieler</div>
+    <ul class="player-list" id="player-list"></ul>
+  </div>
+</aside>
+
+<!-- center stage -->
+<main class="stage">
+
+  <!-- ── Join ── -->
+  <div class="screen active" id="screen-join">
+    <div class="p-kicker">LVL³ · Quiz</div>
+    <h2 class="p-title">Jeo<br>pardy</h2>
+    <p class="p-sub">Host baut das Board · Spieler buzzern</p>
+    <div class="stack">
+      <button onclick="createRoom()" class="p-btn p-btn-primary p-btn-full">Raum erstellen</button>
+      <div class="join-row">
+        <input id="join-code-input" class="p-field" placeholder="Code" maxlength="4">
+        <button onclick="joinRoom()" class="p-btn p-btn-ghost" style="white-space:nowrap">Beitreten</button>
+      </div>
+      <div id="join-error" class="err"></div>
+    </div>
+  </div>
+
+  <!-- ── Builder (host only, before start) ── -->
+  <div class="screen" id="screen-builder">
+    <div class="p-kicker" style="margin-bottom:8px">Host · Board-Builder</div>
+    <h2 class="p-title" style="font-size:clamp(30px,5vw,48px)">Baue das Quiz</h2>
+
+    <div class="bld-bar">
+      <div class="bld-tabs">
+        <button class="bld-tab active" data-board="0" onclick="bldShowBoard(0)">Board 1</button>
+        <button class="bld-tab" data-board="1" onclick="bldShowBoard(1)">Board 2 · Double</button>
+      </div>
+      <span class="grow"></span>
+      <select id="bld-load-select" class="bld-load">
+        <option value="">Gespeichertes Board laden…</option>
+      </select>
+      <button class="bld-load" onclick="loadSavedBoard()">Laden</button>
+    </div>
+
+    <!-- Board 0 -->
+    <div class="bld-board active" data-board="0">
+      <div class="bld-cats" id="bld-cats-0"></div>
+      <div class="bld-grid" id="bld-grid-0"></div>
+    </div>
+    <!-- Board 1 -->
+    <div class="bld-board" data-board="1">
+      <div class="bld-cats" id="bld-cats-1"></div>
+      <div class="bld-grid" id="bld-grid-1"></div>
+    </div>
+
+    <!-- Final Jeopardy -->
+    <div id="bld-final">
+      <label class="toggle-row">
+        <input type="checkbox" id="bld-final-toggle" onchange="bldToggleFinal()">
+        Final Jeopardy aktivieren
+      </label>
+      <div class="bld-final-fields" id="bld-final-fields">
+        <input class="p-field" id="bld-final-cat" placeholder="Final-Kategorie">
+        <textarea class="p-field" id="bld-final-clue" placeholder="Final-Frage (Clue)" rows="2"></textarea>
+        <input class="p-field" id="bld-final-answer" placeholder="Final-Antwort">
+      </div>
+    </div>
+
+    <div class="bld-bar" style="margin-top:24px">
+      <input class="p-field grow" id="bld-name" placeholder="Board-Name (zum Speichern)" style="max-width:280px">
+      <button class="p-btn p-btn-ghost p-btn-sm" onclick="saveBoard()">Speichern</button>
+      <span class="grow"></span>
+      <button class="p-btn p-btn-primary" id="btn-jp-start" onclick="startGame()">Spiel starten</button>
+    </div>
+  </div>
+
+  <!-- ── Lobby (guests) ── -->
+  <div class="screen" id="screen-lobby">
+    <div class="p-kicker">Lobby</div>
+    <h2 class="p-title" style="font-size:clamp(36px,6vw,60px)">Bereit?</h2>
+    <p class="p-sub">Warte auf den Host (baut das Board)…</p>
+    <div class="hint" style="margin-top:24px">Mindestens 3 Mitspieler (4 inkl. Host)</div>
+  </div>
+
+  <!-- ── Board (play) ── -->
+  <div class="screen" id="screen-board">
+    <div class="board-head">
+      <div class="board-idx" id="board-idx">Board 1</div>
+      <div class="board-idx" id="board-role"></div>
+    </div>
+    <div class="jp-cats" id="jp-cats"></div>
+    <div class="jp-grid" id="jp-grid"></div>
+    <div class="board-foot" id="board-foot"></div>
+    <ul class="scoreboard" id="board-scoreboard"></ul>
+  </div>
+
+  <!-- ── Clue ── -->
+  <div class="screen" id="screen-clue">
+    <div class="clue-cat" id="clue-cat"></div>
+    <div class="clue-val" id="clue-val"></div>
+    <p class="clue-text" id="clue-text"></p>
+    <div class="clue-media" id="clue-media"></div>
+    <div class="clue-buzzer-status" id="clue-buzzer-status"></div>
+    <div class="clue-answer" id="clue-answer"></div>
+    <button class="buzzer" id="buzzer-btn" onclick="buzz()" style="display:none">Buzz!</button>
+    <div class="clue-controls" id="clue-controls"></div>
+    <ul class="scoreboard" id="clue-scoreboard"></ul>
+  </div>
+
+  <!-- ── Final ── -->
+  <div class="screen" id="screen-final">
+    <div class="p-kicker">Final Jeopardy</div>
+    <div class="clue-cat" id="final-cat"></div>
+    <p class="final-clue" id="final-clue"></p>
+    <div id="final-body"></div>
+    <ul class="final-list" id="final-list"></ul>
+    <div class="clue-controls" id="final-controls"></div>
+  </div>
+
+  <!-- ── End ── -->
+  <div class="screen" id="screen-end">
+    <div style="width:100%">
+      <div class="p-kicker">Ergebnis</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="p-sub" id="end-sub" style="margin-top:14px"></div>
+      <ul class="scoreboard" id="end-scoreboard"></ul>
+      <div class="stack" style="flex-direction:row;justify-content:center;max-width:none;margin-top:34px">
+        <button onclick="playAgain()" id="btn-play-again" class="p-btn p-btn-ghost">Neue Runde</button>
+        <button onclick="leaveRoom()" class="p-btn p-btn-primary">Verlassen</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- cell editor modal -->
+<div class="modal" id="cell-modal">
+  <div class="modal-card">
+    <h3 id="cell-modal-title">Feld bearbeiten</h3>
+    <textarea class="p-field" id="cell-clue" placeholder="Frage / Clue" rows="3"></textarea>
+    <input class="p-field" id="cell-answer" placeholder="Antwort">
+    <input class="p-field" id="cell-value" type="number" placeholder="Wert" step="50">
+    <div class="modal-row">
+      <input type="file" id="cell-media" accept="image/*,audio/*" style="font-size:12px">
+      <span class="media-mark" id="cell-media-mark"></span>
+    </div>
+    <div id="cell-media-preview"></div>
+    <div class="modal-row" style="justify-content:flex-end;margin-top:6px">
+      <button class="p-btn p-btn-ghost p-btn-sm" onclick="closeCellModal()">Abbrechen</button>
+      <button class="p-btn p-btn-ghost p-btn-sm" onclick="clearCellMedia()">Medien entfernen</button>
+      <button class="p-btn p-btn-primary p-btn-sm" onclick="saveCellModal()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/socket-utils.js?v=4"></script>
+<script src="/js/games/jeopardy.js?v=1"></script>
+<script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script>
+  // ── Custom cursor (dot + ring), self-contained ──
+  (function(){
+    if (window.matchMedia && window.matchMedia('(hover:none)').matches) return;
+    const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+    let rx=0,ry=0,tx=0,ty=0;
+    window.addEventListener('mousemove',e=>{
+      tx=e.clientX;ty=e.clientY;
+      cur.style.left=tx+'px';cur.style.top=ty+'px';
+      const hit=e.target.closest('button,a,input,select,textarea,.jp-cell.pick,.bld-cell');
+      if(hit){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(1)';cur.style.width='5px';cur.style.height='5px';}
+      else{ring.style.opacity='0';ring.style.transform='translate(-50%,-50%) scale(.4)';cur.style.width='8px';cur.style.height='8px';}
+    });
+    (function loop(){ rx+=(tx-rx)*.18; ry+=(ty-ry)*.18; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  })();
+
+  // ── Entrance animation ──
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!window.gsap) return;
+    gsap.from('.site-header > *',{y:-14,opacity:0,duration:.7,stagger:.06,ease:'power3.out'});
+    gsap.from('.rail > *',{x:-18,opacity:0,duration:.7,stagger:.1,delay:.15,ease:'power3.out'});
+    gsap.from('#screen-join > *',{y:26,opacity:0,duration:.8,stagger:.07,delay:.2,ease:'power3.out'});
+  });
+</script>
+</body>
+</html>

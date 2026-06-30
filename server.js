@@ -470,6 +470,101 @@ app.delete("/api/finanzamt/:id", (req, res) => {
   return res.json({ success: true });
 });
 
+// ─── Jeopardy (saved boards + media) ────────────────────────────────────────────
+// Saved games live in store "jeopardyBoards" (array of full game objects, each
+// with id/name/owner; the socket handler reads this array in jeopardy:start).
+// Media (cell images/audio) is stored separately in store "jeopardyMedia" — a
+// map mediaId → dataURL — so board JSON stays text-only and references by id.
+function loadJeopardyBoards() { return store.get("jeopardyBoards"); }
+function saveJeopardyBoards(g) { store.set("jeopardyBoards", g); }
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// GET — list the current user's saved games (id + name only).
+app.get("/api/jeopardy", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const games = loadJeopardyBoards()
+    .filter(g => g.owner === req.session.username)
+    .map(g => ({ id: g.id, name: g.name || "Unbenannt" }));
+  return res.json({ games });
+});
+
+// GET — full game JSON (owner only).
+app.get("/api/jeopardy/:id", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const game = loadJeopardyBoards().find(g => g.id === req.params.id);
+  if (!game) return res.status(404).json({ error: "Spiel nicht gefunden." });
+  if (game.owner !== req.session.username) return res.status(403).json({ error: "Keine Berechtigung." });
+  return res.json({ game });
+});
+
+// POST — create or update a saved game (text only; media referenced by mediaId).
+app.post("/api/jeopardy", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const incoming = req.body && req.body.game;
+  if (!incoming || typeof incoming !== "object") return res.status(400).json({ error: "Ungültiges Spiel." });
+
+  const games = loadJeopardyBoards();
+  let id = incoming.id;
+  if (id) {
+    const existing = games.find(g => g.id === id);
+    if (existing && existing.owner !== req.session.username) {
+      return res.status(403).json({ error: "Keine Berechtigung." });
+    }
+  }
+  if (!id) id = genId();
+
+  const game = Object.assign({}, incoming, { id, owner: req.session.username });
+  const idx = games.findIndex(g => g.id === id);
+  if (idx === -1) games.push(game); else games[idx] = game;
+  saveJeopardyBoards(games);
+  return res.json({ id });
+});
+
+// DELETE — remove a saved game (owner only).
+app.delete("/api/jeopardy/:id", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const games = loadJeopardyBoards();
+  const idx = games.findIndex(g => g.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: "Spiel nicht gefunden." });
+  if (games[idx].owner !== req.session.username) return res.status(403).json({ error: "Keine Berechtigung." });
+  games.splice(idx, 1);
+  saveJeopardyBoards(games);
+  return res.json({ success: true });
+});
+
+// POST media — accepts a data URL up to 15MB decoded. The global express.json
+// cap is 12mb, so this route gets its own 25mb parser (covers ~15MB base64 +
+// overhead). Returns { mediaId } to embed in the board's cells.
+// ponytail: jeopardyMedia is one Upstash value (a map) — Upstash caps a value at
+// ~100MB on paid plans / 1MB on free; per-id Redis keys if the map outgrows that.
+app.post("/api/jeopardy/media", express.json({ limit: "25mb" }), (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const dataUrl = req.body && req.body.dataUrl;
+  if (!dataUrl || typeof dataUrl !== "string" || !/^data:(image|audio)\//.test(dataUrl)) {
+    return res.status(400).json({ error: "Nur Bild- oder Audiodateien erlaubt." });
+  }
+  const commaIdx = dataUrl.indexOf(",");
+  const base64Part = commaIdx !== -1 ? dataUrl.slice(commaIdx + 1) : dataUrl;
+  const byteSize = Math.floor(base64Part.length * 0.75);
+  if (byteSize > 15 * 1024 * 1024) {
+    return res.status(400).json({ error: "Datei zu groß (max 15 MB)." });
+  }
+
+  const media = store.get("jeopardyMedia");
+  const mediaId = genId();
+  media[mediaId] = dataUrl;
+  store.set("jeopardyMedia", media);
+  return res.json({ mediaId });
+});
+
+// GET media — return the stored data URL (the client embeds it directly).
+app.get("/api/jeopardy/media/:id", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const dataUrl = store.get("jeopardyMedia")[req.params.id];
+  if (!dataUrl) return res.status(404).json({ error: "Medium nicht gefunden." });
+  return res.json({ dataUrl });
+});
+
 // ─── Spiele-Liste (Playlist) ──────────────────────────────────────────────────
 const PLAYLIST_CATEGORIES = ["pc", "web", "brettspiel"];
 
@@ -705,7 +800,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => handleLeave(socket));
 
   // Load game handlers
-  ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten", "connect4", "verhext"].forEach(g => {
+  ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten", "connect4", "verhext", "jeopardy"].forEach(g => {
     try {
       require("./server/games/" + g + "-handler")(socket, io, rooms);
     } catch (e) {

@@ -22,7 +22,9 @@ const KEYS = {
   bugReports: { file: "bug-reports.json",  default: () => [] },
   finanzamt:  { file: "finanzamt.json",    default: () => [] },
   playlist:   { file: "playlist.json",     default: () => [] },
-  stats:      { file: "stats.json",        default: () => ({ overall: {}, perGame: {} }) }
+  stats:      { file: "stats.json",        default: () => ({ overall: {}, perGame: {} }) },
+  jeopardyBoards: { file: "jeopardy-boards.json", default: () => [] },
+  jeopardyMedia:  { file: "jeopardy-media.json",  default: () => ({}) }
 };
 
 const DATA_DIR = path.join(__dirname, "..", "data");
