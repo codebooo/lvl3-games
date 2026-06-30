@@ -74,7 +74,7 @@
     } catch (e) {}
   }
   window.lvl3Click = lvl3Click;
-  document.addEventListener('click', function () { lvl3Click(); }, true);
+  document.addEventListener('pointerdown', function () { lvl3Click(); }, true);
   window.lvl3AudioCtx = ensureCtx;
 
   /* Immersive "enter another dimension" sound — wavery, misty rising swell.

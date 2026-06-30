@@ -99,7 +99,7 @@ window.lvl3 = (function () {
 
   function applyAvatar(el, username, avatarUrl) {
     if (avatarUrl && typeof avatarUrl === "string" && avatarUrl.length > 0) {
-      el.style.backgroundImage = "url(" + avatarUrl + ")";
+      el.style.backgroundImage = 'url("' + avatarUrl + '")';
       el.style.backgroundSize = "cover";
       el.style.backgroundPosition = "center";
       el.style.background = "";
@@ -127,8 +127,8 @@ window.lvl3 = (function () {
       var url = avatars[p];
       var avatarHtml;
       if (url && typeof url === "string" && url.length > 0) {
-        avatarHtml = '<div class="player-avatar" style="background-image:url(' + url +
-          ');background-size:cover;background-position:center"></div>';
+        avatarHtml = '<div class="player-avatar" style="background-image:url(&quot;' + url +
+          '&quot;);background-size:cover;background-position:center"></div>';
       } else {
         avatarHtml = '<div class="player-avatar" style="background:' + avatarColor(p) + '">' + avatarInitial(p) + '</div>';
       }
