@@ -52,16 +52,28 @@
   function lvl3Click(freq, dur, vol) {
     try {
       clickCtx = clickCtx || new (window.AudioContext || window.webkitAudioContext)();
-      var t = clickCtx.currentTime, f0 = freq || 700, d = dur || 0.05;
-      var o = clickCtx.createOscillator(), g = clickCtx.createGain(), lp = clickCtx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 1800;
-      o.type = 'sine';
-      o.frequency.setValueAtTime(f0, t);
-      o.frequency.exponentialRampToValueAtTime(f0 * 0.4, t + d);
-      g.gain.setValueAtTime(vol || 0.06, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + d);
-      o.connect(lp); lp.connect(g); g.connect(clickCtx.destination);
-      o.start(t); o.stop(t + d);
+      var ctx = clickCtx, t = ctx.currentTime, f0 = freq || 700, d = dur || 0.05, v = vol || 0.06;
+
+      // tonal body: quick pitch drop = creamy "thock"
+      var o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 2600;
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f0 * 2, t);
+      o.frequency.exponentialRampToValueAtTime(f0 * 0.5, t + d);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(v, t + 0.002);   // sharp attack
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(lp); lp.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t + d + 0.02);
+
+      // noise transient: the actual "click" snap (~8ms)
+      var nd = 0.012, nb = ctx.createBuffer(1, ctx.sampleRate * nd, ctx.sampleRate), ch = nb.getChannelData(0);
+      for (var i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
+      var ns = ctx.createBufferSource(); ns.buffer = nb;
+      var nf = ctx.createBiquadFilter(); nf.type = 'highpass'; nf.frequency.value = 1500;
+      var ng = ctx.createGain(); ng.gain.value = v * 0.7;
+      ns.connect(nf); nf.connect(ng); ng.connect(ctx.destination);
+      ns.start(t);
     } catch (e) {}
   }
   window.lvl3Click = lvl3Click;
