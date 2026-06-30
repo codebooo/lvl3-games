@@ -47,6 +47,26 @@
 
   applyAccent(readAccent());
 
+  /* Global click sound — soft, creamy synth click on every click, site-wide. */
+  var clickCtx;
+  function lvl3Click(freq, dur, vol) {
+    try {
+      clickCtx = clickCtx || new (window.AudioContext || window.webkitAudioContext)();
+      var t = clickCtx.currentTime, f0 = freq || 700, d = dur || 0.05;
+      var o = clickCtx.createOscillator(), g = clickCtx.createGain(), lp = clickCtx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 1800;
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f0, t);
+      o.frequency.exponentialRampToValueAtTime(f0 * 0.4, t + d);
+      g.gain.setValueAtTime(vol || 0.06, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + d);
+      o.connect(lp); lp.connect(g); g.connect(clickCtx.destination);
+      o.start(t); o.stop(t + d);
+    } catch (e) {}
+  }
+  window.lvl3Click = lvl3Click;
+  document.addEventListener('click', function () { lvl3Click(); }, true);
+
   window.lvl3Theme = {
     current: function () { return read(); },
     set: function (theme) {

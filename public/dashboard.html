@@ -533,7 +533,8 @@ void main(){
 
     const dom=renderer.domElement;
     const onDown=(e)=>{if(sceneDetailOpen||listOpen)return;dragging=true;moved=0;idle=0;const p=e.touches?e.touches[0]:e;lastX=p.clientX;lastY=p.clientY;vLon=0;vLat=0;setZoom(true);setCursorState('grab');};
-    const onMove=(e)=>{const p=e.touches?e.touches[0]:e;cursorXY(p.clientX,p.clientY);if(!dragging){if(!sceneDetailOpen&&!listOpen)hoverTest(p.clientX,p.clientY);return;}const dx=p.clientX-lastX,dy=p.clientY-lastY;moved+=Math.abs(dx)+Math.abs(dy);tLon-=dx*SENS;tLat+=dy*SENS;vLon=-dx*SENS*.85;vLat=dy*SENS*.85;lastX=p.clientX;lastY=p.clientY;idle=0;};
+    let lastDragSound=0;
+    const onMove=(e)=>{const p=e.touches?e.touches[0]:e;cursorXY(p.clientX,p.clientY);if(!dragging){if(!sceneDetailOpen&&!listOpen)hoverTest(p.clientX,p.clientY);return;}const dx=p.clientX-lastX,dy=p.clientY-lastY;moved+=Math.abs(dx)+Math.abs(dy);tLon-=dx*SENS;tLat+=dy*SENS;vLon=-dx*SENS*.85;vLat=dy*SENS*.85;lastX=p.clientX;lastY=p.clientY;idle=0;const now=performance.now();if(now-lastDragSound>90){lastDragSound=now;try{lvl3Click(300+Math.random()*60,.04,.025);}catch(e){}}};
     const onUp=(e)=>{if(!dragging)return;dragging=false;setZoom(false);setCursorState('idle');const p=(e.changedTouches&&e.changedTouches[0])||e;if(moved<8){const hit=pickTile(p.clientX,p.clientY);if(hit)openDetail(hit.g,hit);}};
     dom.addEventListener('mousedown',onDown);window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);
     dom.addEventListener('touchstart',onDown,{passive:true});window.addEventListener('touchmove',onMove,{passive:true});window.addEventListener('touchend',onUp);
@@ -625,6 +626,7 @@ void main(){
     el.style.pointerEvents='auto';
     el.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closeDetail()));
     const play=el.querySelector('[data-play]');
+    play.addEventListener('click',()=>{try{lvl3Click(520,.18,.1);setTimeout(()=>lvl3Click(780,.22,.08),60);}catch(e){}});
     play.addEventListener('mouseenter',()=>{play.style.transform='scale(1.04)';play.style.background=hsl(64,92);});
     play.addEventListener('mouseleave',()=>{play.style.transform='scale(1)';play.style.background='#fff';});
     startDetailPoster(g.hue);
