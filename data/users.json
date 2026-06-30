@@ -1,18 +1,18 @@
 [
   {
     "username": "Marlin",
-    "password": "$2a$10$83fkcimiye.BrSBoTte6ieq3LPxarTlkqKMnnn3lYQpKUorCpG7Se",
-    "passwordChanged": false
+    "password": "$2a$10$AAzD6Q.vVjG1yC/fhzLqFeNGKOmLPlYbrz3sYuaz8HfwV2SPuNa3C",
+    "passwordChanged": true
   },
   {
     "username": "Oskar",
-    "password": "$2a$10$WkzJH5m/zy47Jqi40jNXG.7c8JzEaoW4A.XZsTIlRtCjRlMyhQn4y",
-    "passwordChanged": false
+    "password": "$2a$10$9sF4E1AHGFIef/f5i9cmP.Myq51dZjmaUAPcQa0w0DJ/dbfbKei.a",
+    "passwordChanged": true
   },
   {
     "username": "David",
-    "password": "$2a$10$r0dhjtOQAQdQVel9bJbhmuh/BDASLWmA45fgtACh.4ddDYbiMyBwy",
-    "passwordChanged": false
+    "password": "$2a$10$/COoDNWvqAroziSU2MhTueBWv8he5WgKRtF6nPF.RLdMaaiL/uSj6",
+    "passwordChanged": true
   },
   {
     "username": "Bosse",
