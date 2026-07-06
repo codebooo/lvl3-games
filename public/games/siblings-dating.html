@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Siblings or Dating – Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=4">
+  <script src="/js/theme.js?v=8"></script>
+  <style>
+    /* ─────────────────────────────────────────────
+       PHANTOM.LAND — Siblings or Dating
+       Same full-bleed structural design as Flaggen-Quiz:
+       black stage, floating rail, editorial type, grain,
+       custom cursor. Two portraits + secret vote.
+       ───────────────────────────────────────────── */
+    *{box-sizing:border-box}
+    :root{ --acc:#ff2d78; --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+           --dim:rgba(255,255,255,.55); --mut:rgba(255,255,255,.32);
+           --teamA:#4da3ff; --teamB:#ffb84d; }
+    html,body{margin:0;padding:0}
+    body{
+      background:#000;color:#fff;min-height:100vh;overflow-x:hidden;
+      font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;
+      cursor:none;
+    }
+    .mono{font-family:'JetBrains Mono',monospace}
+    .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;
+            text-transform:uppercase;color:var(--mut)}
+    .hidden{display:none!important}
+
+    #grain{position:fixed;inset:0;z-index:70;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    #vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
+      background:radial-gradient(120% 120% at 50% 42%, transparent 30%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.92) 100%)}
+
+    #cursor{position:fixed;top:0;left:0;z-index:90;pointer-events:none;width:8px;height:8px;border-radius:50%;
+      background:#fff;transform:translate(-50%,-50%);mix-blend-mode:difference;
+      transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
+    #cursor-ring{position:fixed;top:0;left:0;z-index:89;pointer-events:none;width:40px;height:40px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%) scale(.4);opacity:0;
+      transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+    @media(hover:none){ body{cursor:auto} #cursor,#cursor-ring{display:none} }
+
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+      justify-content:space-between;padding:26px 34px;pointer-events:none}
+    .site-header > *{pointer-events:auto}
+    .hdr-left{display:flex;align-items:center;gap:20px}
+    .brand{font-weight:700;font-size:20px;letter-spacing:.01em;text-decoration:none;color:#fff;line-height:1}
+    .brand span{color:var(--acc)}
+    .hdr-div{width:1px;height:18px;background:var(--line-2);display:block}
+    .hdr-game{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.26em;
+      color:var(--dim);text-transform:uppercase}
+    .hdr-right{display:flex;align-items:center;gap:14px}
+    .type-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--mut);
+      border:1px solid var(--line-2);border-radius:999px;padding:5px 13px;text-transform:uppercase}
+    #user-name{font-weight:500;font-size:13px;letter-spacing:.01em}
+
+    .timer-bar-wrap{position:fixed;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.06);z-index:45}
+    .timer-bar{height:100%;background:var(--acc);width:100%;transition:width 1s linear}
+
+    .rail{position:fixed;left:34px;top:118px;bottom:40px;width:210px;z-index:30;
+      display:flex;flex-direction:column;gap:30px;pointer-events:none}
+    .rail > *{pointer-events:auto}
+    .rail-block{display:flex;flex-direction:column;gap:12px}
+    .rail-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;letter-spacing:.16em;
+      color:var(--acc);line-height:1}
+    .rail-players{flex:1;min-height:0;overflow-y:auto}
+    .player-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+    .player-item{display:flex;align-items:center;gap:11px;padding:11px 0;
+      border-bottom:1px solid var(--line);background:transparent;border-radius:0}
+    .player-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:600;flex:0 0 auto;color:#fff;overflow:hidden;
+      background-size:cover;background-position:center;background-repeat:no-repeat}
+    .player-item .pname,.player-item span:not(.player-score):not(.player-avatar){font-size:13px;color:#fff}
+    .player-score{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc)}
+
+    .stage{position:relative;z-index:20;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:120px 34px 60px 34px}
+    .screen{display:none;width:100%;max-width:640px;flex-direction:column;align-items:center;text-align:center}
+    .screen.active{display:flex}
+
+    .p-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--mut);margin-bottom:22px}
+    .p-title{font-weight:700;font-size:clamp(44px,8vw,86px);line-height:.92;letter-spacing:-.02em;
+      text-transform:uppercase;margin:0}
+    .p-sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--dim);margin-top:20px}
+
+    .p-field,.input-field{width:100%;background:none;border:none;border-bottom:1px solid var(--line-2);color:#fff;
+      font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;padding:12px 2px;border-radius:0;
+      outline:none;transition:border-color .25s}
+    .p-field::placeholder{color:rgba(255,255,255,.25)}
+    .p-field:focus{border-bottom-color:#fff}
+    select.p-field{appearance:none;cursor:none;color:#fff}
+    select.p-field option{background:#0a0a0a;color:#fff}
+
+    .p-btn,.btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:.04em;
+      text-transform:uppercase;border-radius:999px;padding:16px 30px;cursor:none;border:1px solid #fff;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+      transition:transform .25s cubic-bezier(.2,.8,.2,1),background-color .2s,color .2s,border-color .2s,opacity .2s}
+    .p-btn-primary{background:#fff;color:#000;border-color:#fff}
+    .p-btn-primary:hover:not(:disabled){transform:translateY(-3px)}
+    .p-btn-ghost{background:transparent;color:#fff;border-color:var(--line-2)}
+    .p-btn-ghost:hover:not(:disabled){transform:translateY(-3px);border-color:#fff}
+    .p-btn:disabled{opacity:.32}
+    .p-btn-full{width:100%;justify-content:center;display:flex;align-items:center;gap:10px}
+    .btn-sm{padding:9px 18px;font-size:11px}
+
+    .stack{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px;margin:38px auto 0}
+    .join-row{display:flex;gap:10px}
+    .join-row .p-field{text-align:center;letter-spacing:.4em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:15px}
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:0 auto 26px;max-width:460px;width:100%;text-align:left}
+    @media(max-width:520px){.settings-grid{grid-template-columns:1fr}}
+    .setting-block label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;
+      text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+
+    /* team assignment chips */
+    #team-setup{width:100%;max-width:460px;margin:0 auto 26px;text-align:left}
+    #team-setup .kicker{margin-bottom:12px;display:block}
+    .team-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .team-col{border:1px solid var(--line);padding:14px;min-height:86px}
+    .team-col h4{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;
+      text-transform:uppercase;font-weight:700}
+    .team-col.a h4{color:var(--teamA)} .team-col.b h4{color:var(--teamB)}
+    .team-chip{display:inline-flex;align-items:center;gap:7px;margin:0 6px 6px 0;padding:7px 14px;border-radius:999px;
+      border:1px solid var(--line-2);font-size:13px;background:transparent;color:#fff;
+      font-family:'Space Grotesk',sans-serif;cursor:none;transition:border-color .2s,transform .2s}
+    .team-chip.clickable:hover{border-color:#fff;transform:translateY(-2px)}
+    .team-hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+      color:var(--mut);margin-top:10px}
+
+    .countdown-number{font-weight:700;font-size:clamp(120px,22vw,240px);line-height:1;letter-spacing:-.04em}
+
+    /* question screen */
+    #screen-question{max-width:720px}
+    .q-head{display:flex;align-items:flex-end;justify-content:space-between;width:100%;max-width:640px;
+      margin:0 auto 18px;border-bottom:1px solid var(--line);padding-bottom:12px}
+    #q-progress{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--mut)}
+    #timer-display{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--acc);font-size:18px}
+    .pair-wrap{display:flex;gap:14px;justify-content:center;width:100%;max-width:640px;margin:0 auto 8px}
+    .portrait{flex:1;max-width:300px;aspect-ratio:3/4;background:#0a0a0a;overflow:hidden;
+      box-shadow:0 0 0 1px var(--line);position:relative}
+    .portrait img{width:100%;height:100%;object-fit:cover;object-position:center 18%;display:block;filter:grayscale(.15)}
+    .portrait .p-name{position:absolute;left:0;right:0;bottom:0;padding:10px 8px 8px;font-weight:700;font-size:15px;
+      background:linear-gradient(transparent,rgba(0,0,0,.85));text-transform:uppercase;letter-spacing:.02em}
+    .pair-amp{align-self:center;font-weight:700;font-size:30px;color:var(--acc)}
+    .q-prompt{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+      color:var(--mut);margin:18px 0 16px;text-align:center}
+    .vote-row{display:flex;gap:14px;width:100%;max-width:520px;margin:0 auto}
+    .vote-btn{flex:1;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;letter-spacing:.05em;
+      text-transform:uppercase;border-radius:999px;padding:20px 10px;cursor:none;color:#fff;background:transparent;
+      border:1px solid var(--line-2);transition:transform .2s,border-color .2s,background .2s,opacity .2s}
+    .vote-btn:hover:not(:disabled){transform:translateY(-3px);border-color:#fff}
+    .vote-btn.selected{border-color:var(--acc);background:rgba(255,45,120,.12)}
+    .vote-btn:disabled{opacity:.4}
+    #vote-status{min-height:22px;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:11px;
+      letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+    #team-scoreline{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.14em;margin-top:10px}
+    #team-scoreline .ta{color:var(--teamA);font-weight:700}
+    #team-scoreline .tb{color:var(--teamB);font-weight:700}
+
+    /* reveal screen */
+    #screen-reveal{max-width:720px}
+    #reveal-verdict{font-weight:700;font-size:clamp(34px,6vw,56px);letter-spacing:-.01em;text-transform:uppercase;
+      margin:18px 0 4px;color:var(--acc)}
+    #reveal-relation{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--dim);margin-bottom:14px}
+    .vote-results{width:100%;max-width:420px;margin:10px auto 0;text-align:left}
+    .vote-result-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;
+      border-bottom:1px solid var(--line);font-size:14px}
+    .vote-result-row .v-ok{color:#5dff9d;font-weight:700}
+    .vote-result-row .v-bad{color:var(--acc);font-weight:700}
+    .reveal-next{font-family:'JetBrains Mono',monospace;color:var(--mut);font-size:10px;text-transform:uppercase;
+      letter-spacing:.24em;margin-top:18px}
+
+    /* end screen */
+    #screen-end{max-width:560px}
+    .winner-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(34px,6vw,60px);line-height:.98;
+      letter-spacing:-.02em;text-transform:uppercase;color:var(--acc);overflow-wrap:anywhere}
+    .final-scores{font-family:'JetBrains Mono',monospace;margin-top:24px;width:100%;max-width:460px;margin-left:auto;margin-right:auto}
+    .final-score-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;
+      border-bottom:1px solid var(--line);font-size:13px;text-align:left}
+
+    .err{color:var(--acc);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;min-height:16px;margin-top:4px}
+    .hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-top:14px}
+
+    @media(max-width:900px){
+      .rail{position:static;left:auto;top:auto;bottom:auto;width:auto;z-index:30;
+        flex-direction:row;align-items:flex-start;gap:20px 28px;flex-wrap:wrap;pointer-events:auto;
+        padding:96px 20px 0;max-width:100%}
+      .rail-block{gap:6px}
+      .rail-players{flex:1 1 100%;min-height:0;overflow:visible}
+      .rail-code{font-size:26px}
+      .player-list{flex-direction:row;flex-wrap:wrap;gap:8px 16px;margin-top:8px}
+      .player-item{border-bottom:none;padding:6px 0;gap:8px}
+      .player-score{margin-left:6px}
+      .stage{min-height:0;padding:30px 20px 60px}
+      .screen{max-width:560px}
+      #screen-question,#screen-reveal{max-width:560px}
+    }
+    @media(max-width:640px){
+      .site-header{padding:16px 18px}
+      .brand{font-size:17px}
+      .hdr-left{gap:12px}
+      .hdr-game{display:none}
+      .hdr-right{gap:10px}
+      .type-pill{display:none}
+      #user-name{font-size:12px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .rail{padding-top:74px}
+      .rail-code{font-size:24px}
+      .p-title{font-size:clamp(30px,10vw,48px)}
+      .p-sub{font-size:10px;letter-spacing:.18em}
+      .stack{max-width:100%}
+      .q-head{max-width:100%}
+      .pair-wrap{gap:8px}
+      .pair-amp{font-size:20px}
+      .portrait .p-name{font-size:11px;padding:8px 5px 6px}
+      .vote-row{flex-direction:column;max-width:100%}
+      .vote-btn{padding:16px 10px;font-size:15px}
+      .team-cols{grid-template-columns:1fr}
+      .p-field{font-size:16px}
+      .p-btn,.btn{padding:14px 24px}
+      .final-scores{max-width:100%}
+      #reveal-verdict{font-size:28px}
+      #screen-end .stack{flex-wrap:wrap;gap:12px}
+    }
+  </style>
+</head>
+<body>
+
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- top hairline timer track -->
+<div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+
+<!-- floating header -->
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">Siblings or Dating</span>
+  </div>
+  <div class="hdr-right">
+    <span class="type-pill">Party</span>
+    <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px"></div>
+    <span id="user-name"></span>
+    <button onclick="leaveRoom()" class="p-btn p-btn-ghost btn-sm">Verlassen</button>
+  </div>
+</header>
+
+<!-- left floating rail -->
+<aside class="rail">
+  <div class="rail-block">
+    <div class="kicker">Raum-Code</div>
+    <div class="rail-code" id="room-code-display">––––</div>
+  </div>
+  <div class="rail-block rail-players">
+    <div class="kicker">Spieler</div>
+    <ul class="player-list" id="player-list"></ul>
+  </div>
+</aside>
+
+<!-- center stage -->
+<main class="stage">
+
+  <!-- ── Join ── -->
+  <div class="screen active" id="screen-join">
+    <div class="p-kicker">LVL³ · Siblings or Dating</div>
+    <h2 class="p-title">Siblings<br>or Dating</h2>
+    <p class="p-sub">Zwei Gesichter — Geschwister oder ein Paar?</p>
+    <div class="stack">
+      <button onclick="createRoom()" class="p-btn p-btn-primary p-btn-full">Raum erstellen</button>
+      <div class="join-row">
+        <input id="join-code-input" class="p-field" placeholder="Code" maxlength="4">
+        <button onclick="joinRoom()" class="p-btn p-btn-ghost" style="white-space:nowrap">Beitreten</button>
+      </div>
+      <div id="join-error" class="err"></div>
+    </div>
+  </div>
+
+  <!-- ── Lobby ── -->
+  <div class="screen" id="screen-lobby">
+    <div class="p-kicker">Lobby</div>
+    <h2 class="p-title" style="font-size:clamp(36px,6vw,60px)">Konfiguration</h2>
+    <div style="width:100%;margin-top:40px">
+      <div id="host-settings">
+        <div class="settings-grid">
+          <div class="setting-block">
+            <label>Modus</label>
+            <select id="sel-playmode" class="p-field" onchange="pushSettings()">
+              <option value="ffa" selected>Jeder für sich (auch Solo)</option>
+              <option value="teams">Teams — 1v1 / 2v1 / 3v1 / 2v2</option>
+            </select>
+          </div>
+          <div class="setting-block">
+            <label>Runden (3–30)</label>
+            <input type="number" id="inp-rounds" class="p-field" min="3" max="30" value="10" onchange="pushSettings()">
+          </div>
+        </div>
+        <div class="stack">
+          <button onclick="startGame()" id="btn-start" class="p-btn p-btn-primary p-btn-full" disabled>Spiel starten</button>
+        </div>
+        <div id="start-error" class="err"></div>
+        <p class="hint">Solo geht auch — einfach allein starten</p>
+      </div>
+      <div id="guest-settings" style="display:none">
+        <p class="p-sub">Wartet auf den Host…</p>
+        <div id="guest-settings-display" class="hint" style="margin-top:16px"></div>
+      </div>
+      <!-- team split — visible to everyone in teams mode, clickable for the host -->
+      <div id="team-setup" class="hidden" style="margin-top:30px">
+        <span class="kicker">Teams</span>
+        <div class="team-cols">
+          <div class="team-col a"><h4>Team A</h4><div id="team-a-chips"></div></div>
+          <div class="team-col b"><h4>Team B</h4><div id="team-b-chips"></div></div>
+        </div>
+        <p class="team-hint" id="team-hint">Als Host: Spieler anklicken, um das Team zu wechseln</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Countdown ── -->
+  <div class="screen" id="screen-countdown">
+    <div class="p-kicker">Spiel startet in</div>
+    <div class="countdown-number" id="countdown-num">3</div>
+  </div>
+
+  <!-- ── Question ── -->
+  <div class="screen" id="screen-question">
+    <div class="q-head">
+      <span id="q-progress">Runde 1</span>
+      <span id="timer-display">20</span>
+    </div>
+    <div class="pair-wrap">
+      <div class="portrait"><img id="pair-img-1" src="" alt="Person 1"></div>
+      <span class="pair-amp">&amp;</span>
+      <div class="portrait"><img id="pair-img-2" src="" alt="Person 2"></div>
+    </div>
+    <p class="q-prompt">Geschwister oder ein Paar? Stimme geheim ab</p>
+    <div class="vote-row">
+      <button class="vote-btn" id="btn-vote-siblings">👫 Geschwister</button>
+      <button class="vote-btn" id="btn-vote-couple">❤️ Paar</button>
+    </div>
+    <div id="vote-status"></div>
+    <div id="team-scoreline"></div>
+  </div>
+
+  <!-- ── Reveal ── -->
+  <div class="screen" id="screen-reveal">
+    <div class="pair-wrap">
+      <div class="portrait"><img id="reveal-img-1" src="" alt=""><div class="p-name" id="reveal-name-1"></div></div>
+      <span class="pair-amp">&amp;</span>
+      <div class="portrait"><img id="reveal-img-2" src="" alt=""><div class="p-name" id="reveal-name-2"></div></div>
+    </div>
+    <div id="reveal-verdict"></div>
+    <div id="reveal-relation"></div>
+    <div id="reveal-roundpoints" class="p-sub" style="margin-top:0"></div>
+    <div class="vote-results" id="reveal-votes"></div>
+    <p class="reveal-next">Nächste Runde in Kürze</p>
+  </div>
+
+  <!-- ── End ── -->
+  <div class="screen" id="screen-end">
+    <div style="width:100%">
+      <div class="p-kicker" id="end-kicker">Gewinner</div>
+      <div class="winner-name" id="end-winner-name"></div>
+      <div class="p-sub" id="end-sub" style="margin-top:14px">gewinnt das Spiel</div>
+      <div class="final-scores" id="end-final-scores"></div>
+      <div class="stack" style="flex-direction:row;justify-content:center;max-width:none;margin-top:34px">
+        <button id="btn-play-again" onclick="playAgain()" class="p-btn p-btn-ghost hidden">Nochmal spielen</button>
+        <a href="/dashboard.html" class="p-btn p-btn-primary">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/socket-utils.js?v=5"></script>
+<script src="/js/games/siblings-dating.js?v=1"></script>
+<script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script>
+  // ── Custom cursor (dot + ring), self-contained ──
+  (function(){
+    if (window.matchMedia && window.matchMedia('(hover:none)').matches) return;
+    const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+    let rx=0,ry=0,tx=0,ty=0;
+    window.addEventListener('mousemove',e=>{
+      tx=e.clientX;ty=e.clientY;
+      cur.style.left=tx+'px';cur.style.top=ty+'px';
+      const hit=e.target.closest('button,a,input,select,.portrait,.vote-btn,.team-chip');
+      if(hit){ring.style.opacity='1';ring.style.transform='translate(-50%,-50%) scale(1)';cur.style.width='5px';cur.style.height='5px';}
+      else{ring.style.opacity='0';ring.style.transform='translate(-50%,-50%) scale(.4)';cur.style.width='8px';cur.style.height='8px';}
+    });
+    (function loop(){ rx+=(tx-rx)*.18; ry+=(ty-ry)*.18; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  })();
+
+  // ── Entrance animation ──
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!window.gsap) return;
+    gsap.from('.site-header > *',{y:-14,opacity:0,duration:.7,stagger:.06,ease:'power3.out'});
+    gsap.from('.rail > *',{x:-18,opacity:0,duration:.7,stagger:.1,delay:.15,ease:'power3.out'});
+    gsap.from('#screen-join > *',{y:26,opacity:0,duration:.8,stagger:.07,delay:.2,ease:'power3.out'});
+  });
+</script>
+</body>
+</html>

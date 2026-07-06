@@ -44,6 +44,7 @@ Each user must change their temporary password on first login.
 | 🎬 Filme & Schauspieler | Multiplayer | Movies, series, and actors |
 | ⛽ Benzinrechner | Tool | 2-stroke fuel mix calculator for mofas |
 | 🎵 Song Guesser | Multiplayer | Guess songs from 10-second iTunes previews |
+| 💞 Siblings or Dating | Multiplayer | Two faces — siblings or a couple? Secret vote, solo / 1v1 / 2v1 / 3v1 / 2v2 |
 
 ## Multiplayer — How It Works
 
@@ -61,6 +62,7 @@ Each user must change their temporary password on first login.
 | `data/logos.json` | 178 brand logos |
 | `data/movies.json` | 269 movies/series/actors across 3 difficulty levels |
 | `data/users.json` | User accounts (passwords stored as bcrypt hashes) |
+| `data/siblings-dating.json` | 54 celebrity pairs (siblings vs. couples) with Wikipedia portraits |
 
 ## Tech Stack
 

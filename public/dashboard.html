@@ -308,6 +308,7 @@
     {id:'connect4',       title:'4 Gewinnt',            client:'LVL³',type:'MULTIPLAYER',types:['MULTIPLAYER'],       tags:['1v1'],                           hue:256,route:'/games/connect4.html',     desc:'Klassisches 4 Gewinnt — lass die Chips fallen und mach vier in einer Reihe. Genau 1v1.', variant:9},
     {id:'verhext',        title:'Verhext',              client:'LVL³',type:'MULTIPLAYER',types:['MULTIPLAYER'],       tags:['2v2','Team'],                    hue:320,route:'/games/verhext.html',      desc:'Zwei Teams, ein Wort — errate, was dein Mitspieler tippt. Gleiches Wort = Punkt.', variant:10},
     {id:'jeopardy',       title:'Jeopardy',             client:'LVL³',type:'MULTIPLAYER',types:['MULTIPLAYER'],       tags:['4+','Quiz','Buzzer'],            hue:175,route:'/games/jeopardy.html',     desc:'Eigenes Jeopardy-Board bauen — zwei Runden, Buzzer, eigene Fragen, Bilder & Audio.', variant:11},
+    {id:'siblings-dating',title:'Siblings or Dating',   client:'LVL³',type:'MULTIPLAYER',types:['QUIZ','MULTIPLAYER'],tags:['Solo','1v1','2v1','3v1','2v2'],  hue:335,route:'/games/siblings-dating.html',desc:'Zwei Gesichter — Geschwister oder ein Paar? Stimmt geheim ab, solo oder in Teams.', variant:12},
   ];
 
   // ── Module-scope state (was this._xxx / this.three) ──
@@ -687,7 +688,7 @@ void main(){
     const rows=document.getElementById('lv-rows');rows.innerHTML='';
     const head=document.createElement('div');
     head.style.cssText='display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:16px;margin-bottom:8px';
-    head.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.24em;color:rgba(255,255,255,.45)">INDEX — 12 SPIELE</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45)">LVL³</div>';
+    head.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.24em;color:rgba(255,255,255,.45)">INDEX — '+GAMES.length+' SPIELE</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45)">LVL³</div>';
     rows.appendChild(head);
     GAMES.forEach((g,i)=>{
       const r=document.createElement('div');

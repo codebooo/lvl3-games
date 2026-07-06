@@ -1,0 +1,650 @@
+[
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Chris Hemsworth",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Chris_Hemsworth_-_Crime_101.jpg/330px-Chris_Hemsworth_-_Crime_101.jpg"
+    },
+    "person2": {
+      "name": "Liam Hemsworth",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Independence_Day-_Resurgence_Japan_Premiere-_Liam_Hemsworth_%26_Jeff_Goldblum_%2828453569402%29_%28cropped%29.jpg/330px-Independence_Day-_Resurgence_Japan_Premiere-_Liam_Hemsworth_%26_Jeff_Goldblum_%2828453569402%29_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Geschwister",
+    "person1": {
+      "name": "Jake Gyllenhaal",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Jake_Gyllenhaal_2019_by_Glenn_Francis.jpg/330px-Jake_Gyllenhaal_2019_by_Glenn_Francis.jpg"
+    },
+    "person2": {
+      "name": "Maggie Gyllenhaal",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Maggie_Gyllenhaal_2021.jpg/330px-Maggie_Gyllenhaal_2021.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Dakota Fanning",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Dakota_Fanning_SAG_AWARDS_2020.jpg/330px-Dakota_Fanning_SAG_AWARDS_2020.jpg"
+    },
+    "person2": {
+      "name": "Elle Fanning",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Elle_Fanning_by_Gage_Skidmore_2.jpg/330px-Elle_Fanning_by_Gage_Skidmore_2.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Gigi Hadid",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Marina_Ruy_Barbosa_com_Gigi_Hadid_em_Paris_%28Gigi_Hadid%29.jpg/330px-Marina_Ruy_Barbosa_com_Gigi_Hadid_em_Paris_%28Gigi_Hadid%29.jpg"
+    },
+    "person2": {
+      "name": "Bella Hadid",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Bella_Hadid_at_the_2026_Cannes_Film_Festival_01_%28cropped%29.jpg/330px-Bella_Hadid_at_the_2026_Cannes_Film_Festival_01_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Kendall Jenner",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/5/54/Kendall_Jenner_for_Adanola_2_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Kylie Jenner",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Kylie_Jenner1_%28cropped%29.png/330px-Kylie_Jenner1_%28cropped%29.png"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Ben Affleck",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Ben_Affleck_on_the_Red_Carpet%2C_SXSW_2023_%28cropped%29.jpg/330px-Ben_Affleck_on_the_Red_Carpet%2C_SXSW_2023_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Casey Affleck",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Casey_Affleck_at_the_Manchester_by_the_Sea_premiere_%2830199719155%29_%28cropped%29.jpg/330px-Casey_Affleck_at_the_Manchester_by_the_Sea_premiere_%2830199719155%29_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Owen Wilson",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Owen_Wilson_Cannes_2011.jpg/330px-Owen_Wilson_Cannes_2011.jpg"
+    },
+    "person2": {
+      "name": "Luke Wilson",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Luke_Wilson_at_the_2025_Cannes_Film_Festival_02.jpg/330px-Luke_Wilson_at_the_2025_Cannes_Film_Festival_02.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "James Franco",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/James_Franco_4%2C_2013.jpg/330px-James_Franco_4%2C_2013.jpg"
+    },
+    "person2": {
+      "name": "Dave Franco",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Dave_Franco_at_the_2025_Sundance_Film_Festival_%28cropped%29.jpg/330px-Dave_Franco_at_the_2025_Sundance_Film_Festival_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Zooey Deschanel",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Zooey_Deschanel_-_Song_Sung_Blue.jpg/330px-Zooey_Deschanel_-_Song_Sung_Blue.jpg"
+    },
+    "person2": {
+      "name": "Emily Deschanel",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Emily_Deschanel_at_Televese_2025.jpg/330px-Emily_Deschanel_at_Televese_2025.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Miley Cyrus",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Miley_Cyrus_Primavera19_-226_%2848986293772%29_%28cropped%29.jpg/330px-Miley_Cyrus_Primavera19_-226_%2848986293772%29_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Noah Cyrus",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Noah_Cyrus_-_2023_%2853399735475%29_%28cropped%29_%28cropped%29.jpg/330px-Noah_Cyrus_-_2023_%2853399735475%29_%28cropped%29_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Macaulay Culkin",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Macaulay_Culkin_-_Home_Alone_35th.jpg/330px-Macaulay_Culkin_-_Home_Alone_35th.jpg"
+    },
+    "person2": {
+      "name": "Kieran Culkin",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Kieran_Culkin_at_the_2024_New_York_Film_Festival_2_%28cropped_II%29.jpg/330px-Kieran_Culkin_at_the_2024_New_York_Film_Festival_2_%28cropped_II%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Alexander Skarsgård",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Alexander_Skarsg%C3%A5rd_at_NYFF_2025_04_%28cropped%29.jpg/330px-Alexander_Skarsg%C3%A5rd_at_NYFF_2025_04_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Bill Skarsgård",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Bill_Skarsg%C3%A5rd_%2843573067882%29_%28cropped%29.jpg/330px-Bill_Skarsg%C3%A5rd_%2843573067882%29_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Kate Mara",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Kate_Mara_at_the_2024_Toronto_International_Film_Festival_3_%28cropped_2%29.jpg/330px-Kate_Mara_at_the_2024_Toronto_International_Film_Festival_3_%28cropped_2%29.jpg"
+    },
+    "person2": {
+      "name": "Rooney Mara",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Rooney_Mara_at_Berlinale_2024-3.jpg/330px-Rooney_Mara_at_Berlinale_2024-3.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Beyoncé",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Beyonc%C3%A9_-_Tottenham_Hotspur_Stadium_-_1st_June_2023_%2810_of_118%29_%2852946364598%29_%28best_crop%29.jpg/330px-Beyonc%C3%A9_-_Tottenham_Hotspur_Stadium_-_1st_June_2023_%2810_of_118%29_%2852946364598%29_%28best_crop%29.jpg"
+    },
+    "person2": {
+      "name": "Solange Knowles",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Solange_Knowles%2C_Bonnaroo_Music_and_Arts_Festival_2019_%28cropped%29.jpg/330px-Solange_Knowles%2C_Bonnaroo_Music_and_Arts_Festival_2019_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Geschwister",
+    "person1": {
+      "name": "Jaden Smith",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/2019_-_Opening_Night_SM1_0502_%2849014567373%29.jpg/330px-2019_-_Opening_Night_SM1_0502_%2849014567373%29.jpg"
+    },
+    "person2": {
+      "name": "Willow Smith",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Willow_Smith_October_2024.png/330px-Willow_Smith_October_2024.png"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Chris Evans",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Chris_Evans_at_the_2025_Toronto_International_Film_Festival_%28cropped%29.jpg/330px-Chris_Evans_at_the_2025_Toronto_International_Film_Festival_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Scott Evans",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Scott_Evans_%28cropped%29.jpg/330px-Scott_Evans_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Zwillinge (Tokio Hotel)",
+    "person1": {
+      "name": "Bill Kaulitz",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/2023-09-28-Bill_Kaulitz-Deutscher_Fernsehpreis_2023_-0348_%28cropped%29_%28cropped%29.jpg/330px-2023-09-28-Bill_Kaulitz-Deutscher_Fernsehpreis_2023_-0348_%28cropped%29_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Tom Kaulitz",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Tokiohotel.jpg/330px-Tokiohotel.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Jimi Blue Ochsenknecht",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Jimi_Blue_Ochsenknecht_2018-07-19_Fotoprobe_Nibelungen_Festspiele_Worms_Siegfrieds_Erben.jpg/330px-Jimi_Blue_Ochsenknecht_2018-07-19_Fotoprobe_Nibelungen_Festspiele_Worms_Siegfrieds_Erben.jpg"
+    },
+    "person2": {
+      "name": "Wilson Gonzalez Ochsenknecht",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Wilson_Gonzalez_Ochsenknecht_Wien_2012.jpg/330px-Wilson_Gonzalez_Ochsenknecht_Wien_2012.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Geschwister",
+    "person1": {
+      "name": "Shirley MacLaine",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Shirley_MacLaine_-_1960.jpg/330px-Shirley_MacLaine_-_1960.jpg"
+    },
+    "person2": {
+      "name": "Warren Beatty",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Warren_Beatty.jpg/330px-Warren_Beatty.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Geschwister",
+    "person1": {
+      "name": "Julia Roberts",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Julia_Roberts_2025.jpg/330px-Julia_Roberts_2025.jpg"
+    },
+    "person2": {
+      "name": "Eric Roberts",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Eric_Roberts.jpg/330px-Eric_Roberts.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Charlie Sheen",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Charlie_Sheen_2012.jpg/330px-Charlie_Sheen_2012.jpg"
+    },
+    "person2": {
+      "name": "Emilio Estevez",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Emilio_Estevez_and_Martin_Sheen_%28cropped_to_Emilio%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Geschwister",
+    "person1": {
+      "name": "Jonah Hill",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Jonah_Hill-4939_%28cropped%29_%28cropped%29.jpg/330px-Jonah_Hill-4939_%28cropped%29_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Beanie Feldstein",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/BeanieFeldstein-byPhilipRomano.jpg/330px-BeanieFeldstein-byPhilipRomano.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder (Oasis)",
+    "person1": {
+      "name": "Liam Gallagher",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/OasisCardiff040725-88_-_54640244776_%28landscape_crop%29_%28cropped%29.jpg/330px-OasisCardiff040725-88_-_54640244776_%28landscape_crop%29_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Noel Gallagher",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Noel_Gallagher_Glastonbury_2022_%28cropped%29.jpg/330px-Noel_Gallagher_Glastonbury_2022_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Venus Williams",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Venus_Williams_%282025_DC_Open%29_crop.jpg/330px-Venus_Williams_%282025_DC_Open%29_crop.jpg"
+    },
+    "person2": {
+      "name": "Serena Williams",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Guests_at_the_2026_Met_Gala_209_%28cropped%29.jpg/330px-Guests_at_the_2026_Met_Gala_209_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder",
+    "person1": {
+      "name": "Wladimir Klitschko",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Volodymyr_Klychko_%28Vladimir_Klitschko%29_of_Ukraine_at_the_59th_Munich_Security_Conference_in_Munich_on_17_February_2023_-_%28cropped%29.jpg/330px-Volodymyr_Klychko_%28Vladimir_Klitschko%29_of_Ukraine_at_the_59th_Munich_Security_Conference_in_Munich_on_17_February_2023_-_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Vitali Klitschko",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/EPP_Congress_2025_Valencia_Day_1_%2854483888272%29_%28cropped%29.jpg/330px-EPP_Congress_2025_Valencia_Day_1_%2854483888272%29_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Brüder (Jonas Brothers)",
+    "person1": {
+      "name": "Joe Jonas",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Joe_Jonas_Raleigh_928_%28cropped%29.jpg/330px-Joe_Jonas_Raleigh_928_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Nick Jonas",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Nick_Jonas_Cannes_2019_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Elizabeth Olsen",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Elizabeth_Olsen_-_Los_Angeles_Comic_Con_2025.jpg/330px-Elizabeth_Olsen_-_Los_Angeles_Comic_Con_2025.jpg"
+    },
+    "person2": {
+      "name": "Mary-Kate Olsen",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Mary-Kate_Olsen_2011_Shankbone.jpg/330px-Mary-Kate_Olsen_2011_Shankbone.jpg"
+    }
+  },
+  {
+    "answer": "siblings",
+    "relation": "Schwestern",
+    "person1": {
+      "name": "Penélope Cruz",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Goyas_2024_-_Pen%C3%A9lope_Cruz-2_%28cropped%29.jpg/330px-Goyas_2024_-_Pen%C3%A9lope_Cruz-2_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Mónica Cruz",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Monica_Cruz_crop.jpg/330px-Monica_Cruz_crop.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2012",
+    "person1": {
+      "name": "Ryan Reynolds",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Deadpool_2_Japan_Premiere_Red_Carpet_Ryan_Reynolds_%28cropped%29.jpg/330px-Deadpool_2_Japan_Premiere_Red_Carpet_Ryan_Reynolds_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Blake Lively",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Guests_at_the_2026_Met_Gala_435_%28Blake_Lively%29.jpg/330px-Guests_at_the_2026_Met_Gala_435_%28Blake_Lively%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Ein Paar (verlobt)",
+    "person1": {
+      "name": "Tom Holland",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Tom_Holland_during_pro-am_Wentworth_golf_club_2023-2_%28cropped%29.jpg/330px-Tom_Holland_during_pro-am_Wentworth_golf_club_2023-2_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Zendaya",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Zendaya_-_2019_by_Glenn_Francis.jpg/330px-Zendaya_-_2019_by_Glenn_Francis.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2018",
+    "person1": {
+      "name": "Justin Bieber",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Justin_Bieber_in_2015.jpg/330px-Justin_Bieber_in_2015.jpg"
+    },
+    "person2": {
+      "name": "Hailey Bieber",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Hailey_Bieber_at_WWD_Style_Awards_2026.jpg/330px-Hailey_Bieber_at_WWD_Style_Awards_2026.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Ein Paar (verlobt)",
+    "person1": {
+      "name": "Taylor Swift",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png/330px-Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png"
+    },
+    "person2": {
+      "name": "Travis Kelce",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Travis_Kelce_in_the_Oval_Office_of_the_White_House_on_June_5%2C_2023_-_P20230605AS-0902_%28cropped%29.jpg/330px-Travis_Kelce_in_the_Oval_Office_of_the_White_House_on_June_5%2C_2023_-_P20230605AS-0902_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Ein Paar seit 2011",
+    "person1": {
+      "name": "Ryan Gosling",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/GoslingBFI081223_%2822_of_30%29_%2853388157347%29_%28cropped%29.jpg/330px-GoslingBFI081223_%2822_of_30%29_%2853388157347%29_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Eva Mendes",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Eva_Mendes_2009.jpg/330px-Eva_Mendes_2009.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2010",
+    "person1": {
+      "name": "John Krasinski",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/John_Krasinski_2022.jpg/330px-John_Krasinski_2022.jpg"
+    },
+    "person2": {
+      "name": "Emily Blunt",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Emily_Blunt_at_WWD_Style_Awards_2026-02.jpg/330px-Emily_Blunt_at_WWD_Style_Awards_2026-02.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2015",
+    "person1": {
+      "name": "Ashton Kutcher",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Ashton_Kutcher_-_2023_-_P060603-362041_%28cropped%29.jpg/330px-Ashton_Kutcher_-_2023_-_P060603-362041_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Mila Kunis",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Mila_Kunis_TIFF_2025_%28cropped%29.jpg/330px-Mila_Kunis_TIFF_2025_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2018",
+    "person1": {
+      "name": "Nick Jonas",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Nick_Jonas_Cannes_2019_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Priyanka Chopra",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/4/45/Priyanka_Chopra_at_Bulgary_launch%2C_2024_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2014",
+    "person1": {
+      "name": "George Clooney",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/George_Clooney_Jay_Kelly-19_%28cropped%29.jpg/330px-George_Clooney_Jay_Kelly-19_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Amal Clooney",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Amal_Clooney_2022_%28cropped%29.jpg/330px-Amal_Clooney_2022_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 1999",
+    "person1": {
+      "name": "David Beckham",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/David_Beckham_UNICEF_%28cropped2%29.jpg/330px-David_Beckham_UNICEF_%28cropped2%29.jpg"
+    },
+    "person2": {
+      "name": "Victoria Beckham",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/VictoriaBeckham2018-2-Crop.jpg/330px-VictoriaBeckham2018-2-Crop.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2019",
+    "person1": {
+      "name": "Heidi Klum",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Heidi_Klum_by_Glenn_Francis.jpg/330px-Heidi_Klum_by_Glenn_Francis.jpg"
+    },
+    "person2": {
+      "name": "Tom Kaulitz",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Tokiohotel.jpg/330px-Tokiohotel.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 1992",
+    "person1": {
+      "name": "Barack Obama",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/President_Barack_Obama.jpg/330px-President_Barack_Obama.jpg"
+    },
+    "person2": {
+      "name": "Michelle Obama",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Michelle_Obama_2013_official_portrait.jpg/330px-Michelle_Obama_2013_official_portrait.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2013",
+    "person1": {
+      "name": "Chrissy Teigen",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Chrissy_Teigen_2019.png/330px-Chrissy_Teigen_2019.png"
+    },
+    "person2": {
+      "name": "John Legend",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/JohnLegend-byPhilipRomano.jpg/330px-JohnLegend-byPhilipRomano.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Ein Paar seit 1983",
+    "person1": {
+      "name": "Kurt Russell",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Kurt_Russell_by_Gage_Skidmore_2.jpg/330px-Kurt_Russell_by_Gage_Skidmore_2.jpg"
+    },
+    "person2": {
+      "name": "Goldie Hawn",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Goldie_Hawn_in_2021.jpg/330px-Goldie_Hawn_in_2021.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 1988",
+    "person1": {
+      "name": "Tom Hanks",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/TomHanksPrincEdw031223_%2811_of_41%29_%28cropped%29.jpg/330px-TomHanksPrincEdw031223_%2811_of_41%29_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Rita Wilson",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Rita_Wilson_by_Gage_Skidmore_2.jpg/330px-Rita_Wilson_by_Gage_Skidmore_2.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2010",
+    "person1": {
+      "name": "Javier Bardem",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Javier_Bardem_Cannes_2018.jpg/330px-Javier_Bardem_Cannes_2018.jpg"
+    },
+    "person2": {
+      "name": "Penélope Cruz",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Goyas_2024_-_Pen%C3%A9lope_Cruz-2_%28cropped%29.jpg/330px-Goyas_2024_-_Pen%C3%A9lope_Cruz-2_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2011",
+    "person1": {
+      "name": "Daniel Craig",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Daniel_Craig_TIFF_2025_Red_Carpet_%28cropped%29.jpg/330px-Daniel_Craig_TIFF_2025_Red_Carpet_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Rachel Weisz",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Rachel_Weisz-62940_%28cropped%29.jpg/330px-Rachel_Weisz-62940_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2010",
+    "person1": {
+      "name": "Chris Hemsworth",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Chris_Hemsworth_-_Crime_101.jpg/330px-Chris_Hemsworth_-_Crime_101.jpg"
+    },
+    "person2": {
+      "name": "Elsa Pataky",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Elsa_Pataky_Cannes_cropped.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2015",
+    "person1": {
+      "name": "Benji Madden",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/20170615-136-Nova_Rock_2017-Good_Charlotte-Joel_Madden_and_Benji_Madden-cropped.jpg/330px-20170615-136-Nova_Rock_2017-Good_Charlotte-Joel_Madden_and_Benji_Madden-cropped.jpg"
+    },
+    "person2": {
+      "name": "Cameron Diaz",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Cameron_Diaz_at_WWD_Style_Awards_2026-1998.jpg/330px-Cameron_Diaz_at_WWD_Style_Awards_2026-1998.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2017",
+    "person1": {
+      "name": "Alexis Ohanian",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/CES_2026_-_Alexis_Ohanian_02.jpg/330px-CES_2026_-_Alexis_Ohanian_02.jpg"
+    },
+    "person2": {
+      "name": "Serena Williams",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Guests_at_the_2026_Met_Gala_209_%28cropped%29.jpg/330px-Guests_at_the_2026_Met_Gala_209_%28cropped%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2008",
+    "person1": {
+      "name": "Jay-Z",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Jay-Z_meets_with_New_York_Senate_Majority_Leader_in_Albany_%28cropped%29.webp/330px-Jay-Z_meets_with_New_York_Senate_Majority_Leader_in_Albany_%28cropped%29.webp.png"
+    },
+    "person2": {
+      "name": "Beyoncé",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Beyonc%C3%A9_-_Tottenham_Hotspur_Stadium_-_1st_June_2023_%2810_of_118%29_%2852946364598%29_%28best_crop%29.jpg/330px-Beyonc%C3%A9_-_Tottenham_Hotspur_Stadium_-_1st_June_2023_%2810_of_118%29_%2852946364598%29_%28best_crop%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2011",
+    "person1": {
+      "name": "Prinz William",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Prince_of_Wales_at_State_Banquet_2025-09-17_%280.75_crop%29.jpg/330px-Prince_of_Wales_at_State_Banquet_2025-09-17_%280.75_crop%29.jpg"
+    },
+    "person2": {
+      "name": "Kate Middleton",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Princess_of_Wales_at_State_Banquet_2025-09-17_%280.75_crop%29.jpg/330px-Princess_of_Wales_at_State_Banquet_2025-09-17_%280.75_crop%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Ein Paar seit 2023",
+    "person1": {
+      "name": "Timothée Chalamet",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Timoth%C3%A9e_Chalamet-63482_%28cropped%29.jpg/330px-Timoth%C3%A9e_Chalamet-63482_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Kylie Jenner",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Kylie_Jenner1_%28cropped%29.png/330px-Kylie_Jenner1_%28cropped%29.png"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Ein Paar (verlobt)",
+    "person1": {
+      "name": "Jason Statham",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Jason_Statham_2018.jpg/330px-Jason_Statham_2018.jpg"
+    },
+    "person2": {
+      "name": "Rosie Huntington-Whiteley",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Rosie_Huntington-Whiteley_at_82nd_Venice_International_Film_Festival-2_%28cropped2%29.jpg/330px-Rosie_Huntington-Whiteley_at_82nd_Venice_International_Film_Festival-2_%28cropped2%29.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Verheiratet seit 2011",
+    "person1": {
+      "name": "Michael Bublé",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Michael_Bubl%C3%A9_%2853695559289%29_%28cropped%29.jpg/330px-Michael_Bubl%C3%A9_%2853695559289%29_%28cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Luisana Lopilato",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Malaga_Film_Festival_2025_-_Lusiana_Lopilato.jpg/330px-Malaga_Film_Festival_2025_-_Lusiana_Lopilato.jpg"
+    }
+  },
+  {
+    "answer": "couple",
+    "relation": "Ein Paar seit 2019",
+    "person1": {
+      "name": "Keanu Reeves",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Keanu_Reeves_at_TIFF_2025_02_%28Cropped%29.jpg/330px-Keanu_Reeves_at_TIFF_2025_02_%28Cropped%29.jpg"
+    },
+    "person2": {
+      "name": "Alexandra Grant",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Alexandra_Grant_May_2014.jpg/330px-Alexandra_Grant_May_2014.jpg"
+    }
+  }
+]
