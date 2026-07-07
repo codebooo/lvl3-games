@@ -223,6 +223,7 @@
     if (phase === "game-end")      { showEnd(d); return; }
 
     if (phase === "lobby") {
+      clearTimer();
       isHost = currentHost === username;
       renderHostControls();
       updatePlayerList();
@@ -371,7 +372,7 @@
           '<div style="display:flex;align-items:center;gap:8px">' +
             '<span style="font-size:18px;min-width:28px">' + (["1.","2.","3."][idx] || (idx + 1) + ".") + '</span>' +
             '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;background:' + window.lvl3.avatarColor(entry.name) + '">' + window.lvl3.avatarInitial(entry.name) + '</div>' +
-            '<span style="font-weight:600">' + entry.name + '</span>' +
+            '<span style="font-weight:600">' + window.lvl3.escapeHtml(entry.name) + '</span>' +
           '</div>' +
           '<span class="player-score">' + entry.score + '</span>';
         elFinalScores.appendChild(row);

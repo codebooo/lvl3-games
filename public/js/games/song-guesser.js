@@ -246,7 +246,7 @@
     list.innerHTML = entries.map(function (e) {
       return '<li class="player-item' + (e[0] === me ? " is-host" : "") + '">' +
         '<div class="player-avatar" style="background:' + window.lvl3.avatarColor(e[0]) + '">' + window.lvl3.avatarInitial(e[0]) + '</div>' +
-        '<span class="player-name">' + e[0] + '</span>' +
+        '<span class="player-name">' + window.lvl3.escapeHtml(e[0]) + '</span>' +
         '<span class="player-score">' + e[1] + '</span>' +
         '</li>';
     }).join("");
@@ -341,7 +341,7 @@
           '<div style="display:flex;align-items:center;gap:8px">' +
             '<span style="font-size:18px;min-width:24px">' + (medals[i] || (i + 1) + ".") + '</span>' +
             '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;background:' + window.lvl3.avatarColor(e[0]) + '">' + window.lvl3.avatarInitial(e[0]) + '</div>' +
-            '<span style="font-weight:600">' + e[0] + '</span>' +
+            '<span style="font-weight:600">' + window.lvl3.escapeHtml(e[0]) + '</span>' +
           '</div>' +
           '<span class="player-score">' + e[1] + '</span>' +
           '</div>';
@@ -398,6 +398,8 @@
   socket.on("game:state", function (data) {
     switch (data.phase) {
       case "lobby":
+        stopTimer();
+        stopAudio();
         showScreen("lobby");
         applySettings(currentSettings);
         break;

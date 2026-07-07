@@ -32,7 +32,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       loginBtn.disabled = true;
-      loginBtn.textContent = "Einloggen…";
+      // Update only the label span — using loginBtn.textContent wiped the arrow SVG
+      // and permanently relabeled the button.
+      var btnText = document.getElementById("btn-text");
+      if (btnText) btnText.textContent = "Einloggen…";
       hideLoginError();
 
       var rememberEl = document.getElementById("inp-remember");
@@ -66,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .finally(function () {
           loginBtn.disabled = false;
-          loginBtn.textContent = "Einloggen";
+          if (btnText) btnText.textContent = "Spielen";
         });
     });
   }

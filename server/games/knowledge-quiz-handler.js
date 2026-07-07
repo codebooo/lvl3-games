@@ -209,6 +209,10 @@ module.exports = function (socket, io, rooms) {
     const gd = room.gameData;
     if (!gd || gd.phase !== "question") return;
     if (!socket.username) return;
+    // Cap the stored answer — MC mode rebroadcasts roundAnswers to the whole room,
+    // so an unbounded string would be stored and amplified to every client.
+    if (typeof answer !== "string") return;
+    answer = answer.slice(0, 200);
 
     const q = gd.questions[gd.index];
     if (!q) return;
@@ -376,6 +380,7 @@ module.exports = function (socket, io, rooms) {
   function advanceRound(code, room) {
     const gd = room.gameData;
     if (!gd) return;
+    if (rooms.get(code) !== room || !room.started) return; // room emptied — stop the ghost loop
 
     gd.index++;
 

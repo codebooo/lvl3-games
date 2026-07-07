@@ -61,6 +61,16 @@ function clearRememberCookie(res) {
   res.append("Set-Cookie", REMEMBER_COOKIE + "=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
 }
 
+// ─── Crash Safety ──────────────────────────────────────────────────────────────
+// A single throwing timer callback or socket handler must never take the whole
+// process down and drop every live room. Log and keep serving.
+process.on("uncaughtException", (err) => {
+  console.error("uncaughtException:", err && err.stack ? err.stack : err);
+});
+process.on("unhandledRejection", (err) => {
+  console.error("unhandledRejection:", err && err.stack ? err.stack : err);
+});
+
 // ─── App Setup ───────────────────────────────────────────────────────────────
 const app = express();
 const server = http.createServer(app);
@@ -226,7 +236,9 @@ app.get("/api/me", (req, res) => {
   return res.json({ username: user.username, passwordChanged: user.passwordChanged, avatar: user.avatar || null });
 });
 
-app.post("/api/avatar", (req, res) => {
+// Own 14mb parser so a ~10MB decoded avatar (≈13.3MB base64 body) isn't rejected
+// by the global 12mb json limit with a generic 413 before our friendly check runs.
+app.post("/api/avatar", express.json({ limit: "14mb" }), (req, res) => {
   if (!req.session.username) {
     return res.status(401).json({ success: false, error: "Nicht angemeldet." });
   }
@@ -252,6 +264,24 @@ app.post("/api/avatar", (req, res) => {
   user.avatar = image;
   saveUsers(users);
   return res.json({ success: true, avatar: image });
+});
+
+// Serve a user's avatar as real image bytes with a long-lived, content-addressed
+// cache. Lobbies reference this URL (see avatarsFor) instead of embedding the full
+// multi-MB base64 in every socket broadcast — a room join used to ship the sum of
+// all present players' raw avatars to everyone.
+app.get("/api/avatar/:username", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const users = loadUsers();
+  const user = users.find(u => u.username.toLowerCase() === String(req.params.username).toLowerCase());
+  const data = user && user.avatar;
+  const m = data && /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/.exec(data);
+  if (!m) return res.status(404).end();
+  const buf = Buffer.from(m[2], "base64");
+  res.setHeader("Content-Type", m[1]);
+  // Content changes -> ?v=<hash> changes -> new URL, so immutable is safe here.
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  return res.end(buf);
 });
 
 app.get("/api/logout", (req, res) => {
@@ -674,7 +704,14 @@ function avatarsFor(players) {
   const map = {};
   (players || []).forEach(name => {
     const u = users.find(x => x.username === name);
-    map[name] = (u && u.avatar) || null;
+    if (u && u.avatar) {
+      // Short content-addressed URL, not the raw base64. The hash busts the cache
+      // when the avatar changes; the client uses this value directly as an image URL.
+      const ver = crypto.createHash("sha1").update(u.avatar).digest("hex").slice(0, 10);
+      map[name] = "/api/avatar/" + encodeURIComponent(u.username) + "?v=" + ver;
+    } else {
+      map[name] = null;
+    }
   });
   return map;
 }
@@ -720,9 +757,12 @@ io.on("connection", (socket) => {
   socket.username = null;
   socket.roomCode = null;
 
-  socket.on("auth", ({ username }) => {
+  socket.on("auth", () => {
+    // Identity comes ONLY from the shared HTTP session (io.engine.use(sessionMiddleware)).
+    // The client-supplied username is ignored — trusting it let an unauthenticated
+    // socket impersonate any user (host takeover, stats fraud). Bind once.
     const sessUser = socket.request && socket.request.session && socket.request.session.username;
-    socket.username = sessUser || username;
+    if (sessUser) socket.username = sessUser;
   });
 
   socket.on("room:create", ({ gameType }) => {

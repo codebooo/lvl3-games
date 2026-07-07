@@ -210,11 +210,13 @@ module.exports = function (socket, io, rooms) {
     gd.currentIndex++;
     const pointsToWin = room.settings.pointsToWin || 10;
     const gameWinner = Object.entries(gd.scores).find(([, s]) => s >= pointsToWin);
-    if (gameWinner) {
-      setTimeout(() => endGame(code), 3000);
-    } else {
-      setTimeout(() => startQuestion(code), 3000);
-    }
+    // Guard the deferred transition: if the host restarts (gameData replaced) or the
+    // room empties during these 3s, the stale callback must not run against wiped state.
+    gd.nextTimer = setTimeout(() => {
+      const rm = rooms.get(code);
+      if (!rm || rm.gameData !== gd || !rm.started) return;
+      if (gameWinner) endGame(code); else startQuestion(code);
+    }, 3000);
   }
 
   function endGame(code) {

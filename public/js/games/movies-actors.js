@@ -334,7 +334,7 @@
         var p = entry[0]; var s = entry[1];
         return '<li class="player-item' + (i === 0 ? " is-host" : "") + '">' +
           '<div class="player-avatar" style="background:' + window.lvl3.avatarColor(p) + '">' + window.lvl3.avatarInitial(p) + '</div>' +
-          '<span class="player-name">' + p + '</span>' +
+          '<span class="player-name">' + window.lvl3.escapeHtml(p) + '</span>' +
           '<span class="player-score">' + s + '</span>' +
           '</li>';
       }).join("");
@@ -367,7 +367,7 @@
           '<div class="flex items-center" style="gap:10px;align-items:center">' +
           '<span style="font-size:18px">' + (i + 1) + "." + '</span>' +
           '<div class="player-avatar" style="background:' + window.lvl3.avatarColor(row.username) + ';width:28px;height:28px;font-size:12px">' + window.lvl3.avatarInitial(row.username) + '</div>' +
-          '<span style="font-weight:600">' + row.username + '</span>' +
+          '<span style="font-weight:600">' + window.lvl3.escapeHtml(row.username) + '</span>' +
           '</div>' +
           '<span style="font-weight:700;color:var(--gold)">' + row.score + ' P.</span>' +
           '</div>';

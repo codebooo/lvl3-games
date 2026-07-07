@@ -144,7 +144,8 @@ module.exports = function (socket, io, rooms) {
     if (room.gameType !== "movies-actors") return;
 
     const gd = room.gameData;
-    if (!gd || gd.answeredThisRound[socket.username]) return;
+    if (!gd || gd.phase !== "question") return; // ignore late answers during reveal/end
+    if (gd.answeredThisRound[socket.username]) return;
 
     const item = gd.pool[gd.currentIndex];
     if (!item) return;
@@ -206,6 +207,7 @@ module.exports = function (socket, io, rooms) {
       return;
     }
 
+    gd.phase = "question";
     gd.answeredThisRound = {};
     gd.correctCount = 0;
     gd.secondsLeft = QUESTION_SECS;
@@ -240,7 +242,10 @@ module.exports = function (socket, io, rooms) {
     if (!room) return;
 
     const gd = room.gameData;
+    if (!gd || gd.phase !== "question") return; // only reveal once, from the question phase
+    gd.phase = "reveal";
     if (gd.roundTimer) { clearInterval(gd.roundTimer); gd.roundTimer = null; }
+    if (gd.revealTimer) { clearTimeout(gd.revealTimer); gd.revealTimer = null; }
 
     const item = gd.pool[gd.currentIndex];
     const answer = item.title || item.name;
@@ -257,6 +262,8 @@ module.exports = function (socket, io, rooms) {
     });
 
     gd.revealTimer = setTimeout(() => {
+      const rm = rooms.get(code);
+      if (!rm || rm.gameData !== gd || !rm.started) return; // room emptied — stop the loop
       gd.currentIndex++;
       startQuestion(code);
     }, REVEAL_SECS * 1000);
@@ -267,6 +274,8 @@ module.exports = function (socket, io, rooms) {
     if (!room) return;
 
     const gd = room.gameData;
+    if (!gd || gd.recorded) return;   // guard double-entry (late answer + timeout race)
+    gd.recorded = true;
     if (gd.roundTimer)  { clearInterval(gd.roundTimer); gd.roundTimer = null; }
     if (gd.revealTimer) { clearTimeout(gd.revealTimer); gd.revealTimer = null; }
 

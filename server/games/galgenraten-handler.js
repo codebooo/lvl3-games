@@ -193,8 +193,14 @@ module.exports = function (socket, io, rooms) {
         gd.phase = "round-reveal";
         emitState(code, "round-reveal");
         gd.subRound++;
-        if (gd.subRound >= gd.sequence.length) setTimeout(function () { finishPick(code); }, REVEAL_MS);
-        else setTimeout(function () { startPickRound(code); }, REVEAL_MS);
+        // Guard the deferred transition against host restart / room-empty, else the
+        // stale callback runs on wiped gameData and throws (crashed the process).
+        const last = gd.subRound >= gd.sequence.length;
+        setTimeout(function () {
+          const rm = rooms.get(code);
+          if (!rm || rm.gameData !== gd || !rm.started) return;
+          if (last) finishPick(code); else startPickRound(code);
+        }, REVEAL_MS);
       } else {
         emitState(code, "guess");
       }

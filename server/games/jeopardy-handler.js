@@ -64,6 +64,12 @@ module.exports = function (socket, io, rooms) {
     let game = null;
     if (payload && payload.gameId) {
       const saved = (store.get("jeopardyBoards") || []).find(function (g) { return g.id === payload.gameId; });
+      // Owner-only: the HTTP GET route enforces this; the socket path must too,
+      // or a user could load someone else's private board (clues + answers).
+      if (saved && saved.owner !== socket.username) {
+        socket.emit("game:error", { message: "Kein Zugriff auf dieses Spielbrett." });
+        return;
+      }
       if (saved) game = saved;
     } else if (payload && payload.game) {
       game = payload.game;
@@ -300,7 +306,9 @@ module.exports = function (socket, io, rooms) {
   }
 
   function cellInRange(cat, row) {
-    return typeof cat === "number" && typeof row === "number" &&
+    // Must be integers — a fractional index (e.g. cat:1.5) passed the old
+    // typeof/range check then threw on used[bi][1.5][row] (undefined deref).
+    return Number.isInteger(cat) && Number.isInteger(row) &&
            cat >= 0 && cat < COLS && row >= 0 && row < ROWS;
   }
 

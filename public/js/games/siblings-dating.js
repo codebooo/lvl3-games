@@ -201,7 +201,7 @@
     var phase = msg.phase;
     var data  = msg.data || {};
 
-    if (phase === "lobby") { isHost = (host === username); enterLobby(); return; }
+    if (phase === "lobby") { stopTimer(); isHost = (host === username); enterLobby(); return; }
 
     if (phase === "countdown") {
       showScreen("countdown");

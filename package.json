@@ -4,7 +4,7 @@
   "description": "Multiplayer party game website for 4 friends",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18.0.0" },
+  "engines": { "node": ">=18.0.0 <21" },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",

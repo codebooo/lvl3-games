@@ -127,7 +127,9 @@ window.lvl3 = (function () {
       var url = avatars[p];
       var avatarHtml;
       if (url && typeof url === "string" && url.length > 0) {
-        avatarHtml = '<div class="player-avatar" style="background-image:url(&quot;' + url +
+        // Escape the URL before dropping it into a style attribute — an unescaped
+        // quote would break out of the attribute and inject markup.
+        avatarHtml = '<div class="player-avatar" style="background-image:url(&quot;' + escapeHtml(url) +
           '&quot;);background-size:cover;background-position:center"></div>';
       } else {
         avatarHtml = '<div class="player-avatar" style="background:' + avatarColor(p) + '">' + avatarInitial(p) + '</div>';

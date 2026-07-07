@@ -9,6 +9,7 @@ try { WORDS = require("../../data/galgenraten-words.json"); } catch (e) { /* fal
 
 const FALLBACK  = ["COMPUTER", "URLAUB", "SOMMER", "FREUNDE", "BÄCKER", "GARTEN", "FERNSEHER", "KAFFEE"];
 const REVEAL_MS = 4000; // pause on the reveal screen before the next round / end
+const WORD_MS   = 45000; // max time for a round's word phase before it force-resolves
 
 function randInt(n) { return Math.floor(Math.random() * n); }
 
@@ -137,9 +138,12 @@ module.exports = function (socket, io, rooms) {
     if (!normalize(raw).length) return;
     gd.submissions[socket.username] = { raw: raw, norm: normalize(raw) };
 
-    // resolve when everyone in a team has submitted
-    const total = gd.teams.A.length + gd.teams.B.length;
-    if (Object.keys(gd.submissions).length >= total) resolveRound(socket.roomCode);
+    // Resolve when every player STILL PRESENT has submitted (not the start-of-game
+    // snapshot) — otherwise a disconnect during the word phase freezes the round
+    // forever. The word timer below is the backstop if someone just never submits.
+    const present = r.players.filter(p => teamOf(gd, p));
+    const allIn = present.length > 0 && present.every(p => gd.submissions[p]);
+    if (allIn) resolveRound(socket.roomCode);
     else emitState(socket.roomCode, "word");
   });
 
@@ -161,6 +165,14 @@ module.exports = function (socket, io, rooms) {
     gd.submissions = {};
     gd.reveal = null;
     gd.phase = "word";
+    // Backstop: force-resolve the round if not everyone submits in time (e.g. a
+    // player disconnected mid-phase). Guarded against restart/room-empty.
+    if (gd.wordTimer) clearTimeout(gd.wordTimer);
+    gd.wordTimer = setTimeout(function () {
+      const rm = rooms.get(code);
+      if (!rm || rm.gameData !== gd || !rm.started || gd.phase !== "word") return;
+      resolveRound(code);
+    }, WORD_MS);
     emitState(code, "word");
   }
 
@@ -168,6 +180,8 @@ module.exports = function (socket, io, rooms) {
     const r = rooms.get(code);
     if (!r || !r.gameData) return;
     const gd = r.gameData;
+    if (gd.phase !== "word") return;  // already resolved (timer + last submit raced)
+    if (gd.wordTimer) { clearTimeout(gd.wordTimer); gd.wordTimer = null; }
     const reveal = {};
     ["A", "B"].forEach(function (t) {
       const words = {};
@@ -186,11 +200,12 @@ module.exports = function (socket, io, rooms) {
     gd.phase = "reveal";
     emitState(code, "reveal");
 
-    if (isOver(gd)) {
-      setTimeout(function () { endGame(code); }, REVEAL_MS);
-    } else {
-      setTimeout(function () { startRound(code); }, REVEAL_MS);
-    }
+    const over = isOver(gd);
+    setTimeout(function () {
+      const rm = rooms.get(code);
+      if (!rm || rm.gameData !== gd || !rm.started) return;  // restart/leave guard
+      if (over) endGame(code); else startRound(code);
+    }, REVEAL_MS);
   }
 
   function isOver(gd) {

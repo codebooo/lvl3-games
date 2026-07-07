@@ -204,6 +204,7 @@ module.exports = function (socket, io, rooms) {
   // ─── Helpers ─────────────────────────────────────────────────────────────────
   function startRound(code, room) {
     const gd = room.gameData;
+    if (!gd || !Array.isArray(gd.songs) || !room.started) return; // replay/leave wiped state
     if (gd.index >= gd.songs.length) {
       endGame(code, room);
       return;
@@ -255,17 +256,17 @@ module.exports = function (socket, io, rooms) {
       gameOver
     });
 
+    // Guard deferred transitions against host replay (gameData replaced) or an
+    // emptied room during the pause — a stale callback must not resume a dead game.
+    const alive = () => { const rm = rooms.get(code); return rm && rm.gameData === gd && rm.started; };
     if (gameOver) {
-      setTimeout(() => endGame(code, room), 3000);
+      gd.nextTimer = setTimeout(() => { if (alive()) endGame(code, room); }, 3000);
     } else {
-      // Next round after 4 seconds
-      setTimeout(() => {
+      gd.nextTimer = setTimeout(() => {
+        if (!alive()) return;
         gd.index++;
-        if (gd.index >= gd.songs.length) {
-          endGame(code, room);
-        } else {
-          startRound(code, room);
-        }
+        if (gd.index >= gd.songs.length) endGame(code, room);
+        else startRound(code, room);
       }, 4000);
     }
   }

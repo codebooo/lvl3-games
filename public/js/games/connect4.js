@@ -12,6 +12,7 @@
   var ROWS = 6, COLS = 7;
   // board[row][col], row 0 = TOP, values 0 (empty) | 1 | 2
   var board = emptyBoard();
+  var endScreenTimer = null; // pending end-screen reveal timeout
   var seats = {};          // { 1: userA, 2: userB }
   var mySeat = null;       // 1 | 2 | null (spectator/not seated)
   var current = 1;         // whose turn (1|2)
@@ -105,6 +106,10 @@
   socket.on("game:state", function (msg) {
     var phase = msg && msg.phase;
     var data = (msg && msg.data) || {};
+
+    // Cancel any pending end-screen reveal so a late "end" timeout can't slap the
+    // end screen back over a lobby/restart that arrived within its 900ms window.
+    if (endScreenTimer) { clearTimeout(endScreenTimer); endScreenTimer = null; }
 
     if (phase === "lobby") { board = emptyBoard(); gameOver = false; enterLobby(); return; }
 
@@ -384,7 +389,8 @@
     var btn = $("btn-play-again");
     if (btn) btn.style.display = isHost ? "" : "none";
     // brief delay so the winning chips' pulse is visible before switching screens
-    setTimeout(function () { showScreen("end"); }, gameOver ? 900 : 0);
+    if (endScreenTimer) clearTimeout(endScreenTimer);
+    endScreenTimer = setTimeout(function () { endScreenTimer = null; showScreen("end"); }, gameOver ? 900 : 0);
   }
 
 }());
