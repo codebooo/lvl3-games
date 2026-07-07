@@ -2,13 +2,13 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Logo Guesser – Lvl 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css?v=6">
-  <link rel="stylesheet" href="/css/games.css?v=4">
+  <link rel="stylesheet" href="/css/games.css?v=5">
   <script src="/js/theme.js?v=8"></script>
   <style>
     /* ─────────────────────────────────────────────
@@ -134,10 +134,13 @@
     #screen-question{max-width:680px}
     #round-info{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;
       color:var(--mut);margin-bottom:28px}
-    .lg-logo-wrap{width:min(440px,82vw);height:300px;background:#fff;display:flex;align-items:center;justify-content:center;
-      overflow:hidden;padding:30px;margin:0 auto 30px;border-radius:0;
+    .lg-logo-wrap{width:min(460px,86vw);height:320px;background:#fff;display:flex;align-items:center;justify-content:center;
+      overflow:hidden;padding:28px;margin:0 auto 30px;border-radius:14px;
       box-shadow:0 0 0 1px var(--line)}
-    .lg-logo-wrap img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+    /* Fill the frame: favicons come back anywhere from 16px to 256px, so scale
+       them up to a consistent large size instead of rendering at natural (tiny). */
+    .lg-logo-wrap img{width:100%;height:100%;object-fit:contain;display:block;
+      image-rendering:-webkit-optimize-contrast}
     .answer-row{display:flex;gap:12px;width:100%;max-width:460px;margin:0 auto}
     .answer-row .p-field{flex:1}
     .feedback-banner{min-height:30px;display:flex;align-items:center;justify-content:center;margin-top:20px;
@@ -194,7 +197,7 @@
       .p-title{font-size:clamp(34px,11vw,52px)}
       .p-sub{font-size:10px;letter-spacing:.18em}
       .stack{max-width:100%}
-      .lg-logo-wrap{width:100%;max-width:100%;height:220px;padding:22px}
+      .lg-logo-wrap{width:100%;max-width:100%;height:240px;padding:18px}
       .answer-row{flex-direction:column;max-width:100%;gap:14px}
       .answer-row .p-btn,.answer-row .p-field{width:100%}
       .p-field{font-size:16px}           /* avoid iOS zoom-on-focus */

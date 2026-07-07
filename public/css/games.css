@@ -108,3 +108,45 @@
 .correct-banner { min-height: 38px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; font-weight: 500; text-align: center; padding: 9px 14px; margin-top: 14px; text-transform: uppercase; }
 .correct-banner.show-correct { background: rgba(74,222,128,0.08); color: var(--green); border: 1px solid var(--green); }
 .correct-banner.show-timeout { background: rgba(255,77,77,0.08); color: var(--red); border: 1px solid var(--red); }
+
+/* ══════════════════════════════════════════════════════════════════
+   MOBILE STABILITY & USABILITY (shared across all game pages)
+   Loaded on every game page; !important is used deliberately to win
+   over the per-page inline <style> that follows this file.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Respect the notch / rounded corners / home-bar on modern phones.
+   Requires viewport-fit=cover in the page's viewport meta. */
+@supports (padding: max(0px, env(safe-area-inset-top))) {
+  @media (max-width: 900px) {
+    .site-header {
+      padding-top: calc(16px + env(safe-area-inset-top)) !important;
+      padding-left: calc(18px + env(safe-area-inset-left)) !important;
+      padding-right: calc(18px + env(safe-area-inset-right)) !important;
+    }
+    .rail { padding-top: calc(74px + env(safe-area-inset-top)) !important; }
+    .stage { padding-bottom: calc(60px + env(safe-area-inset-bottom)) !important; }
+  }
+}
+
+/* Dynamic viewport height: mobile browser chrome (address bar) no longer
+   crops the bottom of the stage. Falls back to the inline 100vh where dvh
+   is unsupported (the invalid declaration is simply dropped). */
+@media (max-width: 900px) {
+  body { min-height: 100dvh !important; }
+  html, body { overflow-x: hidden !important; max-width: 100% !important; }
+}
+
+/* iOS zooms the page when focusing an input below 16px — force 16px on phones. */
+@media (max-width: 640px) {
+  input, select, textarea,
+  .p-field, .input-field { font-size: 16px !important; }
+}
+
+/* Comfortable tap targets on touch devices (Apple/Google guidance ≈44px). */
+@media (hover: none) and (pointer: coarse) {
+  button, a.p-btn, .p-btn, .btn,
+  .option-btn, .vote-btn, .team-chip { min-height: 44px; }
+  /* remove sticky :hover lift that gets "stuck" after a tap on touch */
+  .p-btn:hover, .btn:hover, .option-btn:hover, .vote-btn:hover { transform: none !important; }
+}

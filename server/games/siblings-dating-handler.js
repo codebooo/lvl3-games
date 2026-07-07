@@ -19,6 +19,24 @@ function shuffle(arr) {
   return a;
 }
 
+// Build a deck of `n` pairs that's as close to 50/50 siblings/couples as the
+// data allows, then shuffle it — so "always guess couple" can't win even though
+// there are more couple pairs than sibling pairs in the dataset.
+function balancedDeck(pairs, n) {
+  const sib = shuffle(pairs.filter(p => p.answer === "siblings"));
+  const cpl = shuffle(pairs.filter(p => p.answer === "couple"));
+  const out = [];
+  let i = 0, j = 0;
+  while (out.length < n && (i < sib.length || j < cpl.length)) {
+    // Alternate, pulling from whichever pool keeps the counts balanced.
+    const takeSib = (out.length % 2 === 0) ? i < sib.length : !(j < cpl.length);
+    if (takeSib && i < sib.length) out.push(sib[i++]);
+    else if (j < cpl.length) out.push(cpl[j++]);
+    else if (i < sib.length) out.push(sib[i++]);
+  }
+  return shuffle(out);
+}
+
 function teamOf(teams, username) {
   if (teams.A.indexOf(username) !== -1) return "A";
   if (teams.B.indexOf(username) !== -1) return "B";
@@ -119,7 +137,7 @@ module.exports = function (socket, io, rooms) {
       phase: "countdown",
       playMode: playMode,
       teams: teams,
-      deck: shuffle(PAIRS).slice(0, rounds),
+      deck: balancedDeck(PAIRS, rounds),
       roundIndex: 0,
       votes: {},
       scores: {},        // ffa: per player · teams: { A, B }

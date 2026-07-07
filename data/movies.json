@@ -2008,6 +2008,96 @@
           "The Rock",
           "Dwayne Douglas Johnson"
         ]
+      },
+      {
+        "name": "Keanu Reeves",
+        "hint": "Bekannt aus Matrix, John Wick, Speed",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Keanu_Reeves_at_TIFF_2025_02_%28Cropped%29.jpg/330px-Keanu_Reeves_at_TIFF_2025_02_%28Cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Matt Damon",
+        "hint": "Bekannt aus Good Will Hunting, Die Bourne-Reihe, Der Marsianer",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/MattDamon-byPhilipRomano.jpg/330px-MattDamon-byPhilipRomano.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Christian Bale",
+        "hint": "Bekannt aus Batman-Trilogie, American Psycho, The Machinist",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Christian_Bale-7837.jpg/330px-Christian_Bale-7837.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Hugh Jackman",
+        "hint": "Bekannt aus Wolverine, Les Misérables, The Greatest Showman",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Hugh_Jackman_by_Gage_Skidmore_3.jpg/330px-Hugh_Jackman_by_Gage_Skidmore_3.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Samuel L. Jackson",
+        "hint": "Bekannt aus Pulp Fiction, Die Avengers, Django Unchained",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/SamuelLJackson.jpg/330px-SamuelLJackson.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Harrison Ford",
+        "hint": "Bekannt aus Indiana Jones, Star Wars, Blade Runner",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Harrison_Ford_-_Televerse_2025-03.jpg/330px-Harrison_Ford_-_Televerse_2025-03.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Emma Stone",
+        "hint": "Bekannt aus La La Land, Poor Things, Easy A",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Emma_Stone_at_the_2025_Venice_Film_Festival-6313_%28cropped%29.jpg/330px-Emma_Stone_at_the_2025_Venice_Film_Festival-6313_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Ryan Gosling",
+        "hint": "Bekannt aus La La Land, Drive, Barbie",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/GoslingBFI081223_%2822_of_30%29_%2853388157347%29_%28cropped%29.jpg/330px-GoslingBFI081223_%2822_of_30%29_%2853388157347%29_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Jennifer Aniston",
+        "hint": "Bekannt aus Friends, Marley & Ich, Wir sind die Millers",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/JenniferAnistonHWoFFeb2012.jpg/330px-JenniferAnistonHWoFFeb2012.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Gal Gadot",
+        "hint": "Bekannt aus Wonder Woman, Fast & Furious",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Gal_Gadot_by_Gage_Skidmore_3.jpg/330px-Gal_Gadot_by_Gage_Skidmore_3.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Tom Holland",
+        "hint": "Bekannt aus Spider-Man, Uncharted",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Tom_Holland_during_pro-am_Wentworth_golf_club_2023-2_%28cropped%29.jpg/330px-Tom_Holland_during_pro-am_Wentworth_golf_club_2023-2_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Zac Efron",
+        "hint": "Bekannt aus High School Musical, Baywatch",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Zac_Efron_at_the_Baywatch_Red_Carpet_Premiere_Sydney_Australia.jpg/330px-Zac_Efron_at_the_Baywatch_Red_Carpet_Premiere_Sydney_Australia.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Matthew McConaughey",
+        "hint": "Bekannt aus Interstellar, Dallas Buyers Club, True Detective",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Matthew_McConaughey_at_the_2025_Toronto_Film_Festival_%28Cropped%29.jpg/330px-Matthew_McConaughey_at_the_2025_Toronto_Film_Festival_%28Cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Chris Pratt",
+        "hint": "Bekannt aus Guardians of the Galaxy, Jurassic World",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Chris_Pratt_Jurassic_World_Fallen_Kingdom_Japan_Premiere_Red_Carpet_%283x4_cropped%29.jpg/330px-Chris_Pratt_Jurassic_World_Fallen_Kingdom_Japan_Premiere_Red_Carpet_%283x4_cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Ben Affleck",
+        "hint": "Bekannt aus Argo, Batman, Good Will Hunting",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Ben_Affleck_on_the_Red_Carpet%2C_SXSW_2023_%28cropped%29.jpg/330px-Ben_Affleck_on_the_Red_Carpet%2C_SXSW_2023_%28cropped%29.jpg",
+        "aliases": []
       }
     ],
     "normal": [
@@ -2264,6 +2354,96 @@
           "James Dornan",
           "Christian Grey Schauspieler"
         ]
+      },
+      {
+        "name": "Pedro Pascal",
+        "hint": "Bekannt aus The Last of Us, The Mandalorian, Game of Thrones",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Pedro_Pascal_at_the_2025_Cannes_Film_Festival_04.jpg/330px-Pedro_Pascal_at_the_2025_Cannes_Film_Festival_04.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Cillian Murphy",
+        "hint": "Bekannt aus Peaky Blinders, Oppenheimer, Inception",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Cillian_Murphy_at_the_London_premier_of_Steve_in_September_2025_%28cropped%29.jpg/330px-Cillian_Murphy_at_the_London_premier_of_Steve_in_September_2025_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Rami Malek",
+        "hint": "Bekannt aus Bohemian Rhapsody, Mr. Robot",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Rami_Malek_at_the_2026_Cannes_Film_Festival-69448.jpg/330px-Rami_Malek_at_the_2026_Cannes_Film_Festival-69448.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Andrew Garfield",
+        "hint": "Bekannt aus The Amazing Spider-Man, The Social Network",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Andrew_Garfield_82nd_Venice_Film_Festival_%28cropped%29.jpg/330px-Andrew_Garfield_82nd_Venice_Film_Festival_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Robert Pattinson",
+        "hint": "Bekannt aus The Batman, Twilight, Tenet",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Robert_Pattinson_at_Berlinale_2025.jpg/330px-Robert_Pattinson_at_Berlinale_2025.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Anya Taylor-Joy",
+        "hint": "Bekannt aus Das Damengambit, The Menu, Furiosa",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Anya_Taylor-Joy_at_the_2025_Toronto_International_Film_Festival._06_%28cropped%29.jpg/330px-Anya_Taylor-Joy_at_the_2025_Toronto_International_Film_Festival._06_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Austin Butler",
+        "hint": "Bekannt aus Elvis, Dune: Part Two",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Austin_Butler_at_the_2025_Cannes_Film_Festival_02.jpg/330px-Austin_Butler_at_the_2025_Cannes_Film_Festival_02.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Jessica Chastain",
+        "hint": "Bekannt aus Zero Dark Thirty, Interstellar",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Jessica_Chastain-64631_%28cropped%29.jpg/330px-Jessica_Chastain-64631_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Amy Adams",
+        "hint": "Bekannt aus Arrival, American Hustle",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Amy_Adams_at_the_2024_Toronto_International_Film_Festival._03_%28cropped%29.jpg/330px-Amy_Adams_at_the_2024_Toronto_International_Film_Festival._03_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Kate Winslet",
+        "hint": "Bekannt aus Titanic, The Reader, Mare of Easttown",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/KateWinslet_%28cropped%29.jpg/330px-KateWinslet_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Ralph Fiennes",
+        "hint": "Bekannt aus Schindlers Liste, Harry Potter, Grand Budapest Hotel",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Ralph_Fiennes_2024.jpg/330px-Ralph_Fiennes_2024.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Mahershala Ali",
+        "hint": "Bekannt aus Moonlight, Green Book",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Mahershala_Ali_by_Gage_Skidmore_%28cropped%29.jpg/330px-Mahershala_Ali_by_Gage_Skidmore_%28cropped%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Bryan Cranston",
+        "hint": "Bekannt aus Breaking Bad, Malcolm mittendrin",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/BryanCranston-byPhilipRomano.jpg/330px-BryanCranston-byPhilipRomano.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Hugh Grant",
+        "hint": "Bekannt aus Notting Hill, Tatsächlich… Liebe",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Hugh_Grant_in_2014.jpg/330px-Hugh_Grant_in_2014.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Sydney Sweeney",
+        "hint": "Bekannt aus Euphoria, Anyone but You",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Sydney_Sweeney_at_the_2024_Toronto_International_Film_Festival_01_%283x4_cropped_and_rotated%29.jpg/330px-Sydney_Sweeney_at_the_2024_Toronto_International_Film_Festival_01_%283x4_cropped_and_rotated%29.jpg",
+        "aliases": []
       }
     ],
     "hard": [
@@ -2509,6 +2689,90 @@
         "aliases": [
           "Louis Jouvet"
         ]
+      },
+      {
+        "name": "Toshiro Mifune",
+        "hint": "Bekannt aus Die sieben Samurai, Rashomon",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Toshiro_Mifune_1954_Scan10003_160913.jpg/330px-Toshiro_Mifune_1954_Scan10003_160913.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Alain Delon",
+        "hint": "Bekannt aus Der eiskalte Engel, Nur die Sonne war Zeuge",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Alain_Delon_1961.jpg/330px-Alain_Delon_1961.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Catherine Deneuve",
+        "hint": "Bekannt aus Belle de Jour, Die Regenschirme von Cherbourg",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Catherine_Deneuve_Berlinale_2017.jpg/330px-Catherine_Deneuve_Berlinale_2017.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Isabelle Huppert",
+        "hint": "Bekannt aus Die Klavierspielerin, Elle",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Isabelle_Huppert_at_Berlinale_2026-1.jpg/330px-Isabelle_Huppert_at_Berlinale_2026-1.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Gérard Depardieu",
+        "hint": "Bekannt aus Cyrano, Green Card",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/G%C3%A9rard_Depardieu_%28Berlin_Film_Festival_2010%29.jpg/330px-G%C3%A9rard_Depardieu_%28Berlin_Film_Festival_2010%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Bruno Ganz",
+        "hint": "Bekannt aus Der Untergang, Der Himmel über Berlin",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Bruno_Ganz_2011.jpg/330px-Bruno_Ganz_2011.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Marlene Dietrich",
+        "hint": "Bekannt aus Der blaue Engel, Zeugin der Anklage",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Marlene_Dietrich_in_No_Highway_%281951%29_%28Cropped%29.png/330px-Marlene_Dietrich_in_No_Highway_%281951%29_%28Cropped%29.png",
+        "aliases": []
+      },
+      {
+        "name": "Vivien Leigh",
+        "hint": "Bekannt aus Vom Winde verweht, Endstation Sehnsucht",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Vivien_Leigh_Scarlet.jpg/330px-Vivien_Leigh_Scarlet.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Laurence Olivier",
+        "hint": "Bekannt aus Hamlet, Rebecca",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lord_Olivier_6_Allan_Warren.jpg/330px-Lord_Olivier_6_Allan_Warren.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Alec Guinness",
+        "hint": "Bekannt aus Star Wars, Die Brücke am Kwai",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sir_Alec_Guinness_Allan_Warren.jpg/330px-Sir_Alec_Guinness_Allan_Warren.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Liv Ullmann",
+        "hint": "Bekannt aus Persona, Szenen einer Ehe",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Liv_Ullmann_2024_%28cropped%29.png/330px-Liv_Ullmann_2024_%28cropped%29.png",
+        "aliases": []
+      },
+      {
+        "name": "Gong Li",
+        "hint": "Bekannt aus Lebewohl, meine Konkubine, Rote Laterne",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Gong_Li_Cannes_2016.jpg/330px-Gong_Li_Cannes_2016.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Tony Leung",
+        "hint": "Bekannt aus In the Mood for Love, Shang-Chi",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Tony_Leung_as_the_President_of_the_International_Competition_Jury_at_Opening_Ceremony_of_the_Tokyo_International_Film_Festival_2024_%2854578353950%29.jpg/330px-Tony_Leung_as_the_President_of_the_International_Competition_Jury_at_Opening_Ceremony_of_the_Tokyo_International_Film_Festival_2024_%2854578353950%29.jpg",
+        "aliases": []
+      },
+      {
+        "name": "Ken Watanabe",
+        "hint": "Bekannt aus Last Samurai, Inception",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Ken_Watanabe_20220615.jpg/330px-Ken_Watanabe_20220615.jpg",
+        "aliases": []
       }
     ]
   }
