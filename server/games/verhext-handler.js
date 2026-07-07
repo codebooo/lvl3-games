@@ -141,7 +141,7 @@ module.exports = function (socket, io, rooms) {
     // Resolve when every player STILL PRESENT has submitted (not the start-of-game
     // snapshot) — otherwise a disconnect during the word phase freezes the round
     // forever. The word timer below is the backstop if someone just never submits.
-    const present = r.players.filter(p => teamOf(gd, p));
+    const present = r.players.filter(p => teamOf(gd, p) && !(r.grace && r.grace[p]));
     const allIn = present.length > 0 && present.every(p => gd.submissions[p]);
     if (allIn) resolveRound(socket.roomCode);
     else emitState(socket.roomCode, "word");

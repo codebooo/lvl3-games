@@ -144,17 +144,32 @@ window.lvl3 = (function () {
 
   // Lazy socket — only connect when first accessed (game pages access it during load)
   let _socket = null;
+  let _room = null;          // room code the client currently believes it's in
+  let _everConnected = false; // distinguishes first connect from a reconnect
 
   return {
     get socket() {
       if (!_socket) {
         _socket = io({ transports: ["websocket", "polling"], upgrade: true });
-        // Capture avatar maps from room lifecycle events so renderPlayerList
-        // can render custom pfps without every game wiring the param through.
+        // Capture avatar maps + the room code from room lifecycle events so
+        // renderPlayerList gets pfps for free and we can auto-rejoin on reconnect.
         ["room:created", "room:joined", "room:players", "room:host-changed"].forEach(function (ev) {
           _socket.on(ev, function (d) {
             if (d && d.avatars && typeof d.avatars === "object") _avatars = d.avatars;
+            if (d && d.code) _room = d.code;
           });
+        });
+        // Explicit leave clears the remembered room so we don't try to rejoin it.
+        _socket.on("room:left", function () { _room = null; });
+        _socket.on("room:resume-failed", function () { _room = null; });
+        // On every (re)connect after the first, re-authenticate the fresh socket
+        // and ask the server to put us back in our room. The server keeps a 90s
+        // grace window and replays the latest game state, so a phone that
+        // backgrounded the tab lands right back in the game.
+        _socket.on("connect", function () {
+          if (!_everConnected) { _everConnected = true; return; }
+          _socket.emit("auth", {});
+          if (_room) _socket.emit("room:resume", { code: _room });
         });
       }
       return _socket;

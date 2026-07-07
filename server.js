@@ -716,18 +716,19 @@ function avatarsFor(players) {
   return map;
 }
 
-function handleLeave(socket) {
-  const code = socket.roomCode;
-  if (!code) return;
+// How long a disconnected player is kept in their room before removal, so a
+// phone that backgrounds the tab (socket drops, then reconnects) doesn't lose
+// its seat / score / host role. room:resume cancels the pending removal.
+const REJOIN_GRACE_MS = 90000;
 
+// The actual removal: drop the player, clear their grace timer, reassign host
+// or delete the room if it's now empty.
+function removeFromRoom(code, username) {
   const room = rooms.get(code);
-  if (!room) {
-    socket.roomCode = null;
-    return;
-  }
+  if (!room) return;
 
-  room.players = room.players.filter(p => p !== socket.username);
-  socket.roomCode = null;
+  room.players = room.players.filter(p => p !== username);
+  if (room.grace && room.grace[username]) { clearTimeout(room.grace[username]); delete room.grace[username]; }
 
   if (room.players.length === 0) {
     // Clear any pending timer handles so stale callbacks can't mutate a reused room
@@ -740,16 +741,48 @@ function handleLeave(socket) {
         }
       }
     }
+    if (room.grace) Object.values(room.grace).forEach(t => clearTimeout(t));
     rooms.delete(code);
     return;
   }
 
-  if (room.host === socket.username) {
+  if (room.host === username) {
     room.host = room.players[0];
     io.to(code).emit("room:host-changed", { host: room.host, players: room.players, avatars: avatarsFor(room.players) });
   } else {
     io.to(code).emit("room:players", { players: room.players, host: room.host, avatars: avatarsFor(room.players) });
   }
+}
+
+// Explicit leave (user tapped "Verlassen") — remove immediately.
+function handleLeave(socket) {
+  const code = socket.roomCode;
+  socket.roomCode = null;
+  if (!code) return;
+  socket.leave(code);
+  removeFromRoom(code, socket.username);
+}
+
+// Transient disconnect (network blip, tab backgrounded) — keep the player for a
+// grace window; only remove if they don't reconnect in time.
+function handleDisconnect(socket) {
+  const code = socket.roomCode;
+  const username = socket.username;
+  socket.roomCode = null;
+  if (!code || !username) return;
+  const room = rooms.get(code);
+  if (!room) return;
+  if (!room.players.includes(username)) return;
+
+  if (!room.grace) room.grace = {};
+  if (room.grace[username]) clearTimeout(room.grace[username]);
+  room.grace[username] = setTimeout(() => removeFromRoom(code, username), REJOIN_GRACE_MS);
+
+  // Tell the room this player is temporarily away (clients may grey them out).
+  io.to(code).emit("room:players", {
+    players: room.players, host: room.host,
+    avatars: avatarsFor(room.players), away: Object.keys(room.grace)
+  });
 }
 
 // ─── Socket.io ────────────────────────────────────────────────────────────────
@@ -836,13 +869,75 @@ io.on("connection", (socket) => {
     io.to(upperCode).emit("room:players", { players: room.players, host: room.host, avatars: avatarsFor(room.players) });
   });
 
-  socket.on("room:leave", () => handleLeave(socket));
-  socket.on("disconnect", () => handleLeave(socket));
+  socket.on("room:leave", () => { socket.emit("room:left"); handleLeave(socket); });
+  socket.on("disconnect", () => handleDisconnect(socket));
+
+  // Reconnect after a transient drop: re-attach this fresh socket to the room the
+  // client believes it's in, cancel the pending grace removal, and replay the
+  // latest game state so the returning player is fully caught up.
+  socket.on("room:resume", ({ code }) => {
+    if (!socket.username || !code) return;
+    const upper = String(code).toUpperCase();
+    const room = rooms.get(upper);
+    if (!room) { socket.emit("room:resume-failed"); return; }
+
+    const isMember = room.players.includes(socket.username);
+    if (!isMember) {
+      // Not a member anymore (grace expired). Only allow rejoin if the game
+      // hasn't started and there's space — same rule as room:join.
+      if (room.started || room.players.length >= 8) { socket.emit("room:resume-failed"); return; }
+      room.players.push(socket.username);
+    }
+    if (room.grace && room.grace[socket.username]) {
+      clearTimeout(room.grace[socket.username]);
+      delete room.grace[socket.username];
+    }
+
+    socket.join(upper);
+    socket.roomCode = upper;
+
+    socket.emit("room:joined", {
+      code: upper,
+      gameType: room.gameType,
+      players: room.players,
+      host: room.host,
+      avatars: avatarsFor(room.players),
+      settings: room.settings,
+      isHost: room.host === socket.username,
+      resumed: true
+    });
+    io.to(upper).emit("room:players", {
+      players: room.players, host: room.host,
+      avatars: avatarsFor(room.players), away: room.grace ? Object.keys(room.grace) : []
+    });
+
+    // Replay the last broadcast game state so a mid-game reconnect restores the
+    // exact screen (question/reveal/etc.) rather than dropping back to the lobby.
+    if (room.started && room.lastState) socket.emit("game:state", room.lastState);
+  });
+
+  // Wrap io so every `io.to(code).emit("game:state", payload)` also caches the
+  // payload as room.lastState — this powers mid-game replay on room:resume, with
+  // zero changes to the individual game handlers.
+  const handlerIo = {
+    to(code) {
+      const chain = io.to(code);
+      const realEmit = chain.emit.bind(chain);
+      chain.emit = (event, payload) => {
+        if (event === "game:state" && typeof code === "string") {
+          const r = rooms.get(code);
+          if (r) r.lastState = payload;
+        }
+        return realEmit(event, payload);
+      };
+      return chain;
+    }
+  };
 
   // Load game handlers
   ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten", "connect4", "verhext", "jeopardy", "siblings-dating"].forEach(g => {
     try {
-      require("./server/games/" + g + "-handler")(socket, io, rooms);
+      require("./server/games/" + g + "-handler")(socket, handlerIo, rooms);
     } catch (e) {
       // Handler not yet implemented, skip silently
     }

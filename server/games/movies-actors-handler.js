@@ -173,8 +173,9 @@ module.exports = function (socket, io, rooms) {
         return;
       }
 
-      // if everyone answered, skip to reveal early
-      const allAnswered = room.players.every(p => gd.answeredThisRound[p]);
+      // if everyone answered, skip to reveal early (ignore players in rejoin grace)
+      const present = room.players.filter(p => !(room.grace && room.grace[p]));
+      const allAnswered = present.length > 0 && present.every(p => gd.answeredThisRound[p]);
       if (allAnswered) {
         clearTimeout(gd.roundTimer);
         revealAnswer(code);

@@ -162,13 +162,16 @@ module.exports = function (socket, io, rooms) {
     if (answer !== "siblings" && answer !== "couple") return;
 
     gd.votes[socket.username] = answer;
+    // Players currently in the rejoin grace window are "away" — don't wait on
+    // their vote to end the round (they'd otherwise stall it until the timer).
+    const present = r.players.filter(p => !(r.grace && r.grace[p]));
     io.to(code).emit("siblings-dating:voted", {
       player: socket.username,
       count: Object.keys(gd.votes).length,
-      total: r.players.length
+      total: present.length
     });
 
-    if (Object.keys(gd.votes).length >= r.players.length) {
+    if (present.length > 0 && present.every(p => gd.votes[p])) {
       clearTimeout(gd.roundTimer);
       endRound(code);
     }

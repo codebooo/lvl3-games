@@ -251,7 +251,9 @@ module.exports = function (socket, io, rooms) {
       }
 
       // Check if all players have answered
-      const allAnswered = room.players.every(p => gd.roundAnswers[p] !== undefined);
+      // Don't wait on players in the rejoin grace window ("away").
+      const present = room.players.filter(p => !(room.grace && room.grace[p]));
+      const allAnswered = present.length > 0 && present.every(p => gd.roundAnswers[p] !== undefined);
       if (allAnswered) {
         clearTimer(gd);
         doReveal(code, room);
