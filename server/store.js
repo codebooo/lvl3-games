@@ -24,7 +24,18 @@ const KEYS = {
   playlist:   { file: "playlist.json",     default: () => [] },
   stats:      { file: "stats.json",        default: () => ({ overall: {}, perGame: {} }) },
   jeopardyBoards: { file: "jeopardy-boards.json", default: () => [] },
-  jeopardyMedia:  { file: "jeopardy-media.json",  default: () => ({}) }
+  jeopardyMedia:  { file: "jeopardy-media.json",  default: () => ({}) },
+  // ─── Tools ───
+  zitate:     { file: "zitate.json",       default: () => [] },
+  termine:    { file: "termine.json",      default: () => [] },
+  turniere:   { file: "turniere.json",     default: () => ({ tournaments: [], elo: {} }) },
+  filmabend:  { file: "filmabend.json",    default: () => [] },
+  wetten:     { file: "wetten.json",       default: () => [] },
+  bringliste: { file: "bringliste.json",   default: () => [] },
+  aemter:     { file: "aemter.json",       default: () => [] },
+  events:     { file: "events.json",       default: () => [] },
+  // Persistent high scores for co-op / solo games (e.g. Nur ein Wort)
+  highscores: { file: "highscores.json",   default: () => ({}) }
 };
 
 const DATA_DIR = path.join(__dirname, "..", "data");

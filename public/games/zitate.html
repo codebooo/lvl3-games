@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Zitate-Buch – Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=5">
+  <link rel="stylesheet" href="/css/phantom.css?v=1">
+  <script src="/js/theme.js?v=8"></script>
+  <style>
+    :root{ --acc:#b98cff; }
+    .stage{align-items:flex-start}
+    .quote-card{border:1px solid var(--line);border-left:2px solid var(--acc);padding:20px 22px;
+      margin-bottom:14px;text-align:left}
+    .quote-text{font-size:clamp(17px,2.4vw,22px);font-weight:500;line-height:1.4;overflow-wrap:anywhere}
+    .quote-text::before{content:'„'} .quote-text::after{content:'“'}
+    .quote-author{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;
+      text-transform:uppercase;color:var(--acc);margin-top:12px}
+    .quote-ctx{font-size:13px;color:var(--dim);margin-top:8px;font-style:italic}
+    .quote-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;
+      flex-wrap:wrap}
+    .react-row{display:flex;gap:6px;flex-wrap:wrap}
+    .react-btn{background:none;border:1px solid var(--line-2);border-radius:999px;padding:4px 10px;
+      font-size:14px;cursor:none;color:#fff;transition:border-color .2s,transform .15s}
+    .react-btn:hover{border-color:#fff;transform:translateY(-2px)}
+    .react-btn.on{border-color:var(--acc);background:rgba(185,140,255,.14)}
+    .react-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mut);margin-left:4px}
+    .quote-meta{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;
+      text-transform:uppercase;color:var(--mut)}
+    .filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+    .filter-chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+      text-transform:uppercase;border:1px solid var(--line-2);border-radius:999px;padding:7px 14px;
+      background:none;color:var(--dim);cursor:none}
+    .filter-chip.on{border-color:var(--acc);color:#fff}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:640px){.form-grid{grid-template-columns:1fr}}
+    .qotd{border:1px solid var(--acc);padding:22px;margin-bottom:30px;text-align:left;
+      background:rgba(185,140,255,.06)}
+  </style>
+</head>
+<body>
+
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">Zitate-Buch</span>
+  </div>
+  <div class="hdr-right">
+    <span class="type-pill">Tool</span>
+    <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px"></div>
+    <span id="user-name"></span>
+    <a href="/dashboard.html" class="p-btn p-btn-ghost btn-sm">Zurück</a>
+  </div>
+</header>
+
+<main class="stage tool" style="padding-top:130px">
+  <div class="screen wide active">
+
+    <div class="p-kicker">LVL³ · Archiv</div>
+    <h2 class="p-title p-title-sm" style="margin-bottom:8px">Zitate-Buch</h2>
+    <p class="p-sub" style="margin-top:6px">Die dümmsten Sätze, für die Ewigkeit</p>
+
+    <!-- Zitat des Tages -->
+    <div class="tool-section" style="margin-top:40px">
+      <div class="qotd hidden" id="qotd">
+        <span class="kicker">Zitat des Tages</span>
+        <div class="quote-text" id="qotd-text" style="margin-top:10px"></div>
+        <div class="quote-author" id="qotd-author"></div>
+      </div>
+    </div>
+
+    <!-- Neues Zitat -->
+    <div class="tool-section">
+      <span class="kicker">Neues Zitat eintragen</span>
+      <div class="form-grid">
+        <div>
+          <label class="kicker" style="display:block;margin-bottom:8px">Wer hat's gesagt?</label>
+          <select id="inp-author" class="p-field"></select>
+        </div>
+        <div>
+          <label class="kicker" style="display:block;margin-bottom:8px">Wann?</label>
+          <input type="date" id="inp-date" class="p-field">
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <label class="kicker" style="display:block;margin-bottom:8px">Zitat</label>
+        <textarea id="inp-text" class="p-field" maxlength="500" placeholder="Was wurde gesagt?"></textarea>
+      </div>
+      <div style="margin-top:14px">
+        <label class="kicker" style="display:block;margin-bottom:8px">Kontext (optional)</label>
+        <input id="inp-context" class="p-field" maxlength="300" placeholder="Worum ging's gerade?">
+      </div>
+      <div style="display:flex;gap:12px;margin-top:18px;align-items:center;flex-wrap:wrap">
+        <button id="btn-save" class="p-btn p-btn-primary">Ins Buch schreiben</button>
+        <span id="form-error" class="err" style="margin:0"></span>
+      </div>
+    </div>
+
+    <!-- Liste -->
+    <div class="tool-section">
+      <span class="kicker">Alle Zitate <span id="quote-count"></span></span>
+      <div class="filter-row" id="filter-row"></div>
+      <div id="quote-list"></div>
+      <div id="empty-state" class="hint hidden">Noch keine Zitate. Sei der Erste.</div>
+    </div>
+
+  </div>
+</main>
+
+<script src="/js/socket-utils.js?v=7"></script>
+<script src="/js/games/zitate.js?v=1"></script>
+<script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="/js/phantom-ui.js?v=1" defer></script>
+</body>
+</html>

@@ -935,13 +935,84 @@ io.on("connection", (socket) => {
   };
 
   // Load game handlers
-  ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten", "connect4", "verhext", "jeopardy", "siblings-dating"].forEach(g => {
+  ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten",
+   "connect4", "verhext", "jeopardy", "siblings-dating",
+   // Ausbaustufe 2 (siehe docs/RESEARCH-neue-spiele-und-tools.md)
+   "hoeher-tiefer", "luegenbaron", "meiern", "stadt-land-fluss", "wellenlaenge",
+   "chronologie", "wer-bin-ich", "supermarkt", "nur-ein-wort", "montagsmaler"].forEach(g => {
     try {
       require("./server/games/" + g + "-handler")(socket, handlerIo, rooms);
     } catch (e) {
       // Handler not yet implemented, skip silently
     }
   });
+});
+
+// ─── Zitate-Buch ──────────────────────────────────────────────────────────────
+// Archiv für die dümmsten Sätze der Gruppe. Jeder darf eintragen und reagieren;
+// löschen darf nur, wer den Eintrag angelegt hat.
+function loadZitate() { return store.get("zitate") || []; }
+function saveZitate(v) { store.set("zitate", v); }
+
+app.get("/api/zitate", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const list = loadZitate().slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  return res.json({ quotes: list, me: req.session.username });
+});
+
+app.post("/api/zitate", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+
+  const text = String(req.body.text || "").trim().slice(0, 500);
+  if (!text) return res.status(400).json({ error: "Zitat darf nicht leer sein." });
+
+  // Urheber muss ein bekannter Nutzer sein (Original-Schreibweise übernehmen).
+  const users = loadUsers();
+  const rawAuthor = String(req.body.author || "").trim();
+  const match = users.find(u => u.username.toLowerCase() === rawAuthor.toLowerCase());
+  if (!match) return res.status(400).json({ error: "Unbekannte Person." });
+
+  const context = String(req.body.context || "").trim().slice(0, 300);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body.date || ""))
+    ? req.body.date
+    : new Date().toISOString().slice(0, 10);
+
+  const list = loadZitate();
+  list.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    text, author: match.username, context, date,
+    addedBy: req.session.username,
+    reactions: {}          // username -> emoji
+  });
+  saveZitate(list);
+  return res.json({ success: true });
+});
+
+app.post("/api/zitate/:id/react", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const list = loadZitate();
+  const q = list.find(x => x.id === req.params.id);
+  if (!q) return res.status(404).json({ error: "Zitat nicht gefunden." });
+  if (!q.reactions || typeof q.reactions !== "object") q.reactions = {};
+  const emoji = String(req.body.emoji || "😂").slice(0, 8);
+  // Toggle: gleiche Reaktion nochmal = zurücknehmen
+  if (q.reactions[req.session.username] === emoji) delete q.reactions[req.session.username];
+  else q.reactions[req.session.username] = emoji;
+  saveZitate(list);
+  return res.json({ success: true, reactions: q.reactions });
+});
+
+app.delete("/api/zitate/:id", (req, res) => {
+  if (!req.session.username) return res.status(401).json({ error: "Nicht angemeldet." });
+  const list = loadZitate();
+  const i = list.findIndex(x => x.id === req.params.id);
+  if (i === -1) return res.status(404).json({ error: "Zitat nicht gefunden." });
+  if (list[i].addedBy !== req.session.username) {
+    return res.status(403).json({ error: "Nur wer das Zitat eingetragen hat, darf es löschen." });
+  }
+  list.splice(i, 1);
+  saveZitate(list);
+  return res.json({ success: true });
 });
 
 // ─── Health Check ─────────────────────────────────────────────────────────────

@@ -1,0 +1,677 @@
+{
+ "period": "2026-07",
+ "articles": [
+  {
+   "title": "Deutschland",
+   "views": 306235
+  },
+  {
+   "title": "Berlin",
+   "views": 139797
+  },
+  {
+   "title": "Taylor Swift",
+   "views": 137963
+  },
+  {
+   "title": "Michael Jackson",
+   "views": 124710
+  },
+  {
+   "title": "Helene Fischer",
+   "views": 120000
+  },
+  {
+   "title": "Spanien",
+   "views": 114725
+  },
+  {
+   "title": "Schweiz",
+   "views": 111797
+  },
+  {
+   "title": "YouTube",
+   "views": 111347
+  },
+  {
+   "title": "Österreich",
+   "views": 102808
+  },
+  {
+   "title": "Frankreich",
+   "views": 98298
+  },
+  {
+   "title": "Franz Beckenbauer",
+   "views": 79916
+  },
+  {
+   "title": "Italien",
+   "views": 68454
+  },
+  {
+   "title": "FC Bayern München",
+   "views": 68202
+  },
+  {
+   "title": "Manuel Neuer",
+   "views": 68104
+  },
+  {
+   "title": "Brasilien",
+   "views": 67060
+  },
+  {
+   "title": "München",
+   "views": 62033
+  },
+  {
+   "title": "Zweiter Weltkrieg",
+   "views": 61696
+  },
+  {
+   "title": "Boris Becker",
+   "views": 60853
+  },
+  {
+   "title": "Hamburg",
+   "views": 60728
+  },
+  {
+   "title": "Bodensee",
+   "views": 59319
+  },
+  {
+   "title": "Steffi Graf",
+   "views": 56963
+  },
+  {
+   "title": "Donau",
+   "views": 56373
+  },
+  {
+   "title": "Thomas Müller",
+   "views": 53783
+  },
+  {
+   "title": "Angela Merkel",
+   "views": 52494
+  },
+  {
+   "title": "Leipzig",
+   "views": 49957
+  },
+  {
+   "title": "Albert Einstein",
+   "views": 49776
+  },
+  {
+   "title": "Diane Kruger",
+   "views": 49156
+  },
+  {
+   "title": "Frankfurt am Main",
+   "views": 48901
+  },
+  {
+   "title": "Michael Schumacher",
+   "views": 48830
+  },
+  {
+   "title": "Rhein",
+   "views": 47707
+  },
+  {
+   "title": "Australien",
+   "views": 47657
+  },
+  {
+   "title": "Köln",
+   "views": 44069
+  },
+  {
+   "title": "Nena",
+   "views": 43540
+  },
+  {
+   "title": "Johann Wolfgang von Goethe",
+   "views": 41795
+  },
+  {
+   "title": "Borussia Dortmund",
+   "views": 40960
+  },
+  {
+   "title": "Wolfgang Amadeus Mozart",
+   "views": 39519
+  },
+  {
+   "title": "Nürnberg",
+   "views": 39465
+  },
+  {
+   "title": "Düsseldorf",
+   "views": 38379
+  },
+  {
+   "title": "Stuttgart",
+   "views": 36302
+  },
+  {
+   "title": "Dresden",
+   "views": 35718
+  },
+  {
+   "title": "Hannover",
+   "views": 35386
+  },
+  {
+   "title": "Peter Maffay",
+   "views": 34547
+  },
+  {
+   "title": "Die Ärzte",
+   "views": 34151
+  },
+  {
+   "title": "Otto von Bismarck",
+   "views": 33306
+  },
+  {
+   "title": "Zugspitze",
+   "views": 31403
+  },
+  {
+   "title": "Ludwig van Beethoven",
+   "views": 30961
+  },
+  {
+   "title": "Helmut Kohl",
+   "views": 30408
+  },
+  {
+   "title": "Bushido (Rapper)",
+   "views": 30047
+  },
+  {
+   "title": "Heidelberg",
+   "views": 29475
+  },
+  {
+   "title": "Karl Marx",
+   "views": 29249
+  },
+  {
+   "title": "Römisches Reich",
+   "views": 29158
+  },
+  {
+   "title": "Udo Lindenberg",
+   "views": 28889
+  },
+  {
+   "title": "Gelsenkirchen",
+   "views": 28227
+  },
+  {
+   "title": "Herbert Grönemeyer",
+   "views": 28127
+  },
+  {
+   "title": "Til Schweiger",
+   "views": 28000
+  },
+  {
+   "title": "Christoph Waltz",
+   "views": 27990
+  },
+  {
+   "title": "Bremen",
+   "views": 27650
+  },
+  {
+   "title": "Waschbär",
+   "views": 27152
+  },
+  {
+   "title": "Sido",
+   "views": 26938
+  },
+  {
+   "title": "Lufthansa",
+   "views": 25955
+  },
+  {
+   "title": "Ostsee",
+   "views": 24106
+  },
+  {
+   "title": "Oldenburg (Oldb)",
+   "views": 23356
+  },
+  {
+   "title": "Matthias Schweighöfer",
+   "views": 23316
+  },
+  {
+   "title": "Rammstein",
+   "views": 23249
+  },
+  {
+   "title": "Berliner Mauer",
+   "views": 22294
+  },
+  {
+   "title": "Porsche",
+   "views": 21445
+  },
+  {
+   "title": "Nordsee",
+   "views": 21377
+  },
+  {
+   "title": "Capital Bra",
+   "views": 20950
+  },
+  {
+   "title": "Formel 1",
+   "views": 20857
+  },
+  {
+   "title": "Deutsche Bahn",
+   "views": 20690
+  },
+  {
+   "title": "Aldi",
+   "views": 20595
+  },
+  {
+   "title": "Minecraft",
+   "views": 20518
+  },
+  {
+   "title": "Hauskatze",
+   "views": 20310
+  },
+  {
+   "title": "Mittelalter",
+   "views": 20218
+  },
+  {
+   "title": "Sylt",
+   "views": 20194
+  },
+  {
+   "title": "Lidl",
+   "views": 19883
+  },
+  {
+   "title": "Bielefeld",
+   "views": 19267
+  },
+  {
+   "title": "Schwarzwald",
+   "views": 19026
+  },
+  {
+   "title": "Siemens",
+   "views": 18617
+  },
+  {
+   "title": "Mercedes-Benz",
+   "views": 16392
+  },
+  {
+   "title": "Wolfsburg",
+   "views": 16236
+  },
+  {
+   "title": "Blauwal",
+   "views": 15495
+  },
+  {
+   "title": "WhatsApp",
+   "views": 15070
+  },
+  {
+   "title": "Audi",
+   "views": 14477
+  },
+  {
+   "title": "Igel",
+   "views": 14385
+  },
+  {
+   "title": "Wolf",
+   "views": 14307
+  },
+  {
+   "title": "Olympische Sommerspiele",
+   "views": 14227
+  },
+  {
+   "title": "Netflix",
+   "views": 14109
+  },
+  {
+   "title": "Scooter (Band)",
+   "views": 14100
+  },
+  {
+   "title": "Weißer Hai",
+   "views": 13728
+  },
+  {
+   "title": "Schach",
+   "views": 13129
+  },
+  {
+   "title": "Haribo",
+   "views": 12426
+  },
+  {
+   "title": "Döner Kebab",
+   "views": 11931
+  },
+  {
+   "title": "Sebastian Vettel",
+   "views": 11892
+  },
+  {
+   "title": "Lindenstraße",
+   "views": 11790
+  },
+  {
+   "title": "Rewe",
+   "views": 11382
+  },
+  {
+   "title": "Kollegah",
+   "views": 11291
+  },
+  {
+   "title": "Wildschwein",
+   "views": 11105
+  },
+  {
+   "title": "Braunbär",
+   "views": 10943
+  },
+  {
+   "title": "Pizza",
+   "views": 10806
+  },
+  {
+   "title": "Deutsche Wiedervereinigung",
+   "views": 10656
+  },
+  {
+   "title": "Dirk Nowitzki",
+   "views": 10451
+  },
+  {
+   "title": "Oktoberfest",
+   "views": 10231
+  },
+  {
+   "title": "Kaffee",
+   "views": 9681
+  },
+  {
+   "title": "Elefanten",
+   "views": 9190
+  },
+  {
+   "title": "Wetten, dass..?",
+   "views": 8917
+  },
+  {
+   "title": "Bier",
+   "views": 8881
+  },
+  {
+   "title": "Monopoly",
+   "views": 8334
+  },
+  {
+   "title": "Liebe",
+   "views": 8018
+  },
+  {
+   "title": "Marienkäfer",
+   "views": 7891
+  },
+  {
+   "title": "Skat",
+   "views": 7692
+  },
+  {
+   "title": "Fortnite",
+   "views": 7660
+  },
+  {
+   "title": "Brezel",
+   "views": 7607
+  },
+  {
+   "title": "Industrielle Revolution",
+   "views": 7254
+  },
+  {
+   "title": "Jägermeister",
+   "views": 7140
+  },
+  {
+   "title": "Smartphone",
+   "views": 7026
+  },
+  {
+   "title": "Good Bye, Lenin!",
+   "views": 6770
+  },
+  {
+   "title": "Miele",
+   "views": 6640
+  },
+  {
+   "title": "Eichhörnchen",
+   "views": 6484
+  },
+  {
+   "title": "Germany’s Next Topmodel",
+   "views": 6360
+  },
+  {
+   "title": "Elektroauto",
+   "views": 5951
+  },
+  {
+   "title": "Weißwurst",
+   "views": 5836
+  },
+  {
+   "title": "Mensch ärgere Dich nicht",
+   "views": 5703
+  },
+  {
+   "title": "Fahrrad",
+   "views": 5535
+  },
+  {
+   "title": "Thermomix",
+   "views": 5237
+  },
+  {
+   "title": "Weihnachten",
+   "views": 4976
+  },
+  {
+   "title": "Bratwurst",
+   "views": 4646
+  },
+  {
+   "title": "Schlaf",
+   "views": 4564
+  },
+  {
+   "title": "Marzipan",
+   "views": 4442
+  },
+  {
+   "title": "Ostern",
+   "views": 4441
+  },
+  {
+   "title": "Spätzle",
+   "views": 4377
+  },
+  {
+   "title": "Mofa",
+   "views": 4024
+  },
+  {
+   "title": "Schnitzel",
+   "views": 3923
+  },
+  {
+   "title": "Schwarzwälder Kirschtorte",
+   "views": 3873
+  },
+  {
+   "title": "Kraftwerk",
+   "views": 3602
+  },
+  {
+   "title": "Geld",
+   "views": 3477
+  },
+  {
+   "title": "Nivea",
+   "views": 3412
+  },
+  {
+   "title": "Sauerkraut",
+   "views": 3346
+  },
+  {
+   "title": "Kartoffelsalat",
+   "views": 3154
+  },
+  {
+   "title": "Dirndl",
+   "views": 3041
+  },
+  {
+   "title": "Führerschein",
+   "views": 2883
+  },
+  {
+   "title": "Schluckauf",
+   "views": 2842
+  },
+  {
+   "title": "Steuer",
+   "views": 2547
+  },
+  {
+   "title": "Lebkuchen",
+   "views": 2146
+  },
+  {
+   "title": "Traum",
+   "views": 2122
+  },
+  {
+   "title": "Jodeln",
+   "views": 1900
+  },
+  {
+   "title": "Lederhose",
+   "views": 1732
+  },
+  {
+   "title": "Gähnen",
+   "views": 1727
+  },
+  {
+   "title": "Kuckucksuhr",
+   "views": 1620
+  },
+  {
+   "title": "Fuchs",
+   "views": 1558
+  },
+  {
+   "title": "Autobahnraststätte",
+   "views": 1537
+  },
+  {
+   "title": "Bundesliga",
+   "views": 1520
+  },
+  {
+   "title": "Tatort",
+   "views": 1519
+  },
+  {
+   "title": "Niesen",
+   "views": 1491
+  },
+  {
+   "title": "Kitzeln",
+   "views": 1378
+  },
+  {
+   "title": "Titanic",
+   "views": 1365
+  },
+  {
+   "title": "Schnarchen",
+   "views": 1177
+  },
+  {
+   "title": "Das Boot",
+   "views": 1024
+  },
+  {
+   "title": "Glühwein",
+   "views": 899
+  },
+  {
+   "title": "Miete",
+   "views": 888
+  },
+  {
+   "title": "Pfand",
+   "views": 881
+  },
+  {
+   "title": "Pferd",
+   "views": 863
+  },
+  {
+   "title": "Wespen",
+   "views": 759
+  },
+  {
+   "title": "Mülltrennung",
+   "views": 728
+  },
+  {
+   "title": "Karneval",
+   "views": 515
+  },
+  {
+   "title": "Ritter Sport",
+   "views": 494
+  },
+  {
+   "title": "Schrebergarten",
+   "views": 427
+  },
+  {
+   "title": "Leberkäse",
+   "views": 398
+  }
+ ]
+}

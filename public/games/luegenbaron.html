@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Lügenbaron – Lvl 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css?v=6">
+  <link rel="stylesheet" href="/css/games.css?v=5">
+  <link rel="stylesheet" href="/css/phantom.css?v=1">
+  <script src="/js/theme.js?v=8"></script>
+  <style>
+    :root{ --acc:#c9a227; }
+    .lb-question{font-weight:700;font-size:clamp(20px,3.6vw,32px);line-height:1.2;letter-spacing:-.01em;
+      max-width:600px;margin:0 auto 8px}
+    .lb-waiting{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;
+      text-transform:uppercase;color:var(--dim);min-height:22px;margin-top:18px}
+    .reveal-opt{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+      padding:13px 16px;border:1px solid var(--line-2);border-radius:14px;margin-bottom:9px;text-align:left}
+    .reveal-opt.truth{border-color:var(--ok);background:rgba(93,255,157,.08)}
+    .reveal-opt-text{font-weight:600;font-size:15px;overflow-wrap:anywhere}
+    .reveal-opt-meta{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;
+      text-transform:uppercase;color:var(--mut);margin-top:5px}
+    .reveal-opt-pts{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc);
+      font-weight:700;white-space:nowrap}
+    .gain-list{width:100%;max-width:420px;margin:16px auto 0;text-align:left}
+    .gain-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);
+      font-size:14px}
+  </style>
+</head>
+<body>
+
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="/dashboard.html" class="brand">LVL<span>³</span></a>
+    <span class="hdr-div"></span>
+    <span class="hdr-game">Lügenbaron</span>
+  </div>
+  <div class="hdr-right">
+    <span class="type-pill">Bluff</span>
+    <div id="user-avatar" class="player-avatar" style="width:30px;height:30px;font-size:12px"></div>
+    <span id="user-name"></span>
+    <button onclick="leaveRoom()" class="p-btn p-btn-ghost btn-sm">Verlassen</button>
+  </div>
+</header>
+
+<aside class="rail">
+  <div class="rail-block">
+    <div class="kicker">Raum-Code</div>
+    <div class="rail-code" id="room-code-display">––––</div>
+  </div>
+  <div class="rail-block rail-players">
+    <div class="kicker">Spieler</div>
+    <ul class="player-list" id="player-list"></ul>
+  </div>
+</aside>
+
+<main class="stage">
+
+  <div class="screen active" id="screen-join">
+    <div class="p-kicker">LVL³ · Lügenbaron</div>
+    <h2 class="p-title">Lügen<br>baron</h2>
+    <p class="p-sub">Erfinde die überzeugendste Lüge</p>
+    <div class="stack">
+      <button onclick="createRoom()" class="p-btn p-btn-primary p-btn-full">Raum erstellen</button>
+      <div class="join-row">
+        <input id="join-code-input" class="p-field" placeholder="Code" maxlength="4">
+        <button onclick="joinRoom()" class="p-btn p-btn-ghost" style="white-space:nowrap">Beitreten</button>
+      </div>
+      <div id="join-error" class="err"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-lobby">
+    <div class="p-kicker">Lobby</div>
+    <h2 class="p-title p-title-sm">Konfiguration</h2>
+    <div style="width:100%;margin-top:40px">
+      <div id="host-settings">
+        <div class="settings-grid" style="grid-template-columns:1fr;max-width:320px">
+          <div class="setting-block">
+            <label>Fragen (3–15)</label>
+            <input type="number" id="inp-rounds" class="p-field" min="3" max="15" value="7" onchange="pushSettings()">
+          </div>
+        </div>
+        <div class="stack">
+          <button onclick="startGame()" id="btn-start" class="p-btn p-btn-primary p-btn-full">Spiel starten</button>
+        </div>
+        <div id="start-error" class="err"></div>
+        <p class="hint">Mindestens 2 Spieler · am besten mit 3–4</p>
+      </div>
+      <div id="guest-settings" style="display:none">
+        <p class="p-sub">Wartet auf den Host…</p>
+        <div id="guest-settings-display" class="hint" style="margin-top:16px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-countdown">
+    <div class="p-kicker">Spiel startet in</div>
+    <div class="countdown-number" id="countdown-num">3</div>
+  </div>
+
+  <!-- Lügen erfinden -->
+  <div class="screen" id="screen-lie">
+    <div class="q-head">
+      <span class="q-progress" id="lie-progress">Frage 1</span>
+      <span class="q-timer" id="lie-timer">35</span>
+    </div>
+    <p class="p-kicker" style="margin-bottom:12px">Erfinde eine falsche Antwort</p>
+    <div class="lb-question" id="lie-question">—</div>
+    <div class="stack" style="max-width:440px;margin-top:26px">
+      <input id="lie-input" class="p-field" placeholder="Deine Lüge…" maxlength="80" autocomplete="off">
+      <button id="btn-lie" class="p-btn p-btn-primary p-btn-full">Lüge abschicken</button>
+    </div>
+    <div id="lie-error" class="err"></div>
+    <div class="lb-waiting" id="lie-waiting"></div>
+  </div>
+
+  <!-- Wahrheit wählen -->
+  <div class="screen" id="screen-pick">
+    <div class="q-head">
+      <span class="q-progress" id="pick-progress">Frage 1</span>
+      <span class="q-timer" id="pick-timer">25</span>
+    </div>
+    <p class="p-kicker" style="margin-bottom:12px">Welche Antwort ist die echte?</p>
+    <div class="lb-question" id="pick-question">—</div>
+    <div class="options-grid" id="pick-options" style="margin-top:24px"></div>
+    <div id="pick-error" class="err"></div>
+    <div class="lb-waiting" id="pick-waiting"></div>
+  </div>
+
+  <!-- Reveal -->
+  <div class="screen" id="screen-reveal">
+    <p class="p-kicker">Auflösung</p>
+    <div class="lb-question" id="reveal-question">—</div>
+    <div style="width:100%;max-width:520px;margin:22px auto 0" id="reveal-options"></div>
+    <div class="gain-list" id="reveal-gains"></div>
+    <p class="hint">Nächste Frage in Kürze</p>
+  </div>
+
+  <div class="screen" id="screen-end">
+    <div style="width:100%">
+      <div class="p-kicker" id="end-kicker">Größter Lügenbaron</div>
+      <div class="winner-name" id="end-winner-name"></div>
+      <div class="p-sub" id="end-sub" style="margin-top:14px">gewinnt das Spiel</div>
+      <div class="final-scores" id="end-final-scores"></div>
+      <div class="stack" style="flex-direction:row;justify-content:center;max-width:none;margin-top:34px">
+        <button id="btn-play-again" onclick="playAgain()" class="p-btn p-btn-ghost hidden">Nochmal spielen</button>
+        <a href="/dashboard.html" class="p-btn p-btn-primary">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/socket-utils.js?v=7"></script>
+<script src="/js/games/luegenbaron.js?v=1"></script>
+<script src="/js/bug-report.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="/js/phantom-ui.js?v=1" defer></script>
+</body>
+</html>
