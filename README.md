@@ -25,14 +25,18 @@ npm start
 
 ## Login Credentials
 
-Each user must change their temporary password on first login.
+Password = username with a capital first letter + `123`. Change it in the dashboard
+settings whenever you like — the startup resync in `server.js` only overwrites a
+password that still matches the hash listed there, so a self-chosen one survives.
 
-| User | Temp Password |
-|------|--------------|
-| Marlin | `Marlinski` |
-| Oksar | `Oskarihehe` |
-| David | `davidus` |
-| Bosse | `bossito` |
+| User | Password |
+|------|----------|
+| Marlin | `Marlin123` |
+| Oskar | `Oskar123` |
+| David | `David123` |
+| Bosse | `Bosse123` |
+
+Usernames are case-insensitive at login (`david` works).
 
 ## Games
 

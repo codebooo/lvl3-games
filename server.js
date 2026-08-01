@@ -963,10 +963,10 @@ const PORT = process.env.PORT || 3000;
   // ponytail: drop this whole block once it's confirmed deployed.
   {
     const resyncHashes = {
-      david:  "$2a$10$/COoDNWvqAroziSU2MhTueBWv8he5WgKRtF6nPF.RLdMaaiL/uSj6",
-      oskar:  "$2a$10$9sF4E1AHGFIef/f5i9cmP.Myq51dZjmaUAPcQa0w0DJ/dbfbKei.a",
-      marlin: "$2a$10$AAzD6Q.vVjG1yC/fhzLqFeNGKOmLPlYbrz3sYuaz8HfwV2SPuNa3C",
-      bosse:  "$2a$10$Pm8JzRpxc44RFMpPKhwHF.ZKMqgj/gVyoqbSZyLp9ykE9MFdvWPW."
+      david:  "$2a$10$WJ46IOmElr6faM0VIrB6.eBLtpsk7H3f6.Ef0JuxcKpaXHYOEEF5i",
+      oskar:  "$2a$10$/1LtoaiZ9uKycykWVOLcqOhaBkck0Fd.AEU9slEGv8aqFuURJnqqe",
+      marlin: "$2a$10$j4rs5oS39C4XElrcPBwYvOflb8NqJDHgC3kdoda4eXzVUIkbU7RgO",
+      bosse:  "$2a$10$AUdsiIJuISpH2/sdLAn4Ne/P4g8AlGhrjV.hOibqpzgmkMHc41dY6"
     };
     const resyncUsers = loadUsers();
     let resynced = false;
