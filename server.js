@@ -919,20 +919,30 @@ io.on("connection", (socket) => {
   // Wrap io so every `io.to(code).emit("game:state", payload)` also caches the
   // payload as room.lastState — this powers mid-game replay on room:resume, with
   // zero changes to the individual game handlers.
-  const handlerIo = {
-    to(code) {
-      const chain = io.to(code);
-      const realEmit = chain.emit.bind(chain);
-      chain.emit = (event, payload) => {
-        if (event === "game:state" && typeof code === "string") {
-          const r = rooms.get(code);
-          if (r) r.lastState = payload;
-        }
-        return realEmit(event, payload);
-      };
-      return chain;
+  //
+  // It's a Proxy, not a hand-written object: handlers legitimately reach for
+  // other io members too (e.g. io.sockets.adapter to emit per-role payloads),
+  // and a wrapper that only defined `to` made those throw.
+  const handlerIo = new Proxy(io, {
+    get(target, prop, receiver) {
+      if (prop === "to") {
+        return (code) => {
+          const chain = target.to(code);
+          const realEmit = chain.emit.bind(chain);
+          chain.emit = (event, payload) => {
+            if (event === "game:state" && typeof code === "string") {
+              const r = rooms.get(code);
+              if (r) r.lastState = payload;
+            }
+            return realEmit(event, payload);
+          };
+          return chain;
+        };
+      }
+      const v = Reflect.get(target, prop, receiver);
+      return typeof v === "function" ? v.bind(target) : v;
     }
-  };
+  });
 
   // Load game handlers
   ["logo-guesser", "knowledge-quiz", "flag-quiz", "movies-actors", "song-guesser", "galgenraten",
